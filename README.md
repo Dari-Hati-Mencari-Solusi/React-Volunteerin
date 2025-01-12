@@ -1,8 +1,16 @@
-# React + Vite
+# VolunteerConnect 🌟  
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**VolunteerConnect** adalah platform yang menghubungkan mahasiswa dan publik dengan organisasi yang mencari volunteer. Melalui aplikasi ini, Anda dapat menemukan peluang volunteer yang sesuai dengan minat Anda, sekaligus membantu organisasi menemukan kandidat yang tepat.  
 
-Currently, two official plugins are available:
+## Fitur Utama 🚀  
+- **Cari Volunteer**: Organisasi dapat memposting kebutuhan volunteer mereka.  
+- **Gabung Sebagai Volunteer**: Mahasiswa atau publik dapat mencari dan bergabung dalam berbagai proyek volunteer.  
+- **Personalisasi**: Sesuaikan pencarian Anda berdasarkan lokasi, kategori, atau keahlian.  
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tujuan Proyek 🎯  
+1. Meningkatkan partisipasi masyarakat dalam kegiatan volunteer.  
+2. Mempermudah organisasi mencari volunteer yang sesuai.  
+3. Mendukung kolaborasi antara individu dan organisasi untuk menciptakan dampak positif.  
+
+## Teknologi yang Digunakan 🛠  
+- **Frontend**: [React.js / Tailwind CSS / axios / JavaScript]  
