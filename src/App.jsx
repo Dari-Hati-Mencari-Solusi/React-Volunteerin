@@ -1,18 +1,19 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import "./App.css";
-import image from "./assets/images/Logo-Volunteerin.jpg";
+import HomePage from "./pages/HomePage";
+import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
 
 function App() {
   return (
-    <>
-      <div className="flex justify-center items-center h-screen">
-        <img src={image} alt="" className="w-56"/>
-        <h1 className="text-[#0A3E54] text-center text-7xl font-bold">
-          Volun
-          <span className="text-[#EB6B17]">teerin</span>
-        </h1>
-      </div>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+      </Routes>
+    </Router>
   );
 }
 
