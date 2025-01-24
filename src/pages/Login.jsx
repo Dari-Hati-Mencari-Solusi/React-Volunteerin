@@ -3,6 +3,7 @@ import logo from "../assets/images/Logo-Volunteerin.jpg";
 import FormLogin from "../components/Fragments/FormLogin";
 import BtnNext from "../components/buttons/BtnNext";
 import BannerLogin from "../assets/images/Banner-Login.png";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   return (
@@ -16,9 +17,9 @@ const Login = () => {
           <div className="mx-auto w-full max-w-md">
             <FormLogin />
           </div>
-          <div className="mx-auto w-full max-w-md">
+          <Link to="/" className="mx-auto w-full max-w-md">
             <BtnNext />
-          </div>
+          </Link>
         </div>
         <h1 className="text-[16px] text-center font-semibold text-[#BCBCBC]">
           Bergabunglah dengan ribuan orang yang mempercayai Volunteerin untuk
