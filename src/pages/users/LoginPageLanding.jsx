@@ -1,10 +1,10 @@
 import React from "react";
-import logo from "../assets/images/Logo-Volunteerin.jpg";
-import BtnSignIn from "../components/buttons/BtnSignIn";
-import BtnSignUp from "../components/buttons/BtnSignUp";
+import logo from "../../assets/images/Logo-Volunteerin.jpg";
+import BtnSignIn from "../../components/buttons/BtnSignIn";
+import BtnSignUp from "../../components/buttons/BtnSignUp";
 import { Handshake, Mail } from "lucide-react";
-import IconGoogle from "../assets/images/icon-google.svg";
-import BannerLogin from "../assets/images/Banner-Login.png";
+import IconGoogle from "../../assets/images/icon-google.svg";
+import BannerLogin from "../../assets/images/Banner-Login.png"; 
 import { Link } from "react-router-dom";
 
 const LoginPageLanding = () => {

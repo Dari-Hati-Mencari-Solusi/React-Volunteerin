@@ -1,10 +1,11 @@
 import React from "react";
-import logo from "../assets/images/Logo-Volunteerin.jpg";
-import FormLogin from "../components/Fragments/FormLogin";
-import BtnNext from "../components/buttons/BtnNext";
-import BannerLogin from "../assets/images/Banner-Login.png";
+import logo from "../../assets/images/Logo-Volunteerin.jpg";
+import BtnNext from "../../components/buttons/BtnNext";
+import BannerLogin from "../../assets/images/Banner-Login.png";
+import FormRegister from "../../components/Fragments/FormRegister";
+import { Link } from "react-router-dom";
 
-const Login = () => {
+const RegisterPage = () => {
   return (
     <section className="h-screen flex justify-between flex-row lg:flex-row">
       <div className="flex w-full lg:w-1/2 flex-col justify-center p-4 lg:p-8 md:space-y-7 md:content-between">
@@ -14,11 +15,11 @@ const Login = () => {
         </div>
         <div className="flex flex-col justify-center p-4 lg:p-8 space-y-4">
           <div className="mx-auto w-full max-w-md">
-            <FormLogin />
+            <FormRegister />
           </div>
-          <div className="mx-auto w-full max-w-md">
+          <Link to="/login" className="mx-auto w-full max-w-md">
             <BtnNext />
-          </div>
+          </Link>
         </div>
         <h1 className="text-[16px] text-center font-semibold text-[#BCBCBC]">
           Bergabunglah dengan ribuan orang yang mempercayai Volunteerin untuk
@@ -33,4 +34,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default RegisterPage;
