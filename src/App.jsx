@@ -8,6 +8,7 @@ import Login from "./pages/users/Login";
 import NotFoundPage from "./pages/NotFoundPage";
 import LandingPage from "./pages/LandingPage";
 import EventPage from "./pages/events/EventPage";
+import EventDetail from "./pages/events/EventDetail";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/landing-page" element={<LandingPage />} />
         <Route path="/event" element={<EventPage />} />
+        <Route path="/event-detail" element={<EventDetail />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>

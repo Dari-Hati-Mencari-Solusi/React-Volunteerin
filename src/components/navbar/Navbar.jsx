@@ -65,7 +65,7 @@ const Navbar = () => {
                     </button>
                     {openDropdown === "event" && (
                       <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2">
-                        <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <Link to='/event' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                           Semua Event
                         </Link>
                         <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
@@ -258,7 +258,7 @@ const Navbar = () => {
                   </button>
                   {openDropdown === "event" && (
                     <div className="mt-2 bg-white rounded-lg py-2">
-                      <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                      <Link to='/event' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                         Semua Event
                       </Link>
                       <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
@@ -343,10 +343,10 @@ const Navbar = () => {
                 </div>
               </li>
               <li className="flex gap-4 mt-4">
-                <Link className="flex-1 rounded-md text-center bg-white border-2 border-[#0A3E54] px-5 py-2.5 text-sm font-medium text-[#0A3E54] hover:text-white transition ease-in-out duration-300 shadow hover:bg-[#0A3E54]">
+                <Link to='/login-landing' className="flex-1 rounded-md text-center bg-white border-2 border-[#0A3E54] px-5 py-2.5 text-sm font-medium text-[#0A3E54] hover:text-white transition ease-in-out duration-300 shadow hover:bg-[#0A3E54]">
                   Masuk
                 </Link>
-                <Link className="flex-1 rounded-md bg-[#0A3E54] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0A3E54]/90 text-center">
+                <Link to='/register' className="flex-1 rounded-md bg-[#0A3E54] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0A3E54]/90 text-center">
                   Daftar
                 </Link>
               </li>

@@ -1,133 +1,150 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-// Data Dummy
 const dummyData = [
   {
     id: 1,
-    image: "https://images.unsplash.com/photo-1613545325278-f24b0cae1224?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-    price: "$240,000",
-    address: "123 Wallaby Avenue, Park Road",
-    parking: "2 spaces",
-    bathroom: "2 rooms",
-    bedroom: "4 rooms",
+    image:
+      "https://images.unsplash.com/photo-1604998103924-89e012e5265a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
+    title: "Penanaman Pohon",
+    description:
+      "Ayo tanam pohon bersama untuk mengurangi dampak pemanasan global dan menjaga kelestarian hutan.",
+    location: "Taman Nasional Gunung Gede Pangrango, Jawa Barat",
+    startDate: "2023-11-05",
+    endDate: "2023-11-05",
+    maxVolunteers: 50,
+    registeredVolunteers: 35,
   },
   {
     id: 2,
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-    price: "$320,000",
-    address: "456 Elm Street, Downtown",
-    parking: "1 space",
-    bathroom: "1 room",
-    bedroom: "3 rooms",
+    image:
+      "https://images.unsplash.com/photo-1526779259212-939e64788e3c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
+    title: "Pembersihan Pantai",
+    description:
+      "Bergabunglah dengan kami untuk membersihkan pantai dari sampah plastik dan menjaga ekosistem laut.",
+    location: "Pantai Kuta, Bali",
+    startDate: "2023-11-12",
+    endDate: "2023-11-12",
+    maxVolunteers: 100,
+    registeredVolunteers: 80,
   },
   {
     id: 3,
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-    price: "$280,000",
-    address: "789 Oak Lane, Suburbia",
-    parking: "3 spaces",
-    bathroom: "2 rooms",
-    bedroom: "5 rooms",
+    image:
+      "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
+    title: "Edukasi Lingkungan untuk Anak",
+    description:
+      "Mengajar anak-anak tentang pentingnya menjaga lingkungan dan praktik daur ulang.",
+    location: "Sekolah Dasar Negeri 01, Jakarta",
+    startDate: "2023-11-18",
+    endDate: "2023-11-18",
+    maxVolunteers: 20,
+    registeredVolunteers: 15,
+  },
+  {
+    id: 4,
+    image:
+      "https://www.hondapowerproducts.co.id/cfind/source/images/article/manfaat%20taman%20kota.jpg",
+    title: "Pemeliharaan Taman Kota",
+    description:
+      "Bantu merawat taman kota dengan membersihkan dan menanam bunga untuk keindahan lingkungan.",
+    location: "Taman Suropati, Jakarta Pusat",
+    startDate: "2023-11-25",
+    endDate: "2023-11-25",
+    maxVolunteers: 30,
+    registeredVolunteers: 25,
   },
 ];
 
 const Lingkungan = () => {
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {dummyData.map((item) => (
-        <a
+        <Link to='/event-detail'
           key={item.id}
-          href="#"
-          className="block rounded-lg p-4 shadow-sm shadow-indigo-100 w-full max-w-md"
+          className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
         >
           <img
-            alt=""
+            alt={item.title}
             src={item.image}
-            className="h-56 w-full rounded-md object-cover"
+            className="w-full h-48 object-cover"
           />
 
-          <div className="mt-2">
-            <dl>
-              <div>
-                <dt className="sr-only">Price</dt>
-                <dd className="text-sm text-gray-500">{item.price}</dd>
-              </div>
+          <div className="p-4 flex flex-col gap-3">
+            <h2 className="text-xl font-bold text-[#0A3E54] truncate">
+              {item.title}
+            </h2>
+            <p className="text-sm text-gray-600 line-clamp-3">
+              {item.description}
+            </p>
 
-              <div>
-                <dt className="sr-only">Address</dt>
-                <dd className="font-medium">{item.address}</dd>
-              </div>
-            </dl>
-
-            <div className="mt-6 flex items-center gap-8 text-xs">
-              <div className="sm:inline-flex sm:shrink-0 sm:items-center sm:gap-2">
+            <div className="space-y-3 text-sm font-normal text-[#0A3E54]">
+              <div className="flex items-center gap-2">
                 <svg
-                  className="size-4 text-indigo-700"
-                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 flex-shrink-0"
                   fill="none"
-                  viewBox="0 0 24 24"
                   stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-
-                <div className="mt-1.5 sm:mt-0">
-                  <p className="text-gray-500">Parking</p>
-                  <p className="font-medium">{item.parking}</p>
-                </div>
+                <span className="truncate text-[15px]">{item.location}</span>
               </div>
 
-              <div className="sm:inline-flex sm:shrink-0 sm:items-center sm:gap-2">
+              <div className="flex items-center gap-2">
                 <svg
-                  className="size-4 text-indigo-700"
-                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 flex-shrink-0"
                   fill="none"
-                  viewBox="0 0 24 24"
                   stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-
-                <div className="mt-1.5 sm:mt-0">
-                  <p className="text-gray-500">Bathroom</p>
-                  <p className="font-medium">{item.bathroom}</p>
-                </div>
+                <span className="truncate text-[15px]">
+                  {item.startDate} - {item.endDate}
+                </span>
               </div>
 
-              <div className="sm:inline-flex sm:shrink-0 sm:items-center sm:gap-2">
+              <div className="flex items-center gap-2">
                 <svg
-                  className="size-4 text-indigo-700"
-                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 flex-shrink-0"
                   fill="none"
-                  viewBox="0 0 24 24"
                   stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-
-                <div className="mt-1.5 sm:mt-0">
-                  <p className="text-gray-500">Bedroom</p>
-                  <p className="font-medium">{item.bedroom}</p>
-                </div>
+                <span className="truncate text-[15px]">
+                  {item.registeredVolunteers}/{item.maxVolunteers} Terdaftar
+                </span>
               </div>
             </div>
           </div>
-        </a>
+        </Link>
       ))}
     </div>
   );

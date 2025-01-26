@@ -28,7 +28,7 @@ const EventPage = () => {
     <section>
       <Navbar />
       <div className="overflow-hidden sm:grid sm:grid-cols-2 sm:items-center py-10">
-        <div className="p-8 md:p-12 lg:px-16 lg:py-24">
+        <div className="p-8 md:p-12 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-xl text-start ltr:sm:text-left rtl:sm:text-right">
             <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">
               Lorem, ipsum dolor sit amet consectetur adipisicing elit
@@ -58,15 +58,15 @@ const EventPage = () => {
           className="h-full w-full object-cover sm:h-[calc(100%_-_2rem)] sm:self-end sm:rounded-ss-[30px] md:h-[calc(100%_-_4rem)] md:rounded-ss-[60px]"
         />
       </div>
-      <div className="w-full gap-8 flex px-4">
+      <div className="w-full gap-4 flex px-8">
         <input
           type="text"
           placeholder="Cari Volunteer Disini...."
-          className="border-2 h-[63px] rounded-[12px] w-full focus:border-white px-10 text-lg focus:outline-none focus focus:ring focus:ring-[#0A3E54]"
+          className="border-2 py-3 rounded-[12px] w-full focus:border-white px-6 text-md focus:outline-none focus focus:ring focus:ring-[#0A3E54]"
         />
         <BtnSearch />
       </div>
-      <div className="px-4 py-5">
+      <div className="px-8 py-5">
         <div className="relative">
           <button
             onClick={() => toggleDropdown("filter")}
@@ -130,9 +130,9 @@ const EventPage = () => {
         </div>
       </div>
 
-      <div className="px-4 py-6">
+      <div className="px-8 py-6">
         {selectedCategory === "Lingkungan" && <Lingkungan />}
-        {selectedCategory === "Pendidikan" && <Pendidikan/>}
+        {selectedCategory === "Pendidikan" && <Pendidikan />}
         {selectedCategory === "Sosial" && <Sosial />}
         {selectedCategory === "Panti Asuhan" && <PantiAsuhan />}
       </div>
