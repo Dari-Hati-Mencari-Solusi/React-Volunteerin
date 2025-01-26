@@ -1,6 +1,6 @@
 import React from "react";
 import logo from "../../assets/images/Logo-Volunteerin.jpg";
-import BtnNext from "../../components/buttons/BtnNext";
+import BtnNext from "../../components/Elements/buttons/BtnNext";
 import BannerLogin from "../../assets/images/Banner-Login.png";
 import FormRegister from "../../components/Fragments/FormRegister";
 import { Link } from "react-router-dom";

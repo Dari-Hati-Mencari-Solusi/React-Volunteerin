@@ -1,7 +1,7 @@
 import React from "react";
 import logo from "../../assets/images/Logo-Volunteerin.jpg";
-import BtnSignIn from "../../components/buttons/BtnSignIn";
-import BtnSignUp from "../../components/buttons/BtnSignUp";
+import BtnSignIn from "../../components/Elements/buttons/BtnSignIn";
+import BtnSignUp from "../../components/Elements/buttons/BtnSignUp";
 import { Handshake, Mail } from "lucide-react";
 import IconGoogle from "../../assets/images/icon-google.svg";
 import BannerLogin from "../../assets/images/Banner-Login.png"; 
