@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import logo from "../../assets/images/Logo_volun.png";
 import { Link } from "react-router-dom";
+import { AlignRight } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,7 +20,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white">
+    <nav className="bg-white fixed w-full z-50 border-b border-gray-200">
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center pt-2">
@@ -34,18 +35,18 @@ const Navbar = () => {
             <nav aria-label="Global">
               <ul className="flex items-center gap-12 text-md">
                 <li>
-                  <a
-                    className="text-black transition hover:text-[#0A3E54]"
-                    href="#"
+                  <Link
+                    to="/"
+                    className="text-black transition text-[13px] hover:text-[#0A3E54] font-medium uppercase"
                   >
                     Beranda
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <div className="relative">
                     <button
                       onClick={() => toggleDropdown("event")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1"
+                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 text-[13px] uppercase font-medium"
                     >
                       Event
                       <svg
@@ -64,52 +65,21 @@ const Navbar = () => {
                       </svg>
                     </button>
                     {openDropdown === "event" && (
-                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2">
-                        <Link to='/event' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                        <Link
+                          to="/event"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
                           Semua Event
                         </Link>
                         <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                           Lingkungan
                         </Link>
                         <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Community
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </li>
-                <li>
-                  <div className="relative">
-                    <button
-                      onClick={() => toggleDropdown("kategori")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1"
-                    >
-                      Kategori
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-4 w-4 transition-transform ${
-                          openDropdown === "kategori" ? "rotate-180" : ""
-                        }`}
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                    {openDropdown === "kategori" && (
-                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2">
-                        <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Web Development
+                          Sosial
                         </Link>
                         <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Mobile Development
-                        </Link>
-                        <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          SEO
+                          Pendidikan
                         </Link>
                       </div>
                     )}
@@ -119,7 +89,7 @@ const Navbar = () => {
                   <div className="relative">
                     <button
                       onClick={() => toggleDropdown("hubungiKami")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1"
+                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-medium text-[13px] uppercase"
                     >
                       Hubungi Kami
                       <svg
@@ -138,12 +108,12 @@ const Navbar = () => {
                       </svg>
                     </button>
                     {openDropdown === "hubungiKami" && (
-                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2">
+                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
                         <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Email
+                          Cs
                         </Link>
                         <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Telepon
+                          Cs Partner
                         </Link>
                       </div>
                     )}
@@ -156,10 +126,16 @@ const Navbar = () => {
           {/* Login/Register and Hamburger Button */}
           <div className="flex items-center gap-4">
             <div className="hidden md:flex gap-4">
-              <Link to="/login-landing" className="rounded-md bg-white border-[1.5px] border-[#0A3E54] px-5 py-2.5 text-sm font-medium text-[#0A3E54] hover:text-white transition ease-in-out duration-300 shadow hover:bg-[#0A3E54]">
+              <Link
+                to="/login-landing"
+                className="rounded-[18px] bg-white px-6 py-2.5 text-sm font-medium text-[#0A3E54] hover:text-white transition ease-in-out duration-300 hover:bg-[#0A3E54]"
+              >
                 Masuk
               </Link>
-              <Link to="/register" className="rounded-md bg-[#0A3E54] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0A3E54]/90">
+              <Link
+                to="/register"
+                className="rounded-[18px] bg-[#0A3E54] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#0A3E54]/90"
+              >
                 Daftar
               </Link>
             </div>
@@ -167,23 +143,10 @@ const Navbar = () => {
             {/* Hamburger Button */}
             <div className="block md:hidden">
               <button
-                className="rounded bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75"
+                className="p-2 text-gray-600 transition hover:text-gray-600/75"
                 onClick={toggleMenu}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
+                <AlignRight size={32} strokeWidth={3} />
               </button>
             </div>
           </div>
@@ -206,23 +169,10 @@ const Navbar = () => {
           {/* Close Button */}
           <div className="flex justify-end p-4">
             <button
-              className="rounded bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75"
+              className=" p-2 text-gray-600 transition hover:text-gray-600/75"
               onClick={toggleMenu}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <AlignRight size={32} strokeWidth={3} />
             </button>
           </div>
 
@@ -230,7 +180,10 @@ const Navbar = () => {
           <nav aria-label="Global" className="p-4">
             <ul className="flex flex-col gap-6 text-md">
               <li>
-                <Link className="transition text-black hover:text-[#0A3E54] duration-200 ease-in-out">
+                <Link
+                  to="/"
+                  className="transition text-black hover:text-[#0A3E54] duration-200 ease-in-out"
+                >
                   Beranda
                 </Link>
               </li>
@@ -257,8 +210,11 @@ const Navbar = () => {
                     </svg>
                   </button>
                   {openDropdown === "event" && (
-                    <div className="mt-2 bg-white rounded-lg py-2">
-                      <Link to='/event' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                    <div className="mt-2 bg-white rounded-lg py-2 z-50">
+                      <Link
+                        to="/event"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
                         Semua Event
                       </Link>
                       <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
@@ -266,43 +222,6 @@ const Navbar = () => {
                       </Link>
                       <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                         Community
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </li>
-              <li>
-                <div className="relative">
-                  <button
-                    onClick={() => toggleDropdown("kategori")}
-                    className="w-full transition text-black hover:text-[#0A3E54] duration-200 ease-in-out flex items-center justify-between"
-                  >
-                    <span>Kategori</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-4 w-4 transition-transform ${
-                        openDropdown === "kategori" ? "rotate-180" : ""
-                      }`}
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                  {openDropdown === "kategori" && (
-                    <div className="mt-2 bg-white rounded-lg py-2">
-                      <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                        Web Development
-                      </Link>
-                      <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                        Mobile Development
-                      </Link>
-                      <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                        SEO
                       </Link>
                     </div>
                   )}
@@ -331,7 +250,7 @@ const Navbar = () => {
                     </svg>
                   </button>
                   {openDropdown === "hubungiKami" && (
-                    <div className="mt-2 bg-white rounded-lg py-2">
+                    <div className="mt-2 bg-white rounded-lg py-2 z-50">
                       <Link className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                         Email
                       </Link>
@@ -343,10 +262,16 @@ const Navbar = () => {
                 </div>
               </li>
               <li className="flex gap-4 mt-4">
-                <Link to='/login-landing' className="flex-1 rounded-md text-center bg-white border-2 border-[#0A3E54] px-5 py-2.5 text-sm font-medium text-[#0A3E54] hover:text-white transition ease-in-out duration-300 shadow hover:bg-[#0A3E54]">
+                <Link
+                  to="/login-landing"
+                  className="flex-1 rounded-md text-center bg-white border-2 border-[#0A3E54] px-5 py-2.5 text-sm font-medium text-[#0A3E54] hover:text-white transition ease-in-out duration-300 shadow hover:bg-[#0A3E54]"
+                >
                   Masuk
                 </Link>
-                <Link to='/register' className="flex-1 rounded-md bg-[#0A3E54] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0A3E54]/90 text-center">
+                <Link
+                  to="/register"
+                  className="flex-1 rounded-md bg-[#0A3E54] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0A3E54]/90 text-center"
+                >
                   Daftar
                 </Link>
               </li>

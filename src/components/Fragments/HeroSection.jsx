@@ -1,40 +1,143 @@
-import React from "react";
+import { useRef } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay, Navigation } from "swiper/modules";
+import { Link } from "react-router-dom"; // Import Link dari react-router-dom
+import Banner1 from "../../assets/images/banner1.jpg";
+import Banner2 from "../../assets/images/banner2.jpg";
+import Banner3 from "../../assets/images/banner3.jpg";
+import Banner4 from "../../assets/images/banner1.jpg";
+import Banner5 from "../../assets/images/banner2.jpg";
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+
+export const bannerData = [
+  {
+    image: Banner1,
+    link: "/event/1",
+  },
+  {
+    image: Banner2,
+    link: "/event/2",
+  },
+  {
+    image: Banner3,
+    link: "/event/3",
+  },
+  {
+    image: Banner4,
+    link: "/event/4",
+  },
+  {
+    image: Banner5,
+    link: "/event/5",
+},
+];
 
 const HeroSection = () => {
+  const swiperRef = useRef(null);
+
   return (
-    <section className="bg-gray-50">
-      <div className="mx-auto max-w-screen-xl px-4 py-32 lg:flex lg:h-screen lg:items-center">
-        <div className="mx-auto max-w-xl text-center">
-          <h1 className="text-3xl font-extrabold sm:text-5xl">
-            Understand User Flow.
-            <strong className="font-extrabold text-red-700 sm:block">
-              {" "}
-              Increase Conversion.{" "}
-            </strong>
-          </h1>
-
-          <p className="mt-4 sm:text-xl/relaxed">
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nesciunt
-            illo tenetur fuga ducimus numquam ea!
-          </p>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <a
-              className="block w-full rounded bg-red-600 px-12 py-3 text-sm font-medium text-white shadow hover:bg-red-700 focus:outline-none focus:ring active:bg-red-500 sm:w-auto"
-              href="#"
+    <section className="relative w-full overflow-hidden pt-16">
+      <div className="container mx-auto px-4 py-6">
+        <Swiper
+          ref={swiperRef}
+          initialSlide={1}
+          slidesPerView="auto"
+          centeredSlides={true}
+          spaceBetween={10}
+          loop={true}
+          pagination={{
+            clickable: true,
+            el: ".swiper-pagination",
+            bulletClass:
+              "swiper-pagination-bullet !bg-cyan-200 !opacity-50 mx-1",
+            bulletActiveClass: "!opacity-90 !bg-orange-600",
+          }}
+          navigation={{
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+          }}
+          autoplay={{
+            delay: 6000,
+            disableOnInteraction: false,
+          }}
+          modules={[Pagination, Autoplay, Navigation]}
+          className="!overflow-visible h-[353px]"
+        >
+          {bannerData.map((banner, index) => (
+            <SwiperSlide
+              key={index}
+              className="!w-[1122px] h-full transition-all duration-300"
             >
-              Get Started
-            </a>
+              <Link to={banner.link}>
+                <div
+                  className="w-full h-full bg-cover bg-center rounded-[12px] overflow-hidden relative group"
+                  style={{ backgroundImage: `url(${banner.image})` }}
+                >
+                </div>
+              </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
 
-            <a
-              className="block w-full rounded px-12 py-3 text-sm font-medium text-red-600 shadow hover:text-red-700 focus:outline-none focus:ring active:text-red-500 sm:w-auto"
-              href="#"
-            >
-              Learn More
-            </a>
-          </div>
+        <div className="flex justify-center items-center mt-2 gap-4">
+          <div className="swiper-button-prev !static !w-8 !h-8 !m-0 flex items-center justify-center"></div>
+          <div className="swiper-pagination !static !w-auto"></div>
+          <div className="swiper-button-next !static !w-8 !h-8 !m-0 flex items-center justify-center"></div>
         </div>
       </div>
+
+      <style jsx global>{`
+        .swiper-slide {
+          opacity: 0.4;
+          transition: opacity 0.3s;
+        }
+        .swiper-slide-active {
+          opacity: 1;
+        }
+        .swiper-wrapper {
+          align-items: center;
+        }
+        .swiper-pagination {
+          position: relative !important;
+          bottom: 0 !important;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .swiper-pagination-bullet {
+          background-color: #fff;
+          opacity: 0.5;
+          width: 12px;
+          height: 12px;
+          margin: 0 4px;
+          border-radius: 50%;
+          transition: all 0.3s;
+        }
+        .swiper-pagination-bullet-active {
+          opacity: 1;
+          background-color: #ff0000;
+        }
+        .swiper-button-prev,
+        .swiper-button-next {
+          position: static !important;
+          transform: none !important;
+          margin: 0 !important;
+        }
+        .swiper-button-prev::after,
+        .swiper-button-next::after {
+          content: "";
+          width: 8px;
+          height: 8px;
+          border-top: 2px solid #0a3e54;
+          border-left: 2px solid #0a3e54;
+          transform: rotate(-45deg);
+        }
+        .swiper-button-next::after {
+          transform: rotate(135deg);
+        }
+      `}</style>
     </section>
   );
 };

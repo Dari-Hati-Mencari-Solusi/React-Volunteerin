@@ -10,7 +10,7 @@ const NotFoundPage = () => {
         Sepertinya Anda tersesat. Mari kembali ke beranda.
       </p>
       <Link
-        to="/landing-page"
+        to="/"
         className="mt-6 px-6 py-3 bg-white text-black font-semibold rounded-lg shadow-lg"
       >
         Kembali ke Beranda

@@ -305,7 +305,7 @@ const Footer = () => {
             </p>
 
             <p className="mt-4 text-sm text-white sm:order-first sm:mt-0">
-              &copy; Volunteerin{" "}
+              &copy; Volunteerin
             </p>
           </div>
         </div>
