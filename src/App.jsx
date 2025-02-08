@@ -9,6 +9,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import LandingPage from "./pages/LandingPage";
 import EventPage from "./pages/events/EventPage";
 import EventDetail from "./pages/events/EventDetail";
+import ProfileUser from "./pages/users/ProfileUser";
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/event" element={<EventPage />} />
         <Route path="/event-detail" element={<EventDetail />} />
+        <Route path="/profile" element={<ProfileUser />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>

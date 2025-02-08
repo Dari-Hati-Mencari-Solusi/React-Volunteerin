@@ -42,7 +42,7 @@ const dummyData = [
   {
     id: 4,
     image:
-      "https://www.hondapowerproducts.co.id/cfind/source/images/article/manfaat%20taman%20kota.jpg",
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
     title: "Pemeliharaan Taman Kota",
     location: "Taman Suropati, Jakarta Pusat",
     startDate: "2023-11-25",
@@ -71,7 +71,7 @@ const Events = ({ selectedCategory }) => {
     : dummyData;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
       {filteredEvents.map((item) => (
         <Link
           to="/event-detail"
@@ -84,13 +84,13 @@ const Events = ({ selectedCategory }) => {
             className="w-full h-48 object-cover"
           />
           <div className="p-4 flex flex-col gap-3">
-            <h2 className="text-xl font-bold text-[#0A3E54] truncate">
+            <h2 className="text-[18px] font-bold text-[#0A3E54] truncate">
               {item.title}
             </h2>
             <div className="space-y-3 text-sm font-normal text-[#0A3E54]">
               <div className="flex items-center gap-2">
                 <Icon icon="tdesign:location" width="18" height="18" />
-                <span className="truncate text-[17px]">{item.location}</span>
+                <span className="truncate text-[14px]">{item.location}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Icon
@@ -98,18 +98,18 @@ const Events = ({ selectedCategory }) => {
                   width="18"
                   height="18"
                 />
-                <span className="truncate text-[17px]">
+                <span className="truncate text-[14px]">
                   {item.startDate} - {item.endDate}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Icon icon="fa6-solid:user-group" width="16" height="16" />
-                <span className="truncate text-[17px]">
+                <span className="truncate text-[14px]">
                   {item.registeredVolunteers}/{item.maxVolunteers} Terdaftar
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <div className="text-[#0A3E54] bg-[#22D0EE] p-2 rounded-full px-4 font-semibold">
+                <div className="text-[#0A3E54] bg-[#22D0EE] p-1 rounded-full px-3 text-[12px] font-semibold">
                     <h1 className="">Event Berjalan</h1>
                 </div>
                 <div>
