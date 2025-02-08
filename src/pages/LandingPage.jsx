@@ -42,12 +42,15 @@ const LandingPage = () => {
   };
 
   return (
-    <section className="min-h-screen flex flex-col">
+    <section className="flex flex-col">
       <Navbar />
       <HeroSection />
 
+      <main className="flex-1 py-8">
+        <div className="container mx-auto px-4 md:px-4 lg:px-4 max-w-screen-xl space-y-5">
+
       {/* Search Bar */}
-      <div className="w-full gap-4 flex px-4 md:px-8">
+      <div className="w-full gap-4 flex px-4 md:px-4 lg:px-4">
         <label className="relative w-full">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-gray-400" />
@@ -74,7 +77,7 @@ const LandingPage = () => {
 
       {/* Filter Section */}
       <div
-        className={`px-4 md:px-8 py-5 ${
+        className={`px-4 lg:px-4 md:px-4 py-5 ${
           isFilterOpen ? "block" : "hidden"
         } md:block`}
       >
@@ -108,7 +111,7 @@ const LandingPage = () => {
       </div>
 
       {/* Category Content */}
-      <div className="px-4 md:px-8 space-y-5 py-4 flex-grow">
+      <div className="px-4 lg:px-4 md:px-4 space-y-5 py-4 flex-grow">
         <h1 className="text-xl md:text-2xl font-bold">Event Terdekat</h1>
         <Events selectedCategory={selectedCategory} />
       </div>
@@ -128,7 +131,11 @@ const LandingPage = () => {
         </h1>
         <ColaborateWith />
       </div>
+        </div>
+
+      </main>
       <Footer />
+
     </section>
   );
 };

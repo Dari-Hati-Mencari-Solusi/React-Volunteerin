@@ -37,7 +37,7 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/"
-                    className="text-black transition text-[13px] hover:text-[#0A3E54] font-medium uppercase"
+                    className="text-black transition text-[13px] hover:text-[#0A3E54] font-medium"
                   >
                     Beranda
                   </Link>
@@ -46,7 +46,7 @@ const Navbar = () => {
                   <div className="relative">
                     <button
                       onClick={() => toggleDropdown("event")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 text-[13px] uppercase font-medium"
+                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 text-[13px] font-medium pt-1"
                     >
                       Event
                       <svg
@@ -89,7 +89,7 @@ const Navbar = () => {
                   <div className="relative">
                     <button
                       onClick={() => toggleDropdown("hubungiKami")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-medium text-[13px] uppercase"
+                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-medium text-[13px] pt-1"
                     >
                       Hubungi Kami
                       <svg
