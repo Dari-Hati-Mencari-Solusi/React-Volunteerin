@@ -4,7 +4,7 @@ import BtnSignIn from "../../components/Elements/buttons/BtnSignIn";
 import BtnSignUp from "../../components/Elements/buttons/BtnSignUp";
 import { Handshake, Mail } from "lucide-react";
 import IconGoogle from "../../assets/images/icon-google.svg";
-import BannerLogin from "../../assets/images/Banner-Login.png"; 
+import BannerLogin from "../../assets/images/Banner-Login.png";
 import { Link } from "react-router-dom";
 
 const LoginPageLanding = () => {
@@ -32,7 +32,10 @@ const LoginPageLanding = () => {
             <img src={IconGoogle} alt="icon google" />
             <h1 className="font-medium">Masuk Dengan Google</h1>
           </button>
-          <Link to='/login' className="flex flex-col border-2 boirder-[#A1A1A1] items-center gap-4 rounded-[12px] px-4 py-4 mt-8 mx-auto w-full md:w-[402px] md:flex-row justify-center">
+          <Link
+            to="/login"
+            className="flex flex-col border-2 boirder-[#A1A1A1] items-center gap-4 rounded-[12px] px-4 py-4 mt-8 mx-auto w-full md:w-[402px] md:flex-row justify-center"
+          >
             <Mail className="h-5 w-5 text-black" />
             <h1 className="font-medium">Masuk Dengan Email</h1>
           </Link>
