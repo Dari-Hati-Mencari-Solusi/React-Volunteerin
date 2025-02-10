@@ -30,6 +30,7 @@ const FormLogin = () => {
     setIsPasswordValid(validatePassword(value));
   };
 
+  
   return (
     <div className="w-full max-w-md mx-auto px-4">
       <div className="flex flex-col gap-6 px-4">
