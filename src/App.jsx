@@ -9,7 +9,8 @@ import NotFoundPage from "./pages/NotFoundPage";
 import LandingPage from "./pages/LandingPage";
 import EventPage from "./pages/events/EventPage";
 import EventDetail from "./pages/events/EventDetail";
-
+import SaveEvent from "./pages/events/SaveEvent";
+import RegisteredEvent from "./pages/events/RegisteredEvent";
 
 function App() {
   return (
@@ -22,6 +23,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/event" element={<EventPage />} />
         <Route path="/event-detail" element={<EventDetail />} />
+        <Route path="/save-event" element={<SaveEvent />} />
+        <Route path="/regis-event" element={<RegisteredEvent />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>

@@ -57,9 +57,8 @@ const EventDetail = () => {
     return text.slice(0, maxLength).trim() + "...";
   };
 
-  const [activeSection, setActiveSection] = useState("syarat"); // Default to "syarat"
+  const [activeSection, setActiveSection] = useState("syarat"); 
 
-  // Add this function inside your EventDetail component
   const toggleSection = (section) => {
     setActiveSection(section);
   };

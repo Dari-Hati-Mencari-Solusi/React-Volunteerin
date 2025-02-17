@@ -8,7 +8,7 @@ const dummyData = [
     image:
       "https://images.unsplash.com/photo-1604998103924-89e012e5265a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
     title: "Pembersihan Pohon",
-    location: "Pantai Kuta, Bali Mataram",
+    location: "Pantai Kuta, Bali",
     startDate: "2023-11-12",
     endDate: "2023-11-12",
     maxVolunteers: 100,
@@ -63,18 +63,79 @@ const dummyData = [
     registeredVolunteers: 150,
     category: "Sosial",
   },
+  {
+    id: 6,
+    image:
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
+    title: "Penanaman Pohon Mangrove",
+    location: "Pantai Sanur, Bali",
+    startDate: "2023-12-05",
+    endDate: "2023-12-05",
+    maxVolunteers: 50,
+    registeredVolunteers: 40,
+    category: "Lingkungan",
+  },
+  {
+    id: 7,
+    image:
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
+    title: "Bantuan Makanan untuk Lansia",
+    location: "Panti Jompo Harapan, Bandung",
+    startDate: "2023-12-10",
+    endDate: "2023-12-10",
+    maxVolunteers: 30,
+    registeredVolunteers: 20,
+    category: "Sosial",
+  },
+  {
+    id: 8,
+    image:
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
+    title: "Workshop Daur Ulang Sampah",
+    location: "Ruang Terbuka Hijau, Surabaya",
+    startDate: "2023-12-15",
+    endDate: "2023-12-15",
+    maxVolunteers: 40,
+    registeredVolunteers: 35,
+    category: "Pendidikan",
+  },
+  {
+    id: 9,
+    image:
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
+    title: "Bantuan Pendidikan untuk Anak Jalanan",
+    location: "Jakarta Pusat",
+    startDate: "2023-12-20",
+    endDate: "2023-12-20",
+    maxVolunteers: 25,
+    registeredVolunteers: 20,
+    category: "Pendidikan",
+  },
+  {
+    id: 10,
+    image:
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80",
+    title: "Bersih-Bersih Sungai Ciliwung",
+    location: "Jakarta Selatan",
+    startDate: "2023-12-25",
+    endDate: "2023-12-25",
+    maxVolunteers: 100,
+    registeredVolunteers: 90,
+    category: "Lingkungan",
+  },
 ];
 
-const Events = ({ selectedCategory }) => {
+const Events = ({ selectedCategory, limit }) => {
   const filteredEvents = selectedCategory
     ? dummyData.filter((event) => event.category === selectedCategory)
     : dummyData;
 
+  const limitedEvents = limit ? filteredEvents.slice(0, limit) : filteredEvents;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {filteredEvents.map((item) => (
-        <Link
-          to="/event-detail"
+      {limitedEvents.map((item) => (
+        <div
           key={item.id}
           className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
         >
@@ -84,9 +145,11 @@ const Events = ({ selectedCategory }) => {
             className="w-full h-48 object-cover"
           />
           <div className="p-4 flex flex-col gap-3">
-            <h2 className="text-xl font-bold text-[#0A3E54] truncate">
-              {item.title}
-            </h2>
+            <Link to="/event">
+              <h2 className="text-xl font-bold text-[#0A3E54] truncate">
+                {item.title}
+              </h2>
+            </Link>
             <div className="space-y-3 text-sm font-normal text-[#0A3E54]">
               <div className="flex items-center gap-2">
                 <Icon icon="tdesign:location" width="18" height="18" />
@@ -110,15 +173,15 @@ const Events = ({ selectedCategory }) => {
               </div>
               <div className="flex justify-between items-center">
                 <div className="text-[#0A3E54] bg-[#22D0EE] p-2 rounded-full px-4 font-semibold">
-                    <h1 className="">Event Berjalan</h1>
+                  <h1 className="">Event Berjalan</h1>
                 </div>
-                <div>
-                <Icon icon="bi:three-dots" width="18" height="18" />
-                </div>
+                <Link to="/save-event">
+                  <Icon icon="stash:save-ribbon" width="18" height="18" />
+                </Link>
               </div>
             </div>
           </div>
-        </Link>
+        </div>
       ))}
     </div>
   );
