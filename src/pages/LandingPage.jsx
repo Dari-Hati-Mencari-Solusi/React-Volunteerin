@@ -50,7 +50,7 @@ const LandingPage = () => {
             <input
               type="text"
               placeholder="Cari Volunteer Disini...."
-              className="border-[2px] border-[#0A3E54] py-3 rounded-[12px] w-full px-6 text-md focus:ring-[#0A3E54] pr-12"
+              className="border-[2px] border-[#0A3E54] py-3 rounded-[12px] w-full px-6 text-md focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B] pr-12"
             />
             <button
               type="button"
