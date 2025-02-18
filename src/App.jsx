@@ -12,6 +12,9 @@ import SaveEvent from "./pages/events/SaveEvent";
 import RegisteredEvent from "./pages/events/RegisteredEvent";
 import ProfileUser from "./pages/users/ProfileUser";
 import NotificationUser from "./pages/users/NotificationUser";
+import PartnerAuth from "./pages/partners/PartnerAuth";
+import LoginPartner from "./pages/partners/LoginPartner";
+import RegisterPartner from "./pages/partners/RegisterPartner";
 
 function App() {
   return (
@@ -26,6 +29,9 @@ function App() {
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
         <Route path="/notification" element={<NotificationUser />} />
+        <Route path="/partner" element={<PartnerAuth />} />
+        <Route path="/login-partner" element={<LoginPartner />} />
+        <Route path="/register-partner" element={<RegisterPartner />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
