@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay, Navigation } from "swiper/modules";
-import { Link } from "react-router-dom"; // Import Link dari react-router-dom
+import { Link } from "react-router-dom";
 import Banner1 from "../../assets/images/banner1.jpg";
 import Banner2 from "../../assets/images/banner2.jpg";
 import Banner3 from "../../assets/images/banner3.jpg";
@@ -31,7 +31,7 @@ export const bannerData = [
   {
     image: Banner5,
     link: "/event/5",
-},
+  },
 ];
 
 const HeroSection = () => {
@@ -74,8 +74,7 @@ const HeroSection = () => {
                 <div
                   className="w-full h-full bg-cover bg-center rounded-[12px] overflow-hidden relative group"
                   style={{ backgroundImage: `url(${banner.image})` }}
-                >
-                </div>
+                ></div>
               </Link>
             </SwiperSlide>
           ))}
@@ -119,17 +118,41 @@ const HeroSection = () => {
           opacity: 1;
           background-color: #ff0000;
         }
-        .swiper-button-prev,
+        .swiper-button-prev {
+         position: static !important;
+          transform: none !important;
+          width: 40px !important; 
+          height: 40px !important; 
+          background-color: #E6E6E6; /* Latar belakang tombol */
+          border-radius: 50%; /* Membuat tombol bulat */
+          display: flex;
+          padding-left: 5px;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.3s;
+          }
         .swiper-button-next {
           position: static !important;
           transform: none !important;
-          margin: 0 !important;
+          width: 40px !important; 
+          height: 40px !important; 
+          background-color: #E6E6E6; /* Latar belakang tombol */
+          border-radius: 50%; /* Membuat tombol bulat */
+          display: flex;
+           padding-right: 5px;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.3s;
+        }
+        .swiper-button-prev:hover,
+        .swiper-button-next:hover {
+          background-color: #E6E6E6;
         }
         .swiper-button-prev::after,
         .swiper-button-next::after {
           content: "";
-          width: 8px;
-          height: 8px;
+          width: 12px; /* Ukuran panah */
+          height: 12px; /* Ukuran panah */
           border-top: 2px solid #0a3e54;
           border-left: 2px solid #0a3e54;
           transform: rotate(-45deg);

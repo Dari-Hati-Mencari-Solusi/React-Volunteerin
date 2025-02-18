@@ -25,14 +25,14 @@ const SearchDropdown = () => {
   }, []);
 
   return (
-    <div className="relative w-full md:w-auto" ref={dropdownRef}>
+    <div className="relative w-full md:w-auto bottom-1" ref={dropdownRef}>
       <button
-        className="bg-white border-[1.5px] border-[#0A3E54] text-[#0A3E54] font-medium px-4 py-[16px] rounded-[18px] flex items-center gap-2 w-full md:w-[168px] justify-center"
+        className="bg-white border-[1.5px] border-[#0A3E54] text-[#0A3E54] py-[10px] font-medium px-4 rounded-[12px] flex items-center gap-2 w-full md:w-[168px] justify-center"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="truncate">{selectedCity || "Pilih Daerah"}</span>
         <ChevronDown
-          className={`w-4 h-4 transform transition-transform duration-300 ${
+          className={`w-5 h-5 transform transition-transform duration-300 ${
             isOpen ? "rotate-180" : ""
           }`}
         />

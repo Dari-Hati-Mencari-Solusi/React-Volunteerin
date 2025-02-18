@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "../../assets/images/Logo-Volunteerin.jpg";
+import logo from "../../assets/images/logo_volunteerin.jpg";
 import FormLogin from "../../components/Fragments/FormLogin";
 import BtnNext from "../../components/Elements/buttons/BtnNext";
 import BannerLogin from "../../assets/images/Banner-Login.png";

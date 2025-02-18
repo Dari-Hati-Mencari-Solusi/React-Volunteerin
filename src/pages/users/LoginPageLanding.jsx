@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "../../assets/images/Logo-Volunteerin.jpg";
+import logo from "../../assets/images/logo_volunteerin.jpg";
 import BtnSignIn from "../../components/Elements/buttons/BtnSignIn";
 import BtnSignUp from "../../components/Elements/buttons/BtnSignUp";
 import { Handshake, Mail } from "lucide-react";
