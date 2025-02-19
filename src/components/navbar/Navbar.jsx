@@ -127,13 +127,13 @@ const Navbar = () => {
           <div className="flex items-center gap-4">
             <div className="hidden lg:flex gap-4">
               <Link
-                to="/login-landing"
+                to="/auth"
                 className="rounded-xl bg-white border-[1.5px] border-[#0A3E54] px-6 py-2.5 text-md font-normal text-[#0A3E54] hover:text-white transition ease-in-out duration-300 hover:bg-[#0A3E54]"
               >
                 Masuk
               </Link>
               <Link
-                to="/register"
+                to="/auth"
                 className="rounded-xl bg-[#0A3E54] px-6 py-2.5 text-md font-normal text-white hover:bg-[#0A3E54]/90"
               >
                 Daftar
@@ -268,13 +268,13 @@ const Navbar = () => {
               </li>
               <li className="flex gap-4 mt-4">
                 <Link
-                  to="/login-landing"
+                  to="/auth"
                   className="flex-1 rounded-xl text-center bg-white border-2 border-[#0A3E54] px-5 py-2.5 text-md md:text-xl font-medium text-[#0A3E54] hover:text-white transition ease-in-out duration-300 shadow hover:bg-[#0A3E54]"
                 >
                   Masuk
                 </Link>
                 <Link
-                  to="/register"
+                  to="/auth"
                   className="flex-1 rounded-md bg-[#0A3E54] px-5 py-2.5 text-md md:text-xl font-medium text-white hover:bg-[#0A3E54]/90 text-center"
                 >
                   Daftar
