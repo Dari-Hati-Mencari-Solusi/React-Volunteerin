@@ -158,9 +158,9 @@ const PartnerLoginForm = () => {
 
           <div className="text-center text-gray-600">
             Mau cari kandidat volunteer?{" "}
-            <a href="#" className="text-[#14464B] font-medium hover:underline">
+            <Link to='/register-partner' className="text-[#14464B] font-medium hover:underline">
               Daftar menjadi Partner
-            </a>
+            </Link>
           </div>
         </form>
       </div>
