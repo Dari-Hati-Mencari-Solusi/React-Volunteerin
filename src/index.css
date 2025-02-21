@@ -73,4 +73,21 @@
   .input-field {
     @apply w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
   }
+
+  @layer utilities {
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 5px;
+      height: 4px;
+    }
+  
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background-color: #155D75;
+      border-radius: 4px; 
+    }
+  
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background-color: #f1f5f9;
+      border-radius: 4px;
+    }
+  }
     

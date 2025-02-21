@@ -48,14 +48,14 @@ const ProfileUser = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm mb-2">Nama Lengkap</label>
-                  <input type="text" className="w-full p-2 border rounded-md" />
+                  <input type="text" className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]" />
                 </div>
 
                 <div>
                   <label className="block text-sm mb-2">Email</label>
                   <input
                     type="email"
-                    className="w-full p-2 border rounded-md bg-gray-50"
+                    className="w-full p-2 border rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]"
                     placeholder="Alamat telah terdaftar"
                     disabled
                   />
@@ -63,14 +63,14 @@ const ProfileUser = () => {
 
                 <div>
                   <label className="block text-sm mb-2">Bio Anda</label>
-                  <textarea className="w-full p-2 border rounded-md" rows={4} />
+                  <textarea className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]" rows={4} />
                 </div>
 
                 <div>
                   <label className="block text-sm mb-2">
                     No. Handphone (WhatsApp)
                   </label>
-                  <input type="tel" className="w-full p-2 border rounded-md" />
+                  <input type="tel" className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]" />
                   <button className="mt-6 px-12 py-3 bg-[#0A3E54] text-white rounded-[12px]">
                     Simpan
                   </button>
@@ -100,7 +100,7 @@ const ProfileUser = () => {
                   <div className="relative">
                     <input
                       type={showOldPassword ? "text" : "password"}
-                      className="w-full p-2 border rounded-md pr-10"
+                      className="w-full p-2 border rounded-md pr-10 focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]"
                     />
                     <button
                       className="absolute right-2 top-2.5"
@@ -118,7 +118,7 @@ const ProfileUser = () => {
                   <div className="relative">
                     <input
                       type={showNewPassword ? "text" : "password"}
-                      className="w-full p-2 border rounded-md pr-10"
+                      className="w-full p-2 border rounded-md pr-10 focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]"
                     />
                     <button
                       className="absolute right-2 top-2.5"
@@ -139,7 +139,7 @@ const ProfileUser = () => {
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
-                      className="w-full p-2 border rounded-md pr-10"
+                      className="w-full p-2 border rounded-md pr-10 focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]"
                     />
                     <button
                       className="absolute right-2 top-2.5"
