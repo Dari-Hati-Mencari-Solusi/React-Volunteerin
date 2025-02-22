@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import logo from '../../assets/images/logo_volunteerin.jpg';
-import { EyeIcon } from '@heroicons/react/24/solid';
+// import { EyeIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ErrorAlert from '../../components/Elements/Alert/ErrorAlert';
@@ -152,7 +152,7 @@ const Login = () => {
                   hover:bg-gray-100/80"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  <EyeIcon className="w-4 h-4 md:w-5 md:h-5 text-[#0a3e54]" />
+                  {/* <EyeIcon className="w-4 h-4 md:w-5 md:h-5 text-[#0a3e54]" /> */}
                 </button>
               </div>
             </div>
@@ -164,7 +164,7 @@ const Login = () => {
               hover:shadow-[0_4px_12px_0_rgba(0,0,0,0,0.1)] 
               active:shadow-[0_2px_4px_0_rgba(0,0,0,0,0.1)]
               transform hover:-translate-y-0.5 active:translate-y-0 
-              transition-all duration-300"
+               duration-300"
             >
               Masuk
             </button>
