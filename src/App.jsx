@@ -15,6 +15,7 @@ import NotificationUser from "./pages/users/NotificationUser";
 import LoginPartner from "./pages/partners/LoginPartner";
 import RegisterPartner from "./pages/partners/RegisterPartner";
 import VolunteerinAuth from "./components/Fragments/VolunteerinAuth";
+import Service from "./pages/Service";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         <Route path="/login-partner" element={<LoginPartner />} />
         <Route path="/register-partner" element={<RegisterPartner />} />
         <Route path="/auth" element={<VolunteerinAuth />} />
+        <Route path="/layanan" element={<Service />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
