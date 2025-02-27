@@ -1,7 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-// import { Profiler, useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import "./App.css";
-// import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/users/RegisterPage";
 import LoginPageLanding from "./pages/users/LoginPageLanding";
 import Login from "./pages/users/Login";
@@ -36,6 +34,7 @@ function App() {
         <Route path="/auth" element={<VolunteerinAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>

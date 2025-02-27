@@ -1,78 +1,62 @@
-import React, { useState } from "react";
+import React from "react";
+import { Icon } from "@iconify/react";
+import { Link, useNavigate } from "react-router-dom";
+import Logo from "../../assets/images/logo_volunteerin.jpg";
 import ErrorAlert from "../../components/Elements/Alert/ErrorAlert";
 import SuccessAlert from "../../components/Elements/Alert/SuccesAlert";
-import Logo from "../../assets/images/logo_volunteerin.jpg";
 import WhatsAppButton from "../../components/Elements/buttons/BtnWhatsapp";
-import { Link } from "react-router-dom";
-import { Icon } from "@iconify/react";
+import { useAuth } from '../../context/AuthContext';
+import { useForm } from '../../hooks/useForm';
+import { authService } from '../../services/authService';
+import { validateEmail } from '../../utils/validation';
+import { usePasswordVisibility } from '../../hooks/usePasswordVisibility';
 
-const PartnerLoginForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+const LoginPartner = () => {
+  const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
+  const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
+  
+  const {
+    formData,
+    error,
+    success,
+    isSubmitting,
+    handleInputChange,
+    setIsSubmitting,
+    setStatus
+  } = useForm({
+    email: '',
+    password: '',
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const validateEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (!isSubmitting) {
-      setError("");
-      setSuccess("");
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setError("");
-    setSuccess("");
-
     if (!formData.email || !formData.password) {
-      setError("Maaf, Email atau kata sandi anda salah!");
+      setStatus('error', 'Email dan kata sandi harus diisi!');
       setIsSubmitting(false);
       return;
     }
 
     if (!validateEmail(formData.email)) {
-      setError("Maaf, Email atau kata sandi anda salah!");
+      setStatus('error', 'Format email tidak valid!');
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const response = await mockLoginAPI(formData);
-
-      if (!response.success) {
-        setError("Maaf, Email atau kata sandi anda salah!");
-      } else {
-        setSuccess("Anda berhasil masuk!");
-      }
+      const response = await authService.loginPartner(formData.email, formData.password);
+      authLogin(response.user);
+      setStatus('success', 'Login berhasil!');
+      setTimeout(() => {
+        navigate('/partner/dashboard');
+      }, 1500);
     } catch (err) {
-      setError("Maaf, Email atau kata sandi anda salah!");
+      setStatus('error', err.message || 'Email atau kata sandi salah!');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const mockLoginAPI = async (data) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true });
-      }, 600);
-    });
   };
 
   return (
@@ -86,26 +70,28 @@ const PartnerLoginForm = () => {
       </div>
       <div className="bg-white rounded-2xl border border-[#ECECEC] shadow-xl p-8 w-full max-w-[480px]">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[#14464B] mb-2">
+          <h1 className="text-2xl font-bold text-[#0a3e54] mb-2">
             Volunteerin Partner
           </h1>
-          <p className="text-[#14464B] text-lg">Masuk Sebagai Partner</p>
+          <p className="text-[#0a3e54] text-lg">Masuk Sebagai Partner</p>
         </div>
 
         <ErrorAlert message={error} />
-
         <SuccessAlert message={success} />
 
-        <form onSubmit={handleSubmit} className="space-y-6 max-h-[469px]">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-gray-700 block">Alamat Email</label>
+            <label className="text-gray-700 block font-medium">
+              Alamat Email
+            </label>
             <input
               type="email"
               name="email"
-              placeholder="Contoh: johndoe@gmail.com"
+              required
               className={`w-full px-4 py-3 rounded-lg border ${
                 error ? "border-red-500" : "border-gray-300"
-              } focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]`}
+              } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
+              placeholder="Contoh: johndoe@gmail.com"
               value={formData.email}
               onChange={handleInputChange}
               disabled={isSubmitting}
@@ -114,30 +100,33 @@ const PartnerLoginForm = () => {
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-gray-700">Kata sandi</label>
-              <a
-                href="#"
-                className="text-[#14464B] text-sm font-medium hover:underline"
+              <label className="text-gray-700 block font-medium">
+                Kata Sandi
+              </label>
+              <Link
+                to="/reset-password"
+                className="text-sm text-[#0a3e54] hover:text-[#0a3e54]/80"
               >
-                Lupa kata sandi
-              </a>
+                Lupa kata sandi?
+              </Link>
             </div>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="Masukkan password"
+                required
                 className={`w-full px-4 py-3 rounded-lg border ${
                   error ? "border-red-500" : "border-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]`}
+                } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
+                placeholder="Masukkan kata sandi"
                 value={formData.password}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
                 {showPassword ? (
                   <Icon icon="mdi:eye-off" className="w-5 h-5" />
@@ -150,16 +139,19 @@ const PartnerLoginForm = () => {
 
           <button
             type="submit"
-            className="w-full bg-[#14464B] text-white py-3 rounded-lg font-medium hover:bg-[#14464B]/90 transition-colors disabled:opacity-50"
+            className="w-full bg-[#0A3E54] text-white py-3 rounded-lg font-medium hover:bg-[#0A3E54]/90 transition-colors disabled:bg-gray-400"
             disabled={isSubmitting}
           >
-            <Link to="/">{isSubmitting ? "Memproses..." : "Masuk"}</Link>
+            {isSubmitting ? "Memproses..." : "Masuk"}
           </button>
 
           <div className="text-center text-gray-600">
-            Mau cari kandidat volunteer?{" "}
-            <Link to='/register-partner' className="text-[#14464B] font-medium hover:underline">
-              Daftar menjadi Partner
+            Belum punya akun?{" "}
+            <Link
+              to="/register-partner"
+              className="text-[#14464B] font-medium hover:underline"
+            >
+              Daftar sebagai Partner
             </Link>
           </div>
         </form>
@@ -169,4 +161,4 @@ const PartnerLoginForm = () => {
   );
 };
 
-export default PartnerLoginForm;
+export default LoginPartner;
