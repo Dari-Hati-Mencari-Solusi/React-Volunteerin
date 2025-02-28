@@ -7,7 +7,8 @@ export const authService = {
     try {
       const response = await httpClient.post(`${API_URL}/auth/login`, {
         email,
-        password
+        password,
+        role: 'USER'
       });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -19,9 +20,10 @@ export const authService = {
 
   loginPartner: async (email, password) => {
     try {
-      const response = await httpClient.post(`${API_URL}/auth/login-partner`, {
+      const response = await httpClient.post(`${API_URL}/auth/login`, {
         email,
-        password
+        password,
+        role: 'PARTNER'
       });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -42,7 +44,7 @@ export const authService = {
 
   registerPartner: async (userData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/auth/register-partner`, userData);
+      const response = await httpClient.post(`${API_URL}/auth/register`, userData);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'An error occurred during registration' };
