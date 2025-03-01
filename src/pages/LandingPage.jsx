@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
 import HeroSection from "../components/Fragments/HeroSection";
-import SearchDropdown from "../components/Elements/search/SearchDropdown";
+import SearchDropdown from "../components/Elements/search/SearchDropdownLocation";
 import Events from "./events/Events";
 import BtnSaveEvent from "../components/Elements/buttons/BtnSaveEvent";
 import BtnHistory from "../components/Elements/buttons/BtnHistory";
 import { Icon } from "@iconify/react";
-import IconMarket from "../assets/images/icon.png";
 import Marketing from "../components/Fragments/Marketing";
+import SearchDropdownCategory from "../components/Elements/search/SearchDropdownCategory";
 
 const LandingPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -54,7 +54,7 @@ const LandingPage = () => {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-5 flex items-center m-2 justify-center w-[3.5rem] bg-[#0A3E54] text-white rounded-full transition-colors duration-300"
+              className="absolute inset-y-0 right-[1px] flex items-center m-[6px] justify-center w-[3.5rem] bg-[#0A3E54] text-white rounded-[12px] transition-colors duration-300"
             >
               <Icon icon="flowbite:search-outline" width="24" height="24" />
             </button>
@@ -63,27 +63,33 @@ const LandingPage = () => {
           <BtnHistory className="w-full md:w-auto" />
         </div>
 
-        <div className="mt-4">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div className="flex overflow-x-auto gap-2 md:gap-4 pb-2">
-              {categories.map((category) => (
-                <button
-                  key={category.name}
-                  onClick={() => handleCategoryClick(category.id)}
-                  className={getCategoryButtonClass(category.id)}
-                >
-                  {category.name}
-                  <span
-                    className={`absolute left-5 bottom-2 h-[2px] bg-white transition-all duration-300 ${
-                      selectedCategory === category.id
-                        ? "w-[40px] opacity-100"
-                        : "w-0 opacity-0"
-                    }`}
-                  ></span>
-                </button>
-              ))}
+        <div className="md:mt-4 lg:mt-4 mt-2">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+            <div className="w-full lg:w-auto flex flex-col md:flex-row gap-4">
+              <div className="flex overflow-x-auto pb-2 gap-2 md:gap-4">
+                {categories.map((category) => (
+                  <button
+                    key={category.name}
+                    onClick={() => handleCategoryClick(category.id)}
+                    className={getCategoryButtonClass(category.id)}
+                  >
+                    {category.name}
+                    <span
+                      className={`absolute left-5 bottom-2 h-[2px] bg-white transition-all duration-300 ${
+                        selectedCategory === category.id
+                          ? "w-[40px] opacity-100"
+                          : "w-0 opacity-0"
+                      }`}
+                    ></span>
+                  </button>
+                ))}
+              </div>
+              <div className="w-full md:w-auto">
+                <SearchDropdownCategory />
+              </div>
             </div>
 
+            {/* SearchDropdown Lokasi */}
             <div className="w-full md:w-auto">
               <SearchDropdown />
             </div>
