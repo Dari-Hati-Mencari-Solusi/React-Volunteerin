@@ -36,7 +36,6 @@ function App() {
         <Route path="/auth" element={<VolunteerinAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>

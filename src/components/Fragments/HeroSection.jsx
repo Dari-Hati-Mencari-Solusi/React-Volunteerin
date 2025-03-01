@@ -123,7 +123,7 @@ const HeroSection = () => {
           transform: none !important;
           width: 40px !important; 
           height: 40px !important; 
-          background-color: #E6E6E6; /* Latar belakang tombol */
+          background-color: #A5F2FC; /* Latar belakang tombol */
           border-radius: 50%; /* Membuat tombol bulat */
           display: flex;
           padding-left: 5px;
@@ -136,7 +136,7 @@ const HeroSection = () => {
           transform: none !important;
           width: 40px !important; 
           height: 40px !important; 
-          background-color: #E6E6E6; /* Latar belakang tombol */
+          background-color: #A5F2FC; /* Latar belakang tombol */
           border-radius: 50%; /* Membuat tombol bulat */
           display: flex;
            padding-right: 5px;
@@ -146,15 +146,16 @@ const HeroSection = () => {
         }
         .swiper-button-prev:hover,
         .swiper-button-next:hover {
-          background-color: #E6E6E6;
+          background-color: #67E6F9;
         }
         .swiper-button-prev::after,
         .swiper-button-next::after {
           content: "";
           width: 12px; /* Ukuran panah */
           height: 12px; /* Ukuran panah */
-          border-top: 2px solid #0a3e54;
-          border-left: 2px solid #0a3e54;
+          border-radius: 2px;
+          border-top: 3px solid #155D75;
+          border-left: 3px solid #155D75;
           transform: rotate(-45deg);
         }
         .swiper-button-next::after {
