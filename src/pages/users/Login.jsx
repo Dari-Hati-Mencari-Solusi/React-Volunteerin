@@ -50,7 +50,7 @@ const Login = () => {
       authLogin(response.user);
       setStatus('success', 'Login berhasil!');
       setTimeout(() => {
-        navigate('/profile');
+        navigate('/');
       }, 1500);
     } catch (err) {
       setStatus('error', err.message || 'Email atau kata sandi salah!');

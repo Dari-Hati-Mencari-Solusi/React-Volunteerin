@@ -8,7 +8,6 @@ export const authService = {
       const response = await httpClient.post(`${API_URL}/auth/login`, {
         email,
         password,
-        role: 'USER'
       });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -23,7 +22,6 @@ export const authService = {
       const response = await httpClient.post(`${API_URL}/auth/login`, {
         email,
         password,
-        role: 'PARTNER'
       });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
