@@ -1,142 +1,164 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import React from 'react';
+import { Icon } from '@iconify/react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import logo from '../assets/images/logo_volunteerin.jpg';
-import SuccessAlert from '../components/Elements/Alert/SuccesAlert';
 import ErrorAlert from '../components/Elements/Alert/ErrorAlert';
+import SuccessAlert from '../components/Elements/Alert/SuccesAlert';
+import { useForm } from '../hooks/useForm';
+import { authService } from '../services/authService';
+import { usePasswordVisibility } from '../hooks/usePasswordVisibility';
 
 const ResetPassword = () => {
-  const [formData, setFormData] = useState({
-    password: '',
-    confirmPassword: '',
-  });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { token } = useParams(); // Get the token from the URL
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const { token } = useParams();
+  const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
+  
+  const {
+    formData,
+    error,
+    success,
+    isSubmitting,
+    handleInputChange,
+    setIsSubmitting,
+    setStatus
+  } = useForm({
+    password: '',
+    confirmPassword: ''
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setError('');
-    setSuccess('');
-
     if (!formData.password || !formData.confirmPassword) {
-      setError('Kata sandi dan konfirmasi kata sandi harus diisi!');
+      setStatus('error', 'Semua field harus diisi!');
       setIsSubmitting(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Kata sandi dan konfirmasi kata sandi tidak sama!');
+      setStatus('error', 'Kata sandi tidak cocok!');
       setIsSubmitting(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Kata sandi minimal 6 karakter!');
+      setStatus('error', 'Kata sandi minimal 6 karakter!');
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const response = await axios.post('YOUR_RESET_PASSWORD_API_ENDPOINT', {
-        ...formData,
-        token: token, // Include the token in the request
-      });
-
-      if (!response.data.success) {
-        setError(response.data.message || 'Terjadi kesalahan saat mereset kata sandi!');
-      } else {
-        setSuccess('Kata sandi berhasil direset!');
-        setIsSubmitting(false);
-        navigate('/login'); // Redirect to login page after successful password reset
-      }
+      await authService.resetPassword(token, formData.password);
+      setStatus('success', 'Kata sandi berhasil diubah!');
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Terjadi kesalahan saat mereset kata sandi!');
+      setStatus('error', err.message || 'Gagal mengubah kata sandi');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col md:flex-row items-center w-full max-w-4xl gap-8 md:gap-0">
-        {/* Left Column (Logo and Description) */}
-        <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 md:p-12">
-          <img src={logo} alt="Volunteerin Logo" className="w-48 md:w-64 mb-4 md:mb-8" />
-          <h2 className="text-lg md:text-xl font-semibold text-[#0a3e54] mb-3 md:mb-4">
-            Slogan Volunteerin
-          </h2>
-          <p className="text-sm md:text-base text-[#0a3e54] text-center leading-relaxed max-w-sm">
-            Dengan platform volunteer kami, kamu bisa menemukan berbagai peluang relawan sesuai minat dan keahlianmu.
-          </p>
+    <div className="min-h-screen bg-white flex flex-col items-center p-4">
+      <div className="lg:py-3 md:py-3 py-8">
+        <img
+          src={logo}
+          alt="logo volunteerin"
+          className="lg:w-[295px] lg:h-[64px] md:w-[295px] md:h-[64px] w-[250px] h-[50px]"
+        />
+      </div>
+      <div className="bg-white rounded-2xl border border-[#ECECEC] shadow-xl p-8 w-full max-w-[480px]">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-[#0a3e54] mb-2">
+            Reset Kata Sandi
+          </h1>
+          <p className="text-[#0a3e54] text-lg">Masukkan kata sandi baru Anda</p>
         </div>
 
-        {/* Right Column (Reset Password Form) */}
-        <div className="w-full md:w-5/6 lg:w-3/4 bg-white p-6 md:p-12 rounded-xl relative shadow-lg">
-          <h2 className="text-xl md:text-2xl font-semibold text-[#0a3e54] mb-6 md:mb-8">
-           Reset Kata Sandi
-          </h2>
-          <ErrorAlert message={error} />
-          <SuccessAlert message={success} />
-          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#0a3e54] mb-1.5 md:mb-2">
-                Kata Sandi Baru
-              </label>
+        <ErrorAlert message={error} />
+        <SuccessAlert message={success} />
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-gray-700 block font-medium">
+              Kata Sandi Baru
+            </label>
+            <div className="relative">
               <input
-                type="password"
-                id="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 required
-                className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a3e54] focus:border-transparent text-sm md:text-base shadow-[0_2px_4px_0_rgba(0,0,0,0.02)] hover:shadow-[0_2px_8px_0_rgba(0,0,0,0,0.04)] transition-shadow duration-300"
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  error ? "border-red-500" : "border-gray-300"
+                } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
                 placeholder="Masukkan kata sandi baru"
                 value={formData.password}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
               />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? (
+                  <Icon icon="mdi:eye-off" className="w-5 h-5" />
+                ) : (
+                  <Icon icon="solar:eye-outline" className="w-5 h-5" />
+                )}
+              </button>
             </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#0a3e54] mb-1.5 md:mb-2">
-                Konfirmasi Kata Sandi Baru
-              </label>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-gray-700 block font-medium">
+              Konfirmasi Kata Sandi
+            </label>
+            <div className="relative">
               <input
-                type="password"
-                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
                 name="confirmPassword"
                 required
-                className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a3e54] focus:border-transparent text-sm md:text-base shadow-[0_2px_4px_0_rgba(0,0,0,0.02)] hover:shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] transition-shadow duration-300"
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  error ? "border-red-500" : "border-gray-300"
+                } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
                 placeholder="Konfirmasi kata sandi baru"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
               />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? (
+                  <Icon icon="mdi:eye-off" className="w-5 h-5" />
+                ) : (
+                  <Icon icon="solar:eye-outline" className="w-5 h-5" />
+                )}
+              </button>
             </div>
-            <button
-              type="submit"
-              className="w-full bg-[#0a3e54] text-white py-2.5 md:py-3 rounded-lg hover:bg-[#0a3e54]/90 text-sm md:text-base font-medium shadow-[0_2px_4px_0_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_0_rgba(0,0,0,0.1)] active:shadow-[0_2px_4px_0_rgba(0,0,0,0.1)] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
-            >
-              Reset Kata Sandi
-            </button>
-          </form>
-          <div className="mt-4 md:mt-6 text-xs md:text-sm text-center">
-            <span className="text-[#0a3e54]">Sudah punya akun? </span>
-            <a href="/login" className="text-[#0a3e54] font-semibold hover:underline hover:text-[#0a3e54]/80 transition-colors">
-              Masuk di sini
-            </a>
           </div>
-        </div>
+
+          <button
+            type="submit"
+            className="w-full bg-[#0a3e54] text-white py-3 rounded-lg font-medium hover:bg-[#0a3e54]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Memproses..." : "Reset Kata Sandi"}
+          </button>
+
+          <div className="text-center text-gray-600">
+            Kembali ke{" "}
+            <Link to="/login" className="text-[#0a3e54] font-medium hover:underline">
+              halaman login
+            </Link>
+          </div>
+        </form>
       </div>
     </div>
   );

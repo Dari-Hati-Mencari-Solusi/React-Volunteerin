@@ -1,190 +1,256 @@
-import React, { useState } from "react";
-// import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import logo from "../../assets/images/logo_volunteerin.jpg"; // Import logo
+import React from 'react';
+import { Icon } from '@iconify/react';
+import { Link, useNavigate } from 'react-router-dom';
+import logo from '../../assets/images/logo_volunteerin.jpg';
 import ErrorAlert from '../../components/Elements/Alert/ErrorAlert';
 import SuccessAlert from '../../components/Elements/Alert/SuccesAlert';
+import WhatsAppButton from "../../components/Elements/buttons/BtnWhatsapp";
+import { useForm } from '../../hooks/useForm';
+import { authService } from '../../services/authService';
+import { validateEmail } from '../../utils/validation';
+import { usePasswordVisibility } from '../../hooks/usePasswordVisibility';
 
-const Register = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-  });
-
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const RegisterPage = () => {
   const navigate = useNavigate();
-
-  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validatePhone = (phone) => /^(\+62|08)[1-9]\d{6,9}$/.test(phone); // Allow 08 or +62 prefix
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const validateForm = () => {
-    if (!formData.name) return "Nama lengkap harus diisi!";
-    if (!formData.email) return "Alamat email harus diisi!";
-    if (!validateEmail(formData.email)) return "Alamat email tidak valid!";
-    if (!formData.phone) return "Nomor handphone harus diisi!";
-    if (!validatePhone(formData.phone)) return "Nomor handphone tidak valid!";
-    if (!formData.password) return "Kata sandi harus diisi!";
-    if (formData.password.length < 6) return "Kata sandi minimal 6 karakter!";
-    if (formData.password !== formData.confirmPassword)
-      return "Kata sandi dan konfirmasi tidak cocok!";
-    return null;
-  };
+  const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
+  
+  const {
+    formData,
+    error,
+    success,
+    isSubmitting,
+    handleInputChange,
+    setIsSubmitting,
+    setStatus
+  } = useForm({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phoneNumber: ''
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
     setIsSubmitting(true);
 
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
+    // Validasi form
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword || !formData.phoneNumber) {
+      setStatus('error', 'Semua field harus diisi!');
       setIsSubmitting(false);
       return;
     }
 
-    // Convert phone number to +62 format if it starts with 08
-    let formattedPhone = formData.phone;
-    if (formattedPhone.startsWith('08')) {
-      formattedPhone = '+62' + formattedPhone.slice(1);
+    if (!validateEmail(formData.email)) {
+      setStatus('error', 'Format email tidak valid!');
+      setIsSubmitting(false);
+      return;
     }
 
+    if (formData.password.length < 8) {
+      setStatus('error', 'Kata sandi minimal 8 karakter!');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setStatus('error', 'Kata sandi tidak cocok!');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate phone number format
+    if (!/^[0-9]+$/.test(formData.phoneNumber)) {
+      setStatus('error', 'Nomor telepon hanya boleh berisi angka!');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Check if phone number starts with '0'
+    if (!formData.phoneNumber.startsWith('0')) {
+      setStatus('error', 'Nomor telepon harus diawali dengan 0!');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Format phone number to ensure it starts with "62"
+    let formattedPhone = '62' + formData.phoneNumber.slice(1);
+
     try {
-      const response = await axios.post("YOUR_REGISTER_API_ENDPOINT", {
-        ...formData,
-        phone: formattedPhone,
+      await authService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formattedPhone,
+        role: 'VOLUNTEER'
       });
-      if (!response.data.success) {
-        setError(response.data.message || "Terjadi kesalahan saat mendaftar!");
-      } else {
-        setSuccess("Pendaftaran berhasil! Silakan masuk.");
-        setTimeout(() => navigate("/login"), 2000);
-      }
+      setStatus('success', 'Registrasi berhasil! Silakan login.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || "Terjadi kesalahan saat mendaftar!");
+      setStatus('error', err.message || 'Terjadi kesalahan saat registrasi');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col md:flex-row items-center w-full max-w-4xl gap-8">
-        {/* Kiri: Logo & Deskripsi */}
-        <div className="w-full md:w-1/2 flex flex-col items-center p-6">
-          <img src={logo} alt="Volunteerin Logo" className="w-48 md:w-60 mb-4" />
-          <h2 className="text-xl font-semibold text-[#0a3e54]">Volunteerin</h2>
-          <p className="text-center text-sm text-[#0a3e54] max-w-sm">
-            Bergabunglah dengan komunitas relawan dan temukan berbagai peluang sesuai minat dan keahlianmu.
-          </p>
+    <div className="min-h-screen bg-white flex flex-col items-center p-4">
+      <div className="lg:py-3 md:py-3 py-8">
+        <img
+          src={logo}
+          alt="logo volunteerin"
+          className="lg:w-[295px] lg:h-[64px] md:w-[295px] md:h-[64px] w-[250px] h-[50px]"
+        />
+      </div>
+      <div className="bg-white rounded-2xl border border-[#ECECEC] shadow-xl p-8 w-full max-w-[480px]">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-[#0a3e54] mb-2">
+            Daftar Akun
+          </h1>
+          <p className="text-[#0a3e54] text-lg">Bergabung dengan Volunteerin</p>
         </div>
 
-        {/* Kanan: Form Pendaftaran */}
-        <div className="w-full md:w-5/6 lg:w-3/4 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-[#0a3e54] mb-6">Daftar</h2>
+        <ErrorAlert message={error} />
+        <SuccessAlert message={success} />
 
-          <ErrorAlert message={error} />
-          <SuccessAlert message={success} />
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <FormInput label="Nama Lengkap" id="name" name="name" type="text" placeholder="John Doe" value={formData.name} onChange={handleInputChange} />
-            <FormInput label="Alamat Email" id="email" name="email" type="email" placeholder="johndoe@gmail.com" value={formData.email} onChange={handleInputChange} />
-            <FormInput label="No. Handphone" id="phone" name="phone" type="text" placeholder="081234567890" value={formData.phone} onChange={handleInputChange} />
-            
-            {/* Kata Sandi */}
-            <PasswordInput
-              label="Kata Sandi"
-              id="password"
-              name="password"
-              placeholder="Buat Password"
-              value={formData.password}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-gray-700 block font-medium">
+              Nama Lengkap
+            </label>
+            <input
+              type="text"
+              name="name"
+              required
+              className={`w-full px-4 py-3 rounded-lg border ${
+                error ? "border-red-500" : "border-gray-300"
+              } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
+              placeholder="Masukkan nama lengkap"
+              value={formData.name}
               onChange={handleInputChange}
-              showPassword={showPassword}
-              setShowPassword={setShowPassword}
-            />
-
-            {/* Konfirmasi Kata Sandi */}
-            <PasswordInput
-              label="Konfirmasi Kata Sandi"
-              id="confirmPassword"
-              name="confirmPassword"
-              placeholder="Konfirmasi Password"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              showPassword={showConfirmPassword}
-              setShowPassword={setShowConfirmPassword}
-            />
-
-            <button
-              type="submit"
-              className={`w-full bg-[#0a3e54] text-white py-2.5 rounded-lg font-medium transition ${
-                isSubmitting ? "opacity-75 cursor-not-allowed" : "hover:bg-[#08506a]"
-              }`}
               disabled={isSubmitting}
-            >
-              {isSubmitting ? "Mendaftar..." : "Daftar"}
-            </button>
-          </form>
+            />
+          </div>
 
-          <p className="mt-4 text-center text-sm">
+          <div className="space-y-2">
+            <label className="text-gray-700 block font-medium">
+              Alamat Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              required
+              className={`w-full px-4 py-3 rounded-lg border ${
+                error ? "border-red-500" : "border-gray-300"
+              } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
+              placeholder="Contoh: johndoe@gmail.com"
+              value={formData.email}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-gray-700 block font-medium">
+              Nomor Telepon
+            </label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              required
+              className={`w-full px-4 py-3 rounded-lg border ${
+                error ? "border-red-500" : "border-gray-300"
+              } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
+              placeholder="Contoh: 081234567890"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-gray-700 block font-medium">
+              Kata Sandi
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                required
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  error ? "border-red-500" : "border-gray-300"
+                } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
+                placeholder="Minimal 8 karakter"
+                value={formData.password}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? (
+                  <Icon icon="mdi:eye-off" className="w-5 h-5" />
+                ) : (
+                  <Icon icon="solar:eye-outline" className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-gray-700 block font-medium">
+              Konfirmasi Kata Sandi
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="confirmPassword"
+                required
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  error ? "border-red-500" : "border-gray-300"
+                } focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white`}
+                placeholder="Konfirmasi kata sandi"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? (
+                  <Icon icon="mdi:eye-off" className="w-5 h-5" />
+                ) : (
+                  <Icon icon="solar:eye-outline" className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-[#0a3e54] text-white py-3 rounded-lg font-medium hover:bg-[#0a3e54]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Memproses..." : "Daftar"}
+          </button>
+
+          <div className="text-center text-gray-600">
             Sudah punya akun?{" "}
-            <Link to="/login" className="text-[#0a3e54] font-semibold hover:underline">
+            <Link to="/login" className="text-[#0a3e54] font-medium hover:underline">
               Masuk di sini
             </Link>
-          </p>
-        </div>
+          </div>
+        </form>
       </div>
+      <WhatsAppButton phoneNumber="+6285343037191" />
     </div>
   );
 };
 
-// Komponen Input
-const FormInput = ({ label, id, name, type, placeholder, value, onChange }) => (
-  <div>
-    <label htmlFor={id} className="block text-sm font-medium text-[#0a3e54] mb-2">
-      {label}
-    </label>
-    <input
-      type={type}
-      id={id}
-      name={name}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0a3e54] focus:outline-none transition"
-      required
-    />
-  </div>
-);
-
-// Komponen Password Input
-const PasswordInput = ({ label, id, name, placeholder, value, onChange, showPassword, setShowPassword }) => (
-  <div className="relative">
-    <FormInput label={label} id={id} name={name} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={onChange} />
-    <button
-      type="button"
-      onClick={() => setShowPassword(!showPassword)}
-      className="absolute right-3 top-9 text-gray-500 hover:text-gray-600 transition"
-    >
-      {/* {showPassword ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />} */}
-    </button>
-  </div>
-);
-
-export default Register;
+export default RegisterPage;

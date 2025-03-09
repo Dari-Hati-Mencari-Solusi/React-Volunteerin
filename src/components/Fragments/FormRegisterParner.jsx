@@ -68,7 +68,7 @@ const RegisterForm = ({
           <input
             type={showPassword ? "text" : "password"}
             name="password"
-            placeholder="Masukkan kata sandi"
+            placeholder="Minimal 8 karakter"
             className={`w-full px-4 py-3 rounded-lg border ${
               error ? "border-red-500" : "border-gray-300"
             } focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]`}
@@ -121,16 +121,16 @@ const RegisterForm = ({
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="phone" className="text-gray-700">
+        <label htmlFor="phoneNumber" className="text-gray-700">
           No. Handphone
         </label>
         <input
-          type="text"
-          id="phone"
-          name="phone"
-          placeholder="Masukkan nomor handphone"
+          type="tel"
+          id="phoneNumber"
+          name="phoneNumber"
+          placeholder="Contoh: 081234567890"
           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]"
-          value={formData.phone}
+          value={formData.phoneNumber}
           onChange={handleInputChange}
           disabled={isSubmitting}
         />
