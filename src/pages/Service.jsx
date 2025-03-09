@@ -52,7 +52,7 @@ const Service = () => {
   const bottomRowCards = benefitCards.slice(2, 4);
 
   return (
-    <section className="min-h-screen flex flex-col">
+    <section className="min-h-screen flex flex-col bg-white">
       <Navbar />
       <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 md:py-12 max-w-screen-xl">
         <div className="grid md:grid-cols-2 gap-8 items-center mt-16 md:mt-16">
