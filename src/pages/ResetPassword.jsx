@@ -125,7 +125,7 @@ const ResetPassword = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-[#0a3e54] text-white py-2.5 md:py-3 rounded-lg hover:bg-[#0a3e54]/90 transition-all text-sm md:text-base font-medium shadow-[0_2px_4px_0_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_0_rgba(0,0,0,0.1)] active:shadow-[0_2px_4px_0_rgba(0,0,0,0.1)] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+              className="w-full bg-[#0a3e54] text-white py-2.5 md:py-3 rounded-lg hover:bg-[#0a3e54]/90 text-sm md:text-base font-medium shadow-[0_2px_4px_0_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_0_rgba(0,0,0,0.1)] active:shadow-[0_2px_4px_0_rgba(0,0,0,0.1)] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
             >
               Reset Kata Sandi
             </button>

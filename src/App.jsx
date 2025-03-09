@@ -17,6 +17,7 @@ import RegisterPartner from "./pages/partners/RegisterPartner";
 import VolunteerinAuth from "./components/Fragments/VolunteerinAuth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Service from "./pages/Service";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/auth" element={<VolunteerinAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/layanan" element={<Service />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
