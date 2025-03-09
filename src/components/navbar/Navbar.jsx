@@ -86,6 +86,14 @@ const Navbar = () => {
                   </div>
                 </li>
                 <li>
+                  <Link
+                    to="/layanan"
+                    className="text-black transition text-md hover:text-[#0A3E54] font-normal"
+                  >
+                    Layanan
+                  </Link>
+                </li>
+                <li>
                   <div className="relative">
                     <button
                       onClick={() => toggleDropdown("hubungiKami")}
@@ -119,6 +127,7 @@ const Navbar = () => {
                     )}
                   </div>
                 </li>
+               
               </ul>
             </nav>
           </div>
@@ -232,6 +241,14 @@ const Navbar = () => {
                   )}
                 </div>
               </li>
+              <li>
+                  <Link
+                    to="/layanan"
+                    className="text-black transition text-md hover:text-[#0A3E54] font-normal"
+                  >
+                    Layanan
+                  </Link>
+                </li>
               <li>
                 <div className="relative">
                   <button
