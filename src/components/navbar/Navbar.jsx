@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Icon } from '@iconify/react';
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/images/logo_volunteerin.jpg";
@@ -7,18 +7,24 @@ import { AlignRight } from "lucide-react";
 
 const Navbar = () => {
   const { isAuthenticated, user } = useAuth(); // Get user from AuthContext
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-
-  // Function to get only the first name from the user's full name
-  const getFirstName = () => {
-    if (user && user.name) {
-      // Split the name by spaces and return the first part
-      const nameParts = user.name.split(' ');
-      return nameParts[0]; // Return just the first name
+  const [firstName, setFirstName] = useState('User');
+  
+  // Update firstName whenever user changes
+  useEffect(() => {
+    console.log("Auth state:", isAuthenticated);
+    console.log("User data from useAuth:", user);
+    console.log("User data structure:", user);
+    if (isAuthenticated && user) {
+      const userData = user && user.user ? user.user : user;
+    if (userData && userData.name) {
+        setFirstName(userData.name.split(' ')[0]);
     }
-    return 'User'; // Fallback if no user name is available
-  };
+
+    }
+  }, [isAuthenticated, user]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -31,6 +37,18 @@ const Navbar = () => {
       setOpenDropdown(dropdown);
     }
   };
+
+  // Function to log the current user data for debugging
+  const logUserData = () => {
+    console.log("Auth state:", isAuthenticated);
+    console.log("User data:", user);
+    console.log("First name:", firstName);
+  };
+
+  // Call the debugging function once when component mounts
+  useEffect(() => {
+    logUserData();
+  }, []);
 
   return (
     <nav className="bg-white fixed w-full z-50 border-b border-gray-200">
@@ -121,7 +139,7 @@ const Navbar = () => {
                   <Link to="/profile" className="flex items-center gap-2">
                     <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
                       <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
-                      <span className="font-medium">{getFirstName()}</span>
+                      <span className="font-medium">{firstName || 'User'}</span>
                     </div>
                   </Link>
                 </>
@@ -267,7 +285,7 @@ const Navbar = () => {
                     <Link to="/profile" className="flex items-center gap-2">
                       <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
                         <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
-                        <span className="font-medium">{getFirstName()}</span>
+                        <span className="font-medium">{firstName}</span>
                       </div>
                     </Link>
                   </div>

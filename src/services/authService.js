@@ -9,7 +9,7 @@ export const authService = {
         email,
         password,
       });
-      const { token, user } = response.data;
+      const { token, user } = response.data.data;
       localStorage.setItem('token', token);
       return { token, user };
     } catch (error) {
@@ -23,7 +23,8 @@ export const authService = {
         email,
         password,
       });
-      const { token, user } = response.data;
+      console.log(response, 'response login');  
+      const { token, user } = response.data.data;
       localStorage.setItem('token', token);
       return { token, user };
     } catch (error) {
