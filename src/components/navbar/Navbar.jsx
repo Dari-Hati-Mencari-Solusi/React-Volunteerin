@@ -139,10 +139,16 @@ const Navbar = () => {
                     </button>
                     {openDropdown === "hubungiKami" && (
                       <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <Link
+                          to="#"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
                           Cs
                         </Link>
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <Link
+                          to="#"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
                           Cs Partner
                         </Link>
                       </div>
@@ -299,39 +305,45 @@ const Navbar = () => {
                 </Link>
               </li>
               <li>
-                  <div className="relative">
-                    <button
-                      onClick={() => toggleDropdown("hubungiKami")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
+                <div className="relative">
+                  <button
+                    onClick={() => toggleDropdown("hubungiKami")}
+                    className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
+                  >
+                    Hubungi Kami
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-5 w-5 transition-transform ${
+                        openDropdown === "hubungiKami" ? "rotate-180" : ""
+                      }`}
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
-                      Hubungi Kami
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-5 w-5 transition-transform ${
-                          openDropdown === "hubungiKami" ? "rotate-180" : ""
-                        }`}
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                  {openDropdown === "hubungiKami" && (
+                    <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                      <Link
+                        to="#"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                    {openDropdown === "hubungiKami" && (
-                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Cs
-                        </Link>
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Cs Partner
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </li>
+                        Cs
+                      </Link>
+                      <Link
+                        to="#"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        Cs Partner
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </li>
               {!isAuthenticated ? (
                 <li className="flex gap-4 mt-4">
                   <Link
@@ -351,12 +363,15 @@ const Navbar = () => {
                 <li className="mt-4">
                   <div className="flex items-center justify-between">
                     <Link
-                      to="/notifications"
+                      to="/notification"
                       className="text-gray-600 hover:text-[#0A3E54]"
                     >
                       <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                     </Link>
-                    <Link to="/profile" className="flex items-center gap-2">
+                    <Link
+                      to="/profile-user"
+                      className="flex items-center gap-2"
+                    >
                       <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
                         <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
                         <span className="font-medium">{getFirstName()}</span>
