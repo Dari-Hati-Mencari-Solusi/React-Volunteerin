@@ -14,15 +14,11 @@ const Navbar = () => {
   
   // Update firstName whenever user changes
   useEffect(() => {
-    console.log("Auth state:", isAuthenticated);
-    console.log("User data from useAuth:", user);
-    console.log("User data structure:", user);
     if (isAuthenticated && user) {
       const userData = user && user.user ? user.user : user;
-    if (userData && userData.name) {
+      if (userData && userData.name) {
         setFirstName(userData.name.split(' ')[0]);
-    }
-
+      }
     }
   }, [isAuthenticated, user]);
 
@@ -38,17 +34,10 @@ const Navbar = () => {
     }
   };
 
-  // Function to log the current user data for debugging
-  const logUserData = () => {
-    console.log("Auth state:", isAuthenticated);
-    console.log("User data:", user);
-    console.log("First name:", firstName);
+  const handleLogout = () => {
+    // Logic to log out the user
+    console.log("User logged out");
   };
-
-  // Call the debugging function once when component mounts
-  useEffect(() => {
-    logUserData();
-  }, []);
 
   return (
     <nav className="bg-white fixed w-full z-50 border-b border-gray-200">
@@ -136,12 +125,33 @@ const Navbar = () => {
                   <Link to="/notifications" className="text-gray-600 hover:text-[#0A3E54]">
                     <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                   </Link>
-                  <Link to="/profile" className="flex items-center gap-2">
-                    <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
-                      <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
-                      <span className="font-medium">{firstName || 'User'}</span>
-                    </div>
-                  </Link>
+                  <div className="relative">
+                    <button
+                      onClick={() => toggleDropdown("profile")}
+                      className="flex items-center gap-2"
+                    >
+                      <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2 shadow-lg border border-gray-300">
+                        <Icon icon="mdi:account-circle" className="w-8 h-8 mr-2" />
+                        <span className="font-medium">{firstName || 'User'}</span>
+                      </div>
+                    </button>
+                    {openDropdown === "profile" && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-semibold"
+                        >
+                          Pengaturan Akun
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 font-semibold"
+                        >
+                          Keluar
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <div className="flex gap-4">
