@@ -10,6 +10,7 @@ const Navbar = () => {
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
+
   const [firstName, setFirstName] = useState('User');
   
   // Update firstName whenever user changes
@@ -92,13 +93,22 @@ const Navbar = () => {
                         >
                           Semua Event
                         </Link>
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <Link
+                          to="#"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
                           Lingkungan
                         </Link>
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <Link
+                          to="#"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
                           Sosial
                         </Link>
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <Link
+                          to="#"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
                           Pendidikan
                         </Link>
                       </div>
@@ -107,11 +117,45 @@ const Navbar = () => {
                 </li>
                 <li>
                   <Link
-                    to="/hubungi-kami"
+                    to="/layanan"
                     className="text-black transition text-md hover:text-[#0A3E54] font-normal"
                   >
-                    Hubungi Kami
+                    Layanan
                   </Link>
+                </li>
+                <li>
+                  <div className="relative">
+                    <button
+                      onClick={() => toggleDropdown("hubungiKami")}
+                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
+                    >
+                      Hubungi Kami
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-5 w-5 transition-transform ${
+                          openDropdown === "hubungiKami" ? "rotate-180" : ""
+                        }`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                    {openDropdown === "hubungiKami" && (
+                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                          Cs
+                        </Link>
+                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                          Cs Partner
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </li>
               </ul>
             </nav>
@@ -122,7 +166,10 @@ const Navbar = () => {
             <div className="hidden lg:flex gap-4 items-center">
               {isAuthenticated ? (
                 <>
-                  <Link to="/notifications" className="text-gray-600 hover:text-[#0A3E54]">
+                  <Link
+                    to="/notifications"
+                    className="text-gray-600 hover:text-[#0A3E54]"
+                  >
                     <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                   </Link>
                   <div className="relative">
@@ -201,7 +248,7 @@ const Navbar = () => {
             <Link to="/" className="block">
               <img src={logo} alt="logo volunteerin" className="w-48" />
             </Link>
-            
+
             <button
               className="p-2 text-gray-600 transition hover:text-gray-600/75"
               onClick={toggleMenu}
@@ -250,13 +297,22 @@ const Navbar = () => {
                       >
                         Semua Event
                       </Link>
-                      <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                      <Link
+                        to="#"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
                         Lingkungan
                       </Link>
-                      <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                      <Link
+                        to="#"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
                         Sosial
                       </Link>
-                      <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                      <Link
+                        to="#"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
                         Pendidikan
                       </Link>
                     </div>
@@ -265,12 +321,46 @@ const Navbar = () => {
               </li>
               <li>
                 <Link
-                  to="/hubungi-kami"
-                  className="transition text-black hover:text-[#0A3E54] duration-200 ease-in-out text-md md:text-xl font-normal"
+                  to="/layanan"
+                  className="text-black transition text-md hover:text-[#0A3E54] font-normal"
                 >
-                  Hubungi Kami
+                  Layanan
                 </Link>
               </li>
+              <li>
+                  <div className="relative">
+                    <button
+                      onClick={() => toggleDropdown("hubungiKami")}
+                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
+                    >
+                      Hubungi Kami
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-5 w-5 transition-transform ${
+                          openDropdown === "hubungiKami" ? "rotate-180" : ""
+                        }`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                    {openDropdown === "hubungiKami" && (
+                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                          Cs
+                        </Link>
+                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                          Cs Partner
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </li>
               {!isAuthenticated ? (
                 <li className="flex gap-4 mt-4">
                   <Link
@@ -289,7 +379,10 @@ const Navbar = () => {
               ) : (
                 <li className="mt-4">
                   <div className="flex items-center justify-between">
-                    <Link to="/notifications" className="text-gray-600 hover:text-[#0A3E54]">
+                    <Link
+                      to="/notifications"
+                      className="text-gray-600 hover:text-[#0A3E54]"
+                    >
                       <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                     </Link>
                     <Link to="/profile-user" className="flex items-center gap-2">
