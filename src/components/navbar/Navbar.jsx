@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Icon } from "@iconify/react";
+import React, { useState, useEffect } from "react";
+import { Icon } from '@iconify/react';
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/images/logo_volunteerin.jpg";
 import { Link } from "react-router-dom";
@@ -7,18 +7,21 @@ import { AlignRight } from "lucide-react";
 
 const Navbar = () => {
   const { isAuthenticated, user } = useAuth(); // Get user from AuthContext
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  // Function to get only the first name from the user's full name
-  const getFirstName = () => {
-    if (user && user.name) {
-      // Split the name by spaces and return the first part
-      const nameParts = user.name.split(" ");
-      return nameParts[0]; // Return just the first name
+  const [firstName, setFirstName] = useState('User');
+  
+  // Update firstName whenever user changes
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const userData = user && user.user ? user.user : user;
+      if (userData && userData.name) {
+        setFirstName(userData.name.split(' ')[0]);
+      }
     }
-    return "User"; // Fallback if no user name is available
-  };
+  }, [isAuthenticated, user]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -30,6 +33,11 @@ const Navbar = () => {
     } else {
       setOpenDropdown(dropdown);
     }
+  };
+
+  const handleLogout = () => {
+    // Logic to log out the user
+    console.log("User logged out");
   };
 
   return (
@@ -164,12 +172,33 @@ const Navbar = () => {
                   >
                     <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                   </Link>
-                  <Link to="/profile" className="flex items-center gap-2">
-                    <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
-                      <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
-                      <span className="font-medium">{getFirstName()}</span>
-                    </div>
-                  </Link>
+                  <div className="relative">
+                    <button
+                      onClick={() => toggleDropdown("profile")}
+                      className="flex items-center gap-2"
+                    >
+                      <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2 shadow-lg border border-gray-300">
+                        <Icon icon="mdi:account-circle" className="w-8 h-8 mr-2" />
+                        <span className="font-medium">{firstName || 'User'}</span>
+                      </div>
+                    </button>
+                    {openDropdown === "profile" && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-semibold"
+                        >
+                          Pengaturan Akun
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 font-semibold"
+                        >
+                          Keluar
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <div className="flex gap-4">
@@ -356,10 +385,10 @@ const Navbar = () => {
                     >
                       <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                     </Link>
-                    <Link to="/profile" className="flex items-center gap-2">
+                    <Link to="/profile-user" className="flex items-center gap-2">
                       <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
                         <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
-                        <span className="font-medium">{getFirstName()}</span>
+                        <span className="font-medium">{firstName}</span>
                       </div>
                     </Link>
                   </div>
