@@ -206,7 +206,7 @@ const Navbar = () => {
                         {/* Profile Options */}
                         <div className="flex flex-col border-t border-gray-100">
                           <Link
-                            to="/profile"
+                            to="/profile-user"
                             className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
                           >
                             <Icon icon="mdi:cog" className="w-6 h-6" />
@@ -431,7 +431,7 @@ const Navbar = () => {
                           {/* Profile Options */}
                           <div className="flex flex-col border-t border-gray-100">
                             <Link
-                              to="/profile"
+                              to="/profile-user"
                               className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
                             >
                               <Icon icon="mdi:cog" className="w-6 h-6" />
