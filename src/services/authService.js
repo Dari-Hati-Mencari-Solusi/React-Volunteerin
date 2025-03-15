@@ -17,66 +17,34 @@ export const authService = {
     }
   },
 
-  loginPartner: async (email, password) => {
+  // Other existing methods...
+
+  getUserProfile: async () => {
     try {
-      const response = await httpClient.post(`${API_URL}/auth/login`, {
-        email,
-        password,
-      });
-      console.log(response, 'response login');  
-      const { token, user } = response.data.data;
-      localStorage.setItem('token', token);
-      return { token, user };
+      const response = await httpClient.get(`${API_URL}/auth/profile`); // Fetch user profile data
+      return response.data; // Assuming the response contains the user profile data
     } catch (error) {
-      throw error.response?.data || { message: 'An error occurred during login' };
+      throw error.response?.data || { message: 'An error occurred while fetching profile data' };
     }
   },
 
-  register: async (userData) => {
+  updateUserProfile: async (profileData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/auth/register`, userData);
+      const response = await httpClient.put(`${API_URL}/auth/profile`, profileData); // Update user profile
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'An error occurred during registration' };
+      throw error.response?.data || { message: 'An error occurred while updating profile data' };
     }
   },
 
-  registerPartner: async (userData) => {
+  changePassword: async (oldPassword, newPassword) => {
     try {
-      const response = await httpClient.post(`${API_URL}/auth/register`, userData);
+      const response = await httpClient.put(`${API_URL}/auth/change-password`, { oldPassword, newPassword }); // Change password
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'An error occurred during registration' };
+      throw error.response?.data || { message: 'An error occurred while changing password' };
     }
   },
 
-  forgotPassword: async (email) => {
-    try {
-      const response = await httpClient.post(`${API_URL}/auth/forgot-password`, { email });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'An error occurred while processing your request' };
-    }
-  },
-
-  resetPassword: async (token, password) => {
-    try {
-      const response = await httpClient.post(`${API_URL}/auth/reset-password`, {
-        token,
-        password
-      });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'An error occurred while resetting password' };
-    }
-  },
-
-  logout: () => {
-    localStorage.removeItem('token');
-  },
-
-  getCurrentUser: () => {
-    const token = localStorage.getItem('token');
-    return token ? { token } : null;
-  }
+  // Other existing methods...
 };

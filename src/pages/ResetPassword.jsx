@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon } from '@iconify/react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import logo from '../assets/images/logo_volunteerin.jpg';
 import ErrorAlert from '../components/Elements/Alert/ErrorAlert';
 import SuccessAlert from '../components/Elements/Alert/SuccesAlert';
@@ -10,7 +10,20 @@ import { usePasswordVisibility } from '../hooks/usePasswordVisibility';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const { token } = useParams();
+  const params = useParams();
+  const location = useLocation();
+  
+  // Get token from URL parameters
+  // This handles both `/reset-password/:token` and `/reset-password?token=xyz` formats
+  const tokenFromParams = params.token;
+  const searchParams = new URLSearchParams(location.search);
+  const tokenFromQuery = searchParams.get('token');
+  const token = tokenFromParams || tokenFromQuery;
+  
+  console.log("Token from params:", tokenFromParams);
+  console.log("Token from query:", tokenFromQuery);
+  console.log("Final token:", token);
+  
   const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
   
   const {
@@ -48,6 +61,15 @@ const ResetPassword = () => {
       return;
     }
 
+    if (!token) {
+      setStatus('error', 'Token reset password tidak valid atau telah kadaluarsa');
+      setIsSubmitting(false);
+      return;
+    }
+
+    console.log("Using token:", token);
+    console.log("Password:", formData.password);
+    
     try {
       await authService.resetPassword(token, formData.password);
       setStatus('success', 'Kata sandi berhasil diubah!');
@@ -55,7 +77,8 @@ const ResetPassword = () => {
         navigate('/login');
       }, 1500);
     } catch (err) {
-      setStatus('error', err.message || 'Gagal mengubah kata sandi');
+      console.error("Reset password error:", err);
+      setStatus('error', err.message || 'Gagal mengubah kata sandi. Token mungkin tidak valid atau telah kadaluarsa.');
     } finally {
       setIsSubmitting(false);
     }
