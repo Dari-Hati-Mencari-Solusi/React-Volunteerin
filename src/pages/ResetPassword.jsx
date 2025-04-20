@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon } from '@iconify/react';
-import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/images/logo_volunteerin.jpg';
 import ErrorAlert from '../components/Elements/Alert/ErrorAlert';
 import SuccessAlert from '../components/Elements/Alert/SuccesAlert';
@@ -10,21 +10,16 @@ import { usePasswordVisibility } from '../hooks/usePasswordVisibility';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const params = useParams();
   const location = useLocation();
   
-  // Get token from URL parameters
-  // This handles both `/reset-password/:token` and `/reset-password?token=xyz` formats
-  const tokenFromParams = params.token;
+  // Get token from URL query parameters
   const searchParams = new URLSearchParams(location.search);
-  const tokenFromQuery = searchParams.get('token');
-  const token = tokenFromParams || tokenFromQuery;
+  const token = searchParams.get('t');
   
-  console.log("Token from params:", tokenFromParams);
-  console.log("Token from query:", tokenFromQuery);
-  console.log("Final token:", token);
-  
-  const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
+  console.log("Token from URL parameters:", token); // Logging token
+
+  const { showPassword: showPassword1, togglePasswordVisibility: togglePasswordVisibility1 } = usePasswordVisibility();
+  const { showPassword: showPassword2, togglePasswordVisibility: togglePasswordVisibility2 } = usePasswordVisibility();
   
   const {
     formData,
@@ -42,6 +37,8 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    console.log("Form data:", formData);
 
     if (!formData.password || !formData.confirmPassword) {
       setStatus('error', 'Semua field harus diisi!');
@@ -67,11 +64,10 @@ const ResetPassword = () => {
       return;
     }
 
-    console.log("Using token:", token);
-    console.log("Password:", formData.password);
-    
     try {
-      await authService.resetPassword(token, formData.password);
+      console.log("Sending request to confirmPasswordReset with token:", token);
+      const response = await authService.confirmPasswordReset(token, formData.password);
+      console.log("Response from confirmPasswordReset:", response);
       setStatus('success', 'Kata sandi berhasil diubah!');
       setTimeout(() => {
         navigate('/login');
@@ -111,7 +107,7 @@ const ResetPassword = () => {
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword1 ? "text" : "password"}
                 name="password"
                 required
                 className={`w-full px-4 py-3 rounded-lg border ${
@@ -124,10 +120,10 @@ const ResetPassword = () => {
               />
               <button
                 type="button"
-                onClick={togglePasswordVisibility}
+                onClick={togglePasswordVisibility1}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? (
+                {showPassword1 ? (
                   <Icon icon="mdi:eye-off" className="w-5 h-5" />
                 ) : (
                   <Icon icon="solar:eye-outline" className="w-5 h-5" />
@@ -142,7 +138,7 @@ const ResetPassword = () => {
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword2 ? "text" : "password"}
                 name="confirmPassword"
                 required
                 className={`w-full px-4 py-3 rounded-lg border ${
@@ -155,10 +151,10 @@ const ResetPassword = () => {
               />
               <button
                 type="button"
-                onClick={togglePasswordVisibility}
+                onClick={togglePasswordVisibility2}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? (
+                {showPassword2 ? (
                   <Icon icon="mdi:eye-off" className="w-5 h-5" />
                 ) : (
                   <Icon icon="solar:eye-outline" className="w-5 h-5" />
