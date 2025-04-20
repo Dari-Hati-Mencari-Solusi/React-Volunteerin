@@ -13,16 +13,26 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null); // Retrieve user data from local storage
+  const [isAuthenticated, setIsAuthenticated] = useState(!!user); // Set initial authentication state based on user data
   const [loading, setLoading] = useState(false);
 
-  const login = (userData) => {
-    setUser(userData);
-    setIsAuthenticated(true);
+    const login = (userData) => {
+        setLoading(true); // Set loading to true when starting the login process
+        try {
+            localStorage.setItem('user', JSON.stringify(userData)); // Store user data in local storage
+            setUser(userData);
+            setIsAuthenticated(true);
+        } catch (error) {
+            console.error("Login failed:", error); // Log the error
+        } finally {
+            setLoading(false); // Set loading to false when the process is complete
+        }
+
   };
 
   const logout = () => {
+    localStorage.removeItem('user'); // Clear user data from local storage
     setUser(null);
     setIsAuthenticated(false);
   };

@@ -2,23 +2,31 @@ import React, { useState, useEffect } from "react";
 import { Icon } from '@iconify/react';
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/images/logo_volunteerin.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AlignRight } from "lucide-react";
 
 const Navbar = () => {
-  const { isAuthenticated, user } = useAuth(); // Get user from AuthContext
+  const { isAuthenticated, user, logout } = useAuth(); // Get user and logout from AuthContext
+  const navigate = useNavigate();
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
 
   const [firstName, setFirstName] = useState('User');
+  const [fullName, setFullName] = useState('User');
+  const [role, setRole] = useState('Mahasiswa');
   
-  // Update firstName whenever user changes
+  // Update user data whenever user changes
   useEffect(() => {
     if (isAuthenticated && user) {
       const userData = user && user.user ? user.user : user;
       if (userData && userData.name) {
-        setFirstName(userData.name.split(' ')[0]);
+        const nameParts = userData.name.split(' ');
+        setFirstName(nameParts[0]);
+        setFullName(userData.name);
+      }
+      if (userData && userData.role) {
+        setRole(userData.role);
       }
     }
   }, [isAuthenticated, user]);
@@ -35,9 +43,14 @@ const Navbar = () => {
     }
   };
 
-  const handleLogout = () => {
-    // Logic to log out the user
-    console.log("User logged out");
+  const handleLogout = async () => {
+    try {
+      await logout(); // Call the logout function from AuthContext
+      setOpenDropdown(null); // Close the dropdown
+      navigate('/'); // Redirect to home page after logout
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   return (
@@ -71,7 +84,7 @@ const Navbar = () => {
                     >
                       Aktivitas
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns="http://www.w3.org/2000/svg "
                         className={`h-5 w-5 transition-transform ${
                           openDropdown === "event" ? "rotate-180" : ""
                         }`}
@@ -131,7 +144,7 @@ const Navbar = () => {
                     >
                       Hubungi Kami
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns="http://www.w3.org/2000/svg "
                         className={`h-5 w-5 transition-transform ${
                           openDropdown === "hubungiKami" ? "rotate-180" : ""
                         }`}
@@ -183,19 +196,30 @@ const Navbar = () => {
                       </div>
                     </button>
                     {openDropdown === "profile" && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                        <Link
-                          to="/profile"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-semibold"
-                        >
-                          Pengaturan Akun
-                        </Link>
-                        <button
-                          onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 font-semibold"
-                        >
-                          Keluar
-                        </button>
+                      <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg overflow-hidden z-50">
+                        {/* Profile Header */}
+                        <div className="bg-white px-6 py-4">
+                          <p className="text-xl font-semibold">{fullName || 'User'}</p>
+                          <p className="text-gray-500 text-sm">{role}</p>
+                        </div>
+                        
+                        {/* Profile Options */}
+                        <div className="flex flex-col border-t border-gray-100">
+                          <Link
+                            to="/profile-user"
+                            className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
+                          >
+                            <Icon icon="mdi:cog" className="w-6 h-6" />
+                            <span className="font-medium">Pengaturan Akun</span>
+                          </Link>
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 px-6 py-3 text-red-600 hover:bg-gray-50 transition duration-150 w-full text-left border-t border-gray-100"
+                          >
+                            <Icon icon="mdi:logout" className="w-6 h-6" />
+                            <span className="font-medium">Keluar</span>
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -275,7 +299,7 @@ const Navbar = () => {
                   >
                     <span>Aktivitas</span>
                     <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns="http://www.w3.org/2000/svg "
                       className={`h-5 w-5 transition-transform ${
                         openDropdown === "event" ? "rotate-180" : ""
                       }`}
@@ -323,44 +347,43 @@ const Navbar = () => {
                 <Link
                   to="/layanan"
                   className="text-black transition text-md hover:text-[#0A3E54] font-normal"
-                >
-                  Layanan
+                >Layanan
                 </Link>
               </li>
               <li>
-                  <div className="relative">
-                    <button
-                      onClick={() => toggleDropdown("hubungiKami")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
+                <div className="relative">
+                  <button
+                    onClick={() => toggleDropdown("hubungiKami")}
+                    className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
+                  >
+                    Hubungi Kami
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg "
+                      className={`h-5 w-5 transition-transform ${
+                        openDropdown === "hubungiKami" ? "rotate-180" : ""
+                      }`}
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
-                      Hubungi Kami
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-5 w-5 transition-transform ${
-                          openDropdown === "hubungiKami" ? "rotate-180" : ""
-                        }`}
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                    {openDropdown === "hubungiKami" && (
-                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Cs
-                        </Link>
-                        <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                          Cs Partner
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </li>
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                  {openDropdown === "hubungiKami" && (
+                    <div className="mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                      <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        Cs
+                      </Link>
+                      <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        Cs Partner
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </li>
               {!isAuthenticated ? (
                 <li className="flex gap-4 mt-4">
                   <Link
@@ -385,12 +408,46 @@ const Navbar = () => {
                     >
                       <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                     </Link>
-                    <Link to="/profile-user" className="flex items-center gap-2">
-                      <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
-                        <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
-                        <span className="font-medium">{firstName}</span>
-                      </div>
-                    </Link>
+                    
+                    <div className="relative">
+                      <button
+                        onClick={() => toggleDropdown("mobileProfile")}
+                        className="flex items-center gap-2"
+                      >
+                        <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
+                          <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
+                          <span className="font-medium">{firstName}</span>
+                        </div>
+                      </button>
+                      
+                      {openDropdown === "mobileProfile" && (
+                        <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg overflow-hidden z-50">
+                          {/* Profile Header */}
+                          <div className="bg-white px-6 py-4">
+                            <p className="text-xl font-semibold">{fullName || 'User'}</p>
+                            <p className="text-gray-500 text-sm">{role}</p>
+                          </div>
+                          
+                          {/* Profile Options */}
+                          <div className="flex flex-col border-t border-gray-100">
+                            <Link
+                              to="/profile-user"
+                              className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
+                            >
+                              <Icon icon="mdi:cog" className="w-6 h-6" />
+                              <span className="font-medium">Pengaturan Akun</span>
+                            </Link>
+                            <button
+                              onClick={handleLogout}
+                              className="flex items-center gap-2 px-6 py-3 text-red-600 hover:bg-gray-50 transition duration-150 w-full text-left border-t border-gray-100"
+                            >
+                              <Icon icon="mdi:logout" className="w-6 h-6" />
+                              <span className="font-medium">Keluar</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </li>
               )}

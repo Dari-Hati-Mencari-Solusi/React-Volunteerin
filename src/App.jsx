@@ -33,7 +33,7 @@ function App() {
       <Route path="/register-partner" element={<RegisterPartner />} />
       <Route path="/auth" element={<VolunteerinAuth />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/reset-pw" element={<ResetPassword />} />
       <Route path="/layanan" element={<Service />} />
 
       <Route path="*" element={<NotFoundPage />} />
