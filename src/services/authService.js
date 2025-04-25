@@ -19,6 +19,29 @@ export const authService = {
     }
   },
 
+  loginPartner: async (email, password) => {
+    try {
+      const response = await httpClient.post(`${API_URL}/auth/login`, {
+        email,
+        password,
+      });
+      console.log(response, 'response login');  
+      const { token, user } = response.data.data;
+      localStorage.setItem('token', token);
+      return { token, user };
+    } catch (error) {
+      throw error.response?.data || { message: 'An error occurred during login' };
+    }
+  },
+
+  registerPartner: async (userData) => {
+    try {
+      const response = await httpClient.post(`${API_URL}/auth/register`, userData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'An error occurred during registration' };
+    }
+  },
 
   register: async (userData) => {
     try {
