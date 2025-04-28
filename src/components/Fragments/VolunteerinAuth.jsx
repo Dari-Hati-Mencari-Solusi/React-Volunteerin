@@ -3,9 +3,14 @@ import Logo from "../../assets/images/logo_volunteerin.jpg";
 import { Icon } from "@iconify/react";
 import WhatsAppButton from "../Elements/buttons/BtnWhatsapp";
 import { Link } from "react-router-dom";
+import { authService } from "../../services/authService"; 
 
 const VolunteerinAuth = () => {
   const [isLogin, setIsLogin] = useState(true);
+
+  const handleGoogleLogin = () => {
+    window.location.href = authService.getGoogleOAuthUrl();
+  };
 
   return (
     <section className="min-h-screen bg-white p-2 px-4">
@@ -63,7 +68,10 @@ const VolunteerinAuth = () => {
                     <Icon icon="tabler:mail" width="24" height="24" />
                     <span>{isLogin ? "Masuk" : "Daftar"} Dengan Email</span>
                   </Link>
-                  <button className="w-full py-2.5 px-4 border rounded-xl text-gray-600 text-sm font-normal flex items-center justify-center space-x-2 hover:bg-gray-50 transition-colors">
+                  <button 
+                    onClick={handleGoogleLogin}
+                    className="w-full py-2.5 px-4 border rounded-xl text-gray-600 text-sm font-normal flex items-center justify-center space-x-2 hover:bg-gray-50 transition-colors"
+                  >
                     <Icon
                       icon="flat-color-icons:google"
                       width="24"
@@ -74,7 +82,6 @@ const VolunteerinAuth = () => {
                 </div>
               </div>
 
-              {/* Partner Section */}
               <div className="bg-white hover:shadow-lg transition duration-300 ease-in-out rounded-lg border p-6 space-y-6 max-w-[280px] h-[289px]">
                 <div>
                   <div className="flex justify-center">
@@ -99,7 +106,10 @@ const VolunteerinAuth = () => {
                     <Icon icon="tabler:mail" width="24" height="24" />
                     <span>{isLogin ? "Masuk" : "Daftar"} Dengan Email</span>
                   </Link>
-                  <button className="w-full py-2.5 px-4 border rounded-xl text-gray-600 text-sm font-normal flex items-center justify-center space-x-2 hover:bg-gray-50 transition-colors">
+                  <button 
+                    onClick={handleGoogleLogin}
+                    className="w-full py-2.5 px-4 border rounded-xl text-gray-600 text-sm font-normal flex items-center justify-center space-x-2 hover:bg-gray-50 transition-colors"
+                  >
                     <Icon
                       icon="flat-color-icons:google"
                       width="24"

@@ -2,7 +2,12 @@ import httpClient from '../utils/httpClient';
 
 const API_URL = import.meta.env.VITE_BE_BASE_URL;
 
+
 export const authService = {
+
+  getGoogleOAuthUrl: () => `${API_URL}/auth/google`,
+  getFacebookOAuthUrl: () => `${API_URL}/auth/facebook`,
+
   login: async (email, password) => {
     try {
       const response = await httpClient.post(`${API_URL}/auth/login`, {
