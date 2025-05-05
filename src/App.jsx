@@ -16,28 +16,37 @@ import VolunteerinAuth from "./components/Fragments/VolunteerinAuth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Service from "./pages/Service";
+import { ThemeProvider } from "./context/ThemeContext";
+import Layout from "./pages/partners/Layout";
+import EventDashboard from "./pages/partners/CreateEvent";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/login-landing" element={<LoginPageLanding />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/event" element={<EventPage />} />
-      <Route path="/profile-user" element={<ProfileUser />} />
-      <Route path="/save-event" element={<SaveEvent />} />
-      <Route path="/regis-event" element={<RegisteredEvent />} />
-      <Route path="/notification" element={<NotificationUser />} />
-      <Route path="/login-partner" element={<LoginPartner />} />
-      <Route path="/register-partner" element={<RegisterPartner />} />
-      <Route path="/auth" element={<VolunteerinAuth />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/layanan" element={<Service />} />
+    <ThemeProvider storageKey="theme">
+      <Routes>
+        {/* Dashboard route with hash-based navigation handled internally */}
+        <Route path="/dashboard" element={<Layout />} />
+        
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login-landing" element={<LoginPageLanding />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/event" element={<EventPage />} />
+        <Route path="/profile-user" element={<ProfileUser />} />
+        <Route path="/save-event" element={<SaveEvent />} />
+        <Route path="/regis-event" element={<RegisteredEvent />} />
+        <Route path="/notification" element={<NotificationUser />} />
+        <Route path="/login-partner" element={<LoginPartner />} />
+        <Route path="/register-partner" element={<RegisterPartner />} />
+        <Route path="/auth" element={<VolunteerinAuth />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/layanan" element={<Service />} />
+        <Route path="/buat-event" element={<EventDashboard />} />
 
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </ThemeProvider>
   );
 }
 

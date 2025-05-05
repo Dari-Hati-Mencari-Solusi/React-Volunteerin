@@ -3,91 +3,186 @@
 @tailwind utilities;
 
 .marquee-container {
-    width: 100%;
-    overflow: hidden;
-    padding: 0 10px;
+  width: 100%;
+  overflow: hidden;
+  padding: 0 10px;
 }
 
 .marquee-content {
-    display: flex;
-    animation: marquee 20s linear infinite;
-    justify-content: flex-start;
-    will-change: transform;
+  display: flex;
+  animation: marquee 20s linear infinite;
+  justify-content: flex-start;
+  will-change: transform;
 }
 
 .marquee-content .logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 20px;
 }
 
 .logo {
-    max-width: 120px;
-    height: auto;
-    object-fit: contain;
+  max-width: 120px;
+  height: auto;
+  object-fit: contain;
 }
 
 @keyframes marquee {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-100%);
-    }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
 @media (max-width: 1024px) {
-    .marquee-content {
-        animation: marquee 18s linear infinite;
-    }
-    .logo-container {
-        margin: 0 15px;
-    }
+  .marquee-content {
+    animation: marquee 18s linear infinite;
+  }
+  .logo-container {
+    margin: 0 15px;
+  }
 }
 
 @media (max-width: 768px) {
-    .marquee-content {
-        animation: marquee 15s linear infinite;
-    }
-    .logo-container {
-        margin: 0 10px;
-    }
-    .logo {
-        max-width: 100px;
-    }
+  .marquee-content {
+    animation: marquee 15s linear infinite;
+  }
+  .logo-container {
+    margin: 0 10px;
+  }
+  .logo {
+    max-width: 100px;
+  }
 }
 
 .btn-primary {
-    @apply bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors;
+  @apply bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors;
+}
+.btn-secondary {
+  @apply bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors;
+}
+.input-group {
+  @apply space-y-2;
+}
+.input-label {
+  @apply block text-sm font-medium text-gray-700;
+}
+.input-field {
+  @apply w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #155d75 #f1f5f9;
   }
-  .btn-secondary {
-    @apply bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors;
+}
+
+@layer base {
+  body {
+    @apply [scrollbar-color:_#fff_transparent];
   }
-  .input-group {
-    @apply space-y-2;
-  }
-  .input-label {
-    @apply block text-sm font-medium text-gray-700;
-  }
-  .input-field {
-    @apply w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+@layer components {
+  .sidebar-group {
+    @apply flex w-full flex-col gap-y-2;
   }
 
-  @layer utilities {
-    .scrollbar-thin::-webkit-scrollbar {
-      width: 5px;
-      height: 4px;
-    }
-  
-    .scrollbar-thin::-webkit-scrollbar-thumb {
-      background-color: #155D75;
-      border-radius: 4px; 
-    }
-  
-    .scrollbar-thin::-webkit-scrollbar-track {
-      background-color: #f1f5f9;
-      border-radius: 4px;
-    }
+  .sidebar-group-title {
+    @apply overflow-hidden text-ellipsis text-sm font-medium text-slate-400 ;
   }
-    
+
+ .sidebar-item {
+  @apply flex h-[40px] w-full flex-shrink-0 items-center gap-x-3 rounded-lg p-3 text-base font-medium text-white transition-colors hover:bg-white/20;
+}
+
+.sidebar-item:hover {
+  @apply text-white;
+}
+
+.sidebar-item.active {
+  @apply bg-white text-[#0A3E54] hover:bg-white hover:text-[#0A3E54];
+}
+
+  .title {
+    @apply text-3xl font-semibold text-[#0A3E54] transition-colors;
+  }
+
+  .title-child {
+    @apply font-medium lg:text-lg text-xl md:text-lg transition-colors text-[#0A3E54];
+  }
+
+  .subtitle {
+    @apply text-[24px] font-medium text-[#0A3E54] transition-colors;
+  }
+
+  .btn-ghost {
+    @apply flex h-10 flex-shrink-0 items-center justify-center gap-x-2 rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-slate-500 ;
+  }
+
+  .link {
+    @apply text-base font-medium text-slate-900 transition-colors hover:underline ;
+  }
+
+  .input {
+    @apply hidden h-10 flex-shrink-0 items-center gap-x-2 rounded-lg border border-slate-300 px-2 text-base text-slate-900 transition-colors has-[input:focus]:border-blue-500 md:flex md:w-auto lg:w-80 ;
+  }
+
+  .card {
+    @apply flex flex-col gap-y-3 rounded-lg shadow-md bg-white p-4 transition-colors;
+  }
+
+  .card-child {
+    @apply flex flex-col gap-y-3 rounded-lg shadow-md bg-white p-4 h-40 transition-colors;
+  }
+
+
+  .card-header {
+    @apply flex items-center gap-x-2;
+  }
+
+  .card-title {
+    @apply font-medium text-2xl transition-colors text-[#0A3E54];
+  }
+
+  .card-body {
+    @apply flex flex-col gap-y-2 rounded-lg p-4;
+  }
+
+  .table {
+    @apply h-full w-full text-slate-900 ;
+  }
+
+  .table-header {
+    @apply sticky top-0 bg-slate-200 transition-[background] ;
+  }
+
+  .table-row {
+    @apply border-b border-slate-300 transition-colors last:border-none;
+  }
+
+  .table-head {
+    @apply h-12 px-4 text-start;
+  }
+
+  .table-cell {
+    @apply w-fit whitespace-nowrap p-4 font-medium;
+  }
+}
+
+.recharts-default-tooltip {
+  @apply !rounded-lg !border !border-slate-300 !bg-white transition-colors ;
+}
+
+.recharts-tooltip-label {
+  @apply text-base font-medium text-slate-900 ;
+}
+
+.recharts-tooltip-item {
+  @apply text-base font-medium !text-blue-500 ;
+}
+
