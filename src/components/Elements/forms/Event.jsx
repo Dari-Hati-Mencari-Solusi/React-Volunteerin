@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 
-const EventForm = () => {
+const EventForm = ({ onClose }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBenefits, setSelectedBenefits] = useState([]);
@@ -9,6 +9,7 @@ const EventForm = () => {
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [notification, setNotification] = useState("");
 
   const benefitsList = [
     { name: "Lingkungan", icon: "mdi:leaf" },
@@ -24,18 +25,27 @@ const EventForm = () => {
         selectedBenefits.filter((b) => b.name !== benefit.name)
       );
     } else {
-      setSelectedBenefits([...selectedBenefits, benefit]);
+      if (selectedBenefits.length < 4) {
+        setSelectedBenefits([...selectedBenefits, benefit]);
+      } else {
+        setNotification("Anda hanya dapat memilih maksimal 4 manfaat.");
+      }
     }
   };
 
   const handleCreateBenefit = () => {
     if (customBenefit && selectedIcon) {
-      setSelectedBenefits([
-        ...selectedBenefits,
-        { name: customBenefit, icon: selectedIcon },
-      ]);
-      setCustomBenefit("");
-      setSelectedIcon(null);
+      if (selectedBenefits.length < 4) {
+        setSelectedBenefits([
+          ...selectedBenefits,
+          { name: customBenefit, icon: selectedIcon },
+        ]);
+        setCustomBenefit("");
+        setSelectedIcon(null);
+        setNotification("");
+      } else {
+        setNotification("Anda hanya dapat membuat maksimal 4 manfaat.");
+      }
     }
   };
 
@@ -44,7 +54,6 @@ const EventForm = () => {
       setSearchResults([]);
       return;
     }
-
     try {
       const response = await fetch(
         `https://api.iconify.design/search?query=${encodeURIComponent(
@@ -65,49 +74,39 @@ const EventForm = () => {
     searchIcons(term);
   };
 
-  const handleSelectIcon = (icon) => {
-    setSelectedIcon(icon);
-  };
-
   return (
-    <div className=" mx-auto bg-white rounded shadow">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-gray-800 text-white p-4 rounded-t">
-        <h2 className="text-xl font-semibold">Event</h2>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-white focus:outline-none"
-        >
-          {isExpanded ? (
-            <Icon icon="mdi:chevron-up" className="text-xl" />
-          ) : (
-            <Icon icon="mdi:chevron-down" className="text-xl" />
-          )}
-        </button>
-      </div>
-
-      {/* Container dengan lebar tetap */}
+    <div className="w-full max-w-full mx-auto">
       <div className="w-full">
-        {/* Form Content */}
         <div
-          className={`bg-gray-50  w-full ${
-            isExpanded
-              ? "max-h-[2000px] visible opacity-100 p-6"
-              : "max-h-0 invisible opacity-0 p-0 overflow-hidden"
+          className="flex items-center justify-between bg-[#0A3E54] text-white p-3 cursor-pointer rounded-t-xl"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <h2 className="text-lg font-semibold">Event</h2>
+          <button className="text-white focus:outline-none">
+            <Icon
+              icon={isExpanded ? "mdi:chevron-up" : "mdi:chevron-down"}
+              className="text-3xl"
+            />
+          </button>
+        </div>
+
+        <div
+          className={`bg-[#F7F7F7] border border-[#ECECEC] overflow-hidden rounded-b-xl transition-all duration-300 w-full ${
+            isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <div className="space-y-6">
+          <div className="p-6 space-y-6">
             <div>
               <label
                 htmlFor="namaLengkap"
                 className="block text-sm font-medium mb-2"
               >
-                Nama Lengkap <span className="text-red-500">*</span>
+                Nama <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 id="namaLengkap"
-                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
               />
             </div>
 
@@ -116,11 +115,11 @@ const EventForm = () => {
                 htmlFor="kategoriEvent"
                 className="block text-sm font-medium mb-2"
               >
-                Kategori Event <span className="text-red-500">*</span>
+                Kategori  <span className="text-red-500">*</span>
               </label>
               <select
                 id="kategoriEvent"
-                className="w-full p-2 border border-gray-300 rounded appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
               >
                 <option value="" disabled selected>
                   Pilih Kategori
@@ -131,12 +130,11 @@ const EventForm = () => {
               </select>
             </div>
 
-            {/* Manfaat Event */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Manfaat Event <span className="text-red-500">*</span>
+                Manfaat  <span className="text-red-500">*</span>
               </label>
-              <div className="w-full flex items-center border border-gray-300 rounded p-2 bg-white">
+              <div className="flex items-center w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white">
                 <div className="flex flex-wrap gap-2 flex-1">
                   {selectedBenefits.length > 0 ? (
                     selectedBenefits.map((benefit) => (
@@ -165,6 +163,9 @@ const EventForm = () => {
                   <Icon icon="mdi:plus-circle" className="text-2xl" />
                 </button>
               </div>
+              {notification && (
+                <p className="text-red-500 text-sm mt-2">{notification}</p>
+              )}
             </div>
 
             <div>
@@ -172,12 +173,12 @@ const EventForm = () => {
                 htmlFor="deskripsiEvent"
                 className="block text-sm font-medium mb-2"
               >
-                Deskripsi Event <span className="text-red-500">*</span>
+                Deskripsi  <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="deskripsiEvent"
                 rows="4"
-                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
               ></textarea>
             </div>
 
@@ -189,13 +190,13 @@ const EventForm = () => {
                 URL Event <span className="text-red-500">*</span>
               </label>
               <div className="flex">
-                <span className="inline-flex items-center px-3 text-sm text-gray-500 bg-gray-100 border border-r-0 border-gray-300 rounded-l">
+                <span className="inline-flex items-center px-3 text-sm text-gray-500 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg">
                   volunteerin.id/event/
                 </span>
                 <input
                   type="text"
                   id="urlEvent"
-                  className="flex-1 p-2 border border-gray-300 rounded-r focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 w-full px-4 py-2 rounded-r-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
                   placeholder="nama_event"
                 />
               </div>
@@ -204,7 +205,6 @@ const EventForm = () => {
         </div>
       </div>
 
-      {/* Modal Pilih Manfaat */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full md:w-3/4 lg:w-1/2 max-h-[90vh] overflow-y-auto">
@@ -231,7 +231,6 @@ const EventForm = () => {
               ))}
             </div>
 
-            {/* Create Custom Benefit */}
             <div className="mt-4 pt-4 border-t">
               <h4 className="text-md font-medium text-gray-800">
                 Tambah Manfaat Baru
@@ -257,7 +256,7 @@ const EventForm = () => {
                       <div
                         key={index}
                         className="p-2 bg-gray-100 rounded-lg text-center cursor-pointer hover:bg-gray-200"
-                        onClick={() => handleSelectIcon(icon)}
+                        onClick={() => setSelectedIcon(icon)}
                       >
                         <Icon icon={icon} className="w-6 h-6 mx-auto" />
                       </div>
@@ -267,7 +266,12 @@ const EventForm = () => {
               </div>
               <button
                 onClick={handleCreateBenefit}
-                className="mt-2 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors duration-300"
+                disabled={!customBenefit || !selectedIcon}
+                className={`mt-2 w-full text-white py-2 rounded-lg transition-colors duration-300 ${
+                  customBenefit && selectedIcon
+                    ? "bg-green-500 hover:bg-green-600"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
               >
                 Tambahkan
               </button>
@@ -275,13 +279,19 @@ const EventForm = () => {
 
             <div className="flex justify-end gap-2 mt-4">
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  onClose();
+                }}
                 className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors duration-300"
               >
                 Batal
               </button>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  onClose();
+                }}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-300"
               >
                 Simpan
