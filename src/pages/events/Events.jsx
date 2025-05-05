@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "@iconify/react";
-import { fetchEvents } from "../../services/eventService"; // Add this import
+import { fetchEvents } from "../../services/eventService"; 
 
 const Events = ({ selectedCategory, limit }) => {
   const [events, setEvents] = useState([]);
