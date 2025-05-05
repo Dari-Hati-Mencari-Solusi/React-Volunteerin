@@ -60,6 +60,11 @@ const VolunteerinRequirements = ({ setIsLogin, handleNext }) => {
         </div>
       </div>
 
+      <div className='flex items-center gap-4'>
+        <input type="checkbox" className="w-6 h-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+        <p className='text-md font-medium'>Saya telah membaca dan menyetujui ketentuan yang berlaku.<span className='text-red-600' >*</span></p>
+      </div>
+
       <div className="flex justify-between py-6 gap-2">
         <button
           onClick={handlePrevious}
