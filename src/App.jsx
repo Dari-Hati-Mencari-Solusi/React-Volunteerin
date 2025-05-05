@@ -46,6 +46,7 @@ function App() {
         <Route path="/buat-event" element={<EventDashboard />} />
         <Route path="/form-register" element={<FormRegisterUser />} />
 
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ThemeProvider>

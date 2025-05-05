@@ -12,11 +12,24 @@ const Events = ({ selectedCategory, limit }) => {
     const fetchEventsData = async () => {
       try {
         setLoading(true);
+        // Log nilai parameter untuk debugging
+        console.log('Fetching with params:', { limit, selectedCategory });
+        
+        // Tambahkan delay kecil untuk memastikan loading state terlihat
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         const response = await fetchEvents(limit, selectedCategory);
+        console.log('Response received:', response);
+        
+        if (!response || !response.data) {
+          throw new Error('Invalid response format');
+        }
+        
         setEvents(response.data);
         setError(null);
       } catch (err) {
-        setError("Gagal mengambil data event.");
+        console.error('Error in component:', err);
+        setError("Gagal mengambil data event: " + (err.message || 'Unknown error'));
       } finally {
         setLoading(false);
       }
@@ -25,16 +38,9 @@ const Events = ({ selectedCategory, limit }) => {
     fetchEventsData();
   }, [selectedCategory, limit]);
   
-
-  // Filter events based on selected category
-  const filteredEvents = selectedCategory
-    ? events.filter((event) => 
-        event.categories && 
-        event.categories.some(cat => cat.name === selectedCategory)
-      )
-    : events;
-
-  const limitedEvents = limit ? filteredEvents.slice(0, limit) : filteredEvents;
+  // Hindari double filtering - karena sudah difilter di service
+  // Gunakan events langsung dari response
+  const limitedEvents = events;
 
   if (loading) {
     return (
@@ -52,7 +58,7 @@ const Events = ({ selectedCategory, limit }) => {
     );
   }
 
-  if (limitedEvents.length === 0) {
+  if (!limitedEvents || limitedEvents.length === 0) {
     return (
       <div className="text-center p-8">
         <p className="text-gray-500">Tidak ada event yang tersedia.</p>
@@ -84,7 +90,7 @@ const Events = ({ selectedCategory, limit }) => {
             <div className="space-y-3 text-sm font-normal text-[#0A3E54]">
               <div className="flex items-center gap-2">
                 <Icon icon="tdesign:location" width="18" height="18" />
-                <span className="truncate text-[14px]">{event.location}</span>
+                <span className="truncate text-[14px]">{event.address}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Icon
@@ -96,14 +102,6 @@ const Events = ({ selectedCategory, limit }) => {
                   {new Date(event.startAt).toLocaleDateString()} - {new Date(event.endAt).toLocaleDateString()}
                 </span>
               </div>
-              {/* Since we don't have maxVolunteers and registeredVolunteers in API data, 
-                  I'm leaving this commented out. You can update if you have this data. */}
-              {/* <div className="flex items-center gap-2">
-                <Icon icon="fa6-solid:user-group" width="16" height="16" />
-                <span className="truncate text-[14px]">
-                  {event.registeredVolunteers}/{event.maxVolunteers} Terdaftar
-                </span>
-              </div> */}
               <div className="flex items-center gap-2 mb-2">
                 <Icon icon="fa6-solid:user" width="16" height="16" />
                 <span className="truncate text-[14px]">

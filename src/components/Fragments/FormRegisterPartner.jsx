@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react'; 
 import { Icon } from "@iconify/react";
 
 const RegisterForm = ({
@@ -7,8 +7,9 @@ const RegisterForm = ({
   error,
   formData,
   onFormChange,
+  showPassword,
+  togglePasswordVisibility
 }) => {
-  const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleInputChange = (e) => {
@@ -21,7 +22,6 @@ const RegisterForm = ({
     onSubmit();
   };
 
-  const toggleShowPassword = () => setShowPassword((prev) => !prev);
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
@@ -37,6 +37,7 @@ const RegisterForm = ({
           value={formData.name}
           onChange={handleInputChange}
           disabled={isSubmitting}
+          required
         />
       </div>
 
@@ -55,6 +56,7 @@ const RegisterForm = ({
           value={formData.email}
           onChange={handleInputChange}
           disabled={isSubmitting}
+          required
         />
       </div>
 
@@ -75,10 +77,12 @@ const RegisterForm = ({
             value={formData.password}
             onChange={handleInputChange}
             disabled={isSubmitting}
+            required
+            minLength="8"
           />
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={togglePasswordVisibility}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
           >
             {showPassword ? (
@@ -105,6 +109,7 @@ const RegisterForm = ({
             value={formData.confirmPassword}
             onChange={handleInputChange}
             disabled={isSubmitting}
+            required
           />
           <button
             type="button"
@@ -121,18 +126,19 @@ const RegisterForm = ({
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="phoneNumber" className="text-gray-700">
+        <label htmlFor="phone" className="text-gray-700">
           No. Handphone
         </label>
         <input
           type="tel"
-          id="phoneNumber"
-          name="phoneNumber"
+          id="phone"
+          name="phone"
           placeholder="Contoh: 081234567890"
           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]"
-          value={formData.phoneNumber}
+          value={formData.phone}
           onChange={handleInputChange}
           disabled={isSubmitting}
+          required
         />
       </div>
 
