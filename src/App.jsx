@@ -44,6 +44,7 @@ function App() {
         <Route path="/layanan" element={<Service />} />
         <Route path="/buat-event" element={<EventDashboard />} />
 
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ThemeProvider>
