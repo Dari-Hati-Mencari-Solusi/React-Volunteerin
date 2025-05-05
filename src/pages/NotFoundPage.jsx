@@ -1,81 +1,3 @@
-// import React from "react";
-// import { Icon } from "@iconify/react";
-// import Logo from "../../src/assets/images/logowhite.svg";
-
-// export default function EmailVerification() {
-
-//   const userName = "Kang Rantau";
-//   const verificationToken = "oqiwjqinendfjsdnsjdnsjdns";
-//   const verificationUrl = `https://volunteerin.id/verifikasi-email?t=${verificationToken}`;
-
-//   return (
-//     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-//       <div className="max-w-xl w-full bg-white rounded-xl shadow-lg overflow-hidden">
-//         <div className="px-6 py-4 bg-[#0A3E54]">
-//           <div className="flex items-center justify-between  ">
-//             <div className="flex items-center gap-3">
-//               <img src={Logo} alt="" className="w-10"/>
-//               <div>
-//                 <h1 className="text-xl font-bold text-white">Volunteerin</h1>
-//                 <p className="text-white text-xs">
-//                   Temukan Peluangmu Wujudkan Aksimu
-//                 </p>
-//               </div>
-//             </div>
-//             <Icon icon="tabler:mail-filled" width="32" height="32"  className="text-white"/>
-//           </div>
-//         </div>
-
-//         <div className="p-6">
-//           <h2 className="text-xl font-bold text-center text-gray-800 mb-6">
-//             Verifikasi Akun Volunteerin Anda
-//           </h2>
-
-//           <p className="text-gray-600 mb-6 text-center">
-//             Halo <span className="font-medium">{userName}</span>, terima kasih
-//             telah mendaftar di Volunteerin! Untuk melanjutkan, mohon verifikasi
-//             alamat email Anda.
-//           </p>
-
-//           <div className="flex justify-center mb-6">
-//             <a
-//               href={verificationUrl}
-//               className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-md shadow-sm transition duration-150 ease-in-out text-center"
-//             >
-//               Verifikasi Email Sekarang
-//             </a>
-//           </div>
-
-//           <div className="text-center mb-6">
-//             <p className="text-sm text-gray-500 mb-2">
-//               Klik link dibawah ini jika tombol tidak berfungsi
-//             </p>
-//             <a
-//               href={verificationUrl}
-//               className="text-sm text-green-600 break-all hover:underline"
-//             >
-//               {verificationUrl}
-//             </a>
-//           </div>
-
-//           <div className="bg-gray-100 text-center p-3 rounded-xl mb-6">
-//             <p className="text-sm text-gray-600">
-//               Jika Anda tidak merasa membuat akun di Volunteerin, abaikan email
-//               ini.
-//             </p>
-//           </div>
-//         </div>
-
-//         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-//           <p className="text-xs text-center text-[#0A3E54]">
-//             © 2025 Volunteerin. Semua hak dilindungi.
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
 import { useState } from "react";
 import {
   User,
@@ -88,7 +10,7 @@ import {
   Check,
   ChevronRight,
 } from "lucide-react";
-import Logo from "../assets/images/logowhite.svg"; // Ganti dengan path logo Anda
+import Logo from "../assets/images/logowhite.svg";
 
 export default function FormPendaftaran() {
   const [formData, setFormData] = useState({
@@ -128,7 +50,6 @@ export default function FormPendaftaran() {
     console.log("Data pendaftaran:", formData);
     setIsSubmitted(true);
 
-    // Reset form setelah 3 detik
     setTimeout(() => {
       setIsSubmitted(false);
       setFormData({
@@ -154,19 +75,18 @@ export default function FormPendaftaran() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-      <div className="max-w-lg w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header dengan logo */}
-        <div className="relative overflow-hidden h-36 bg-gradient-to-r from-indigo-600 to-purple-600">
+    <div className="min-h-screen py-5 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="relative overflow-hidden h-36 bg-gradient-to-r from-[#0A3E54] to-[#116173]">
           <div className="absolute inset-0 bg-black opacity-20"></div>
-          <div className="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 opacity-30"></div>
-          <div className="absolute -left-10 -top-10 w-40 h-40 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 opacity-30"></div>
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-gradient-to-r from-[#0A3E54] to-teal-400 opacity-30"></div>
+          <div className="absolute -left-10 -top-10 w-40 h-40 rounded-full bg-gradient-to-r from-teal-400 to-[#0A3E54] opacity-30"></div>
 
           <div className="relative flex flex-col items-center justify-center h-full px-8 text-center">
             <img src={Logo} alt="Logo" className="w-16 h-16" />
             <h2 className="text-2xl font-bold text-white">VOLUNTEERIN</h2>
-            <p className="text-indigo-100 mt-1">
-              Jadilah Bagian dari Perubahan
+            <p className="text-white/80 mt-1">
+              Temukan Peluangmu, wujudkan Aksimu
             </p>
           </div>
         </div>
@@ -201,17 +121,17 @@ export default function FormPendaftaran() {
               <div className="flex items-center">
                 <div
                   className={`w-3 h-3 rounded-full ${
-                    currentStep >= 1 ? "bg-indigo-600" : "bg-gray-300"
+                    currentStep >= 1 ? "bg-[#0A3E54]" : "bg-gray-300"
                   }`}
                 ></div>
                 <div
                   className={`w-10 h-1 ${
-                    currentStep >= 2 ? "bg-indigo-600" : "bg-gray-300"
+                    currentStep >= 2 ? "bg-[#0A3E54]" : "bg-gray-300"
                   }`}
                 ></div>
                 <div
                   className={`w-3 h-3 rounded-full ${
-                    currentStep >= 2 ? "bg-indigo-600" : "bg-gray-300"
+                    currentStep >= 2 ? "bg-[#0A3E54]" : "bg-gray-300"
                   }`}
                 ></div>
               </div>
@@ -335,7 +255,7 @@ export default function FormPendaftaran() {
                 <div className="pt-6 flex justify-end">
                   <button
                     onClick={nextStep}
-                    className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
+                    className="px-6 py-3 bg-[#0A3E54] text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
                   >
                     Selanjutnya
                     <ChevronRight className="h-5 w-5 ml-1" />
@@ -493,7 +413,7 @@ export default function FormPendaftaran() {
                   </button>
                   <button
                     onClick={handleSubmit}
-                    className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                    className="px-6 py-3 bg-[#0A3E54] text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
                   >
                     Daftar Sekarang
                   </button>
