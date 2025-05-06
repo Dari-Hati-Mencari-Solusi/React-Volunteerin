@@ -1,80 +1,182 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/navbar/Navbar";
 import Footer from "../../components/footer/Footer";
-import BannerEvent from "../../assets/images/banner1.jpg";
+import BannerEvent from "../../assets/images/banner1.jpg"; // Fallback banner
 import { Icon } from "@iconify/react";
 import BtnDaftarVolunteer from "../../components/Elements/buttons/BtnDaftarVolunteer";
 import Marketing from "../../components/Fragments/Marketing";
+import { useAuth } from "../../context/AuthContext";
+import { fetchEventById } from "../../services/eventService";
 
 const EventPage = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [event, setEvent] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Existing benefits and criteria arrays remain unchanged
-  const benefits = [
-    {
-      id: 1,
-      title: "Uang Saku",
-      icon: "tabler:wallet",
-    },
-    {
-      id: 2,
-      title: "Sertifikat",
-      icon: "tabler:certificate",
-    },
-    {
-      id: 3,
-      title: "Snack",
-      icon: "fluent-mdl2:eat-drink",
-    },
-    {
-      id: 4,
-      title: "Koneksi",
-      icon: "ic:round-connect-without-contact",
-    },
-  ];
-
-  // Existing eventDetails object remains unchanged
-  const eventDetails = {
-    title: "Aksi Peduli Bencana",
-    date: "Sabtu, 20 Okt - Minggu, 21 Okt 2026 • 07:30 - 11:50 WIB",
-    category: "Sosial",
-    location: "Pantai Cangkring, Poncosari, Srandakan, Bantul, Yogyakarta",
-    organizer: {
-      name: "Peduli Lingkungan",
-      logo: BannerEvent,
-      instagram: "Aksipeduli",
-    },
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Habitant cras morbi hendrerit nunc vel sapien. In habitasse at diam suspendisse non vitae fermentum, pharetra arcu. Viverra a morbi ut donec in. Ac diam, at sed eras nisi.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Habitant cras morbi hendrerit nunc vel sapien. In habitasse at diam suspendisse non vitae fermentum, pharetra arcu. Viverra a morbi ut donec in. Ac diam, at sed eras nisi.",
-    quota: "30 / 50 Kuota",
-  };
-
-  const activities = [
-    {
-      id: 1,
-      description:
-        "Membantu dalam perencanaan kegiatan, seperti menyusun daftar peralatan yang dibutuhkan (sarung tangan, kantong sampah, penjepit sampah, dll).",
-    },
-    {
-      id: 2,
-      description:
-        "Mengikuti briefing awal mengenai prosedur pembersihan dan pembagian tugas di area pantai yang akan dibersihkan.",
-    },
-    {
-      id: 3,
-      description:
-        "Mengumpulkan sampah dengan hati-hati dan memilahnya berdasarkan jenisnya, seperti plastik, kaca, dan logam, untuk didaur ulang jika memungkinkan.",
-    },
-    {
-      id: 4,
-      description:
-        "Menjaga keselamatan dengan menggunakan perlengkapan yang sesuai dan memperhatikan lingkungan sekitar, terutama benda tajam atau berbahaya.",
-    },
-  ];
+  // Check authentication status dan fetch data event
+  useEffect(() => {
+    // Jika belum login, redirect ke halaman login
+    if (!isAuthenticated) {
+      // Simpan URL tujuan agar setelah login bisa kembali ke halaman ini
+      const returnUrl = `/event/${id}`;
+      
+      // Gunakan localStorage untuk menyimpan URL tempat user ingin pergi
+      localStorage.setItem("returnUrl", returnUrl);
+      
+      // Redirect ke halaman login dengan pesan
+      navigate("/login", { 
+        state: { 
+          message: "Silakan login untuk melihat detail event",
+          returnUrl: returnUrl 
+        } 
+      });
+    } else {
+      // User sudah login, fetch data event dari API
+      const getEventData = async () => {
+        try {
+          setIsLoading(true);
+          // Ambil token dari localStorage
+          const token = localStorage.getItem("token");
+          
+          // Panggil fungsi dari eventService
+          const eventData = await fetchEventById(id, token);
+          
+          if (eventData && eventData.data) {
+            setEvent(eventData.data);
+          } else {
+            setError("Format respons API tidak valid");
+          }
+        } catch (err) {
+          console.error("Error fetching event:", err);
+          setError(err.message || "Terjadi kesalahan saat mengambil data event");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      getEventData();
+    }
+  }, [isAuthenticated, id, navigate]);
 
   const toggleDescription = () => {
     setShowFullDescription(!showFullDescription);
   };
+
+  // Tampilkan loading spinner saat memuat data
+  if (isLoading) {
+    return (
+      <section className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0A3E54]"></div>
+        </div>
+        <Footer />
+      </section>
+    );
+  }
+
+  // Tampilkan error jika ada
+  if (error) {
+    return (
+      <section className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex justify-center items-center">
+          <div className="max-w-md w-full bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
+            <h2 className="font-bold text-lg mb-2">Error</h2>
+            <p>{error}</p>
+            <button 
+              onClick={() => navigate("/events")}
+              className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+            >
+              Kembali ke Daftar Event
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </section>
+    );
+  }
+
+  // Tampilkan pesan jika tidak ada data event
+  if (!event) {
+    return (
+      <section className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex justify-center items-center">
+          <div className="text-center">
+            <p className="text-gray-600 mb-4">Data event tidak tersedia</p>
+            <button 
+              onClick={() => navigate("/events")}
+              className="bg-[#0A3E54] text-white px-4 py-2 rounded-lg hover:bg-[#0A3E54]/90 transition"
+            >
+              Lihat Event Lainnya
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </section>
+    );
+  }
+
+  // Format tanggal dan waktu
+  const formatDate = (dateString) => {
+    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    return new Date(dateString).toLocaleDateString('id-ID', options);
+  };
+
+  const formatTime = (dateString) => {
+    const options = { hour: '2-digit', minute: '2-digit' };
+    return new Date(dateString).toLocaleTimeString('id-ID', options);
+  };
+
+  // Persiapkan data event untuk UI sesuai dengan format API
+  const eventDetails = {
+    title: event.title,
+    date: `${formatDate(event.startAt)} - ${formatDate(event.endAt)} • ${formatTime(event.startAt)} - ${formatTime(event.endAt)} WIB`,
+    category: event.categories && event.categories.length > 0 ? event.categories[0].name : "Event",
+    location: event.address,
+    organizer: {
+      name: event.user?.name || "Penyelenggara Event",
+      logo: event.user?.profilePictureUrl || BannerEvent,
+      instagram: event.user?.instagram || "Aksipeduli",
+    },
+    description: event.description,
+    quota: `${event.registrationCount || 0} / ${event.maxApplicant} Kuota`,
+  };
+
+  // Parse requirements dari respons API
+  const activities = event.requirement
+    ? event.requirement.split('\n')
+        .filter(req => req.trim() !== '')
+        .map((req, index) => ({
+          id: index + 1,
+          description: req.replace(/^\d+\.\s*/, '').trim() || req // Hapus nomor jika ada
+        }))
+    : [
+        {
+          id: 1,
+          description: "Tidak ada persyaratan khusus untuk event ini.",
+        },
+      ];
+
+  // Ubah benefits dari API ke format yang sesuai dengan UI
+  const benefits = event.benefits && event.benefits.length > 0
+    ? event.benefits.map((benefit, index) => ({
+        id: index + 1,
+        title: benefit.name,
+        icon: getBenefitIcon(benefit.icon || benefit.name)
+      }))
+    : [
+        { id: 1, title: "Uang Saku", icon: "tabler:wallet" },
+        { id: 2, title: "Sertifikat", icon: "tabler:certificate" },
+        { id: 3, title: "Snack", icon: "fluent-mdl2:eat-drink" },
+        { id: 4, title: "Koneksi", icon: "ic:round-connect-without-contact" },
+      ];
 
   return (
     <section className="min-h-screen flex flex-col">
@@ -85,9 +187,12 @@ const EventPage = () => {
           <div className="w-full lg:w-8/12 space-y-4">
             <div className="mb-6 lg:mb-0">
               <img
-                src={BannerEvent}
+                src={event.bannerUrl || BannerEvent}
                 alt="Banner detail volunteer"
                 className="w-full h-48 sm:h-60 object-cover rounded-t-[12px]"
+                onError={(e) => {
+                  e.target.src = BannerEvent;
+                }}
               />
               <div className="bg-[#FBFBFB] border-b border-l border-r border-gray-200 p-4 sm:p-6 rounded-b-xl">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-0 mb-4">
@@ -101,7 +206,18 @@ const EventPage = () => {
                         {eventDetails.quota}
                       </span>
                     </div>
-                    <button>
+                    <button onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: event.title,
+                          text: event.description?.substring(0, 100) + '...',
+                          url: window.location.href
+                        }).catch(err => console.log('Error sharing:', err));
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        alert('URL copied to clipboard!');
+                      }
+                    }}>
                       <Icon
                         icon="meteor-icons:share"
                         className="w-6 h-6 text-[#0A3E54]"
@@ -116,12 +232,14 @@ const EventPage = () => {
                   </span>
                 </div>
 
-                <div className="mb-4">
-                  <span className="font-medium bg-[#22D0EE] text-[#0A3E54] px-4 sm:px-7 py-[6px] rounded-full text-sm sm:text-md">
-                    {eventDetails.category}
-                  </span>
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {event.categories && event.categories.map(category => (
+                    <span key={category.id} className="font-medium bg-[#22D0EE] text-[#0A3E54] px-4 sm:px-7 py-[6px] rounded-full text-sm sm:text-md">
+                      {category.name}
+                    </span>
+                  ))}
                 </div>
-
+                
                 <div className="flex items-start sm:items-center gap-2 mb-6 text-[#343E46]">
                   <Icon
                     icon="weui:location-filled"
@@ -139,6 +257,9 @@ const EventPage = () => {
                         src={eventDetails.organizer.logo}
                         alt="Organizer"
                         className="w-12 h-12 rounded-full"
+                        onError={(e) => {
+                          e.target.src = BannerEvent;
+                        }}
                       />
                       <div>
                         <p className="text-sm text-gray-500">
@@ -261,7 +382,8 @@ const EventPage = () => {
                   </div>
                 </div>
               </div>
-              <BtnDaftarVolunteer />
+              
+              <BtnDaftarVolunteer eventId={id} />
             </div>
           </div>
         </div>
@@ -271,5 +393,22 @@ const EventPage = () => {
     </section>
   );
 };
+
+// Helper function untuk menentukan icon berdasarkan nama benefit
+function getBenefitIcon(benefitName) {
+  const name = benefitName.toLowerCase();
+  
+  if (name.includes('akomodasi') || name.includes('hotel')) return 'mdi:hotel';
+  if (name.includes('penghargaan') || name.includes('award')) return 'mdi:trophy-award';
+  if (name.includes('sertifikat')) return 'tabler:certificate';
+  if (name.includes('uang') || name.includes('saku')) return 'tabler:wallet';
+  if (name.includes('makan') || name.includes('snack')) return 'fluent-mdl2:eat-drink';
+  if (name.includes('koneksi') || name.includes('network')) return 'ic:round-connect-without-contact';
+  if (name.includes('kaos') || name.includes('baju')) return 'mdi:tshirt-crew';
+  if (name.includes('pengalaman')) return 'tabler:medal';
+  
+  // Default icon
+  return 'mdi:gift-outline';
+}
 
 export default EventPage;

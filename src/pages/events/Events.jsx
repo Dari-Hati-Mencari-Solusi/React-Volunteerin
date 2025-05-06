@@ -71,8 +71,15 @@ const Events = ({ selectedCategory, limit }) => {
       {limitedEvents.map((event) => (
         <div
           key={event.id}
-          className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+          className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 relative"
         >
+          {/* Membuat keseluruhan card dapat diklik */}
+          <Link 
+            to={`/event/${event.id}`}
+            className="block h-full w-full absolute top-0 left-0 z-10"
+            aria-label={`View details for ${event.title}`}
+          />
+          
           <img
             alt={event.title}
             src={event.bannerUrl}
@@ -82,11 +89,9 @@ const Events = ({ selectedCategory, limit }) => {
             }}
           />
           <div className="p-4 flex flex-col gap-3">
-            <Link to={`/event/${event.id}`}>
-              <h2 className="text-xl font-bold text-[#0A3E54] truncate">
-                {event.title}
-              </h2>
-            </Link>
+            <h2 className="text-xl font-bold text-[#0A3E54] truncate">
+              {event.title}
+            </h2>
             <div className="space-y-3 text-sm font-normal text-[#0A3E54]">
               <div className="flex items-center gap-2">
                 <Icon icon="tdesign:location" width="18" height="18" />
@@ -116,7 +121,12 @@ const Events = ({ selectedCategory, limit }) => {
                     <h1>Event Berjalan</h1>
                   )}
                 </div>
-                <Link to={`/save-event/${event.id}`}>
+                {/* Save button dengan z-index lebih tinggi untuk tetap dapat diklik */}
+                <Link 
+                  to={`/save-event/${event.id}`} 
+                  className="relative z-20"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Icon icon="stash:save-ribbon" width="18" height="18" />
                 </Link>
               </div>

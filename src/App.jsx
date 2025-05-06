@@ -31,7 +31,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login-landing" element={<LoginPageLanding />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/event" element={<EventPage />} />
+        <Route path="/event/:id" element={<EventPage />} /> {/* Add this line */}
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
@@ -43,7 +43,7 @@ function App() {
         <Route path="/reset-pw" element={<ResetPassword />} />
         <Route path="/layanan" element={<Service />} />
         <Route path="/buat-event" element={<EventDashboard />} />
-
+        {console.log("EventPage route accessed")}
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
