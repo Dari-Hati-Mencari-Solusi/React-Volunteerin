@@ -134,7 +134,6 @@ const EventPage = () => {
     return new Date(dateString).toLocaleTimeString('id-ID', options);
   };
 
-  // Persiapkan data event untuk UI sesuai dengan format API
   const eventDetails = {
     title: event.title,
     date: `${formatDate(event.startAt)} - ${formatDate(event.endAt)} • ${formatTime(event.startAt)} - ${formatTime(event.endAt)} WIB`,
@@ -183,7 +182,6 @@ const EventPage = () => {
       <Navbar />
       <section className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-screen-xl py-12">
         <div className="flex flex-col lg:flex-row gap-4 py-6 lg:py-10">
-          {/* Main Content Column */}
           <div className="w-full lg:w-8/12 space-y-4">
             <div className="mb-6 lg:mb-0">
               <img
@@ -330,10 +328,8 @@ const EventPage = () => {
             </div>
           </div>
 
-          {/* Sidebar Column */}
           <div className="w-full lg:w-4/12">
             <div className="space-y-4">
-              {/* Benefits Section */}
               <div>
                 <div className="bg-[#0A3E54] text-white py-2 sm:py-3 rounded-t-xl">
                   <h1 className="text-lg sm:text-xl font-medium px-4 sm:px-6">
@@ -362,7 +358,6 @@ const EventPage = () => {
                 </div>
               </div>
 
-              {/* Criteria Section */}
               <div>
                 <div className="bg-[#0A3E54] text-white py-2 sm:py-3 rounded-t-xl">
                   <h1 className="text-lg sm:text-xl font-medium px-4 sm:px-6">

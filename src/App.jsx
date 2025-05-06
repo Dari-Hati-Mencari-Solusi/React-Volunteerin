@@ -19,6 +19,7 @@ import Service from "./pages/Service";
 import { ThemeProvider } from "./context/ThemeContext";
 import Layout from "./pages/partners/Layout";
 import EventDashboard from "./pages/partners/CreateEvent";
+import FormRegisterUser from "./pages/users/FormRegisterUser";
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
       <Routes>
         {/* Dashboard route with hash-based navigation handled internally */}
         <Route path="/partner/dashboard" element={<Layout />} />
-        
+
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login-landing" element={<LoginPageLanding />} />
@@ -43,7 +44,7 @@ function App() {
         <Route path="/reset-pw" element={<ResetPassword />} />
         <Route path="/layanan" element={<Service />} />
         <Route path="/buat-event" element={<EventDashboard />} />
-        {console.log("EventPage route accessed")}
+        <Route path="/form-register" element={<FormRegisterUser />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
