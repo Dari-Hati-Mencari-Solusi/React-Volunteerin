@@ -367,7 +367,7 @@ const Navbar = () => {
                   >
                     Hubungi Kami
                     <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns="http://www.w3.org/2000/svg "
                       className={`h-5 w-5 transition-transform ${
                         openDropdown === "hubungiKami" ? "rotate-180" : ""
                       }`}
@@ -382,7 +382,7 @@ const Navbar = () => {
                     </svg>
                   </button>
                   {openDropdown === "hubungiKami" && (
-                    <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                    <div className="mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
                       <Link
                         to="#"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -418,20 +418,55 @@ const Navbar = () => {
                 <li className="mt-4">
                   <div className="flex items-center justify-between">
                     <Link
-                      to="/notification"
+                      to="/notifications"
                       className="text-gray-600 hover:text-[#0A3E54]"
                     >
                       <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                     </Link>
-                    <Link
-                      to="/profile-user"
-                      className="flex items-center gap-2"
-                    >
-                      <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
-                        <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
-                        <span className="font-medium">{getFirstName()}</span>
-                      </div>
-                    </Link>
+
+                    <div className="relative">
+                      <button
+                        onClick={() => toggleDropdown("mobileProfile")}
+                        className="flex items-center gap-2"
+                      >
+                        <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
+                          <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
+                          <span className="font-medium">{firstName}</span>
+                        </div>
+                      </button>
+
+                      {openDropdown === "mobileProfile" && (
+                        <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg overflow-hidden z-50">
+                          {/* Profile Header */}
+                          <div className="bg-white px-6 py-4">
+                            <p className="text-xl font-semibold">
+                              {fullName || "User"}
+                            </p>
+                            <p className="text-gray-500 text-sm">{role}</p>
+                          </div>
+
+                          {/* Profile Options */}
+                          <div className="flex flex-col border-t border-gray-100">
+                            <Link
+                              to="/profile-user"
+                              className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
+                            >
+                              <Icon icon="mdi:cog" className="w-6 h-6" />
+                              <span className="font-medium">
+                                Pengaturan Akun
+                              </span>
+                            </Link>
+                            <button
+                              onClick={handleLogout}
+                              className="flex items-center gap-2 px-6 py-3 text-red-600 hover:bg-gray-50 transition duration-150 w-full text-left border-t border-gray-100"
+                            >
+                              <Icon icon="mdi:logout" className="w-6 h-6" />
+                              <span className="font-medium">Keluar</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </li>
               )}
