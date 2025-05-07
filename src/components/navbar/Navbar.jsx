@@ -52,6 +52,9 @@ const Navbar = () => {
     }
   };
 
+  const csWhatsAppLink = "https://wa.me/6285343037191";
+  const csPartnerWhatsAppLink = "https://wa.me/6285343037191"; 
+
   return (
     <nav className="bg-white fixed w-full z-50 border-b border-gray-200">
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
@@ -157,21 +160,27 @@ const Navbar = () => {
                       </svg>
                     </button>
                     {openDropdown === "hubungiKami" && (
-                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                        <Link
-                          to="#"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    <div className="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                      <div className="py-1">
+                        <a 
+                          href={csWhatsAppLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          Cs
-                        </Link>
-                        <Link
-                          to="#"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          CS
+                        </a>
+                        <a 
+                          href={csPartnerWhatsAppLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          Cs Partner
-                        </Link>
+                          CS Partner
+                        </a>
                       </div>
-                    )}
+                    </div>
+                  )}
                   </div>
                 </li>
               </ul>

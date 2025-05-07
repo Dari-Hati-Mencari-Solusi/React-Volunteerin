@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import LogoHero from "../assets/images/logo-hero.png";
 import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
@@ -62,7 +63,7 @@ const Service = () => {
               Mau Gabung Event?
             </h1>
             <h2 className="text-3xl md:text-4xl font-semibold text-[#0A3E54]">
-              di Volunteerin Aja
+              Di Volunteerin Aja
             </h2>
             <h3 className="text-lg md:text-xl text-[#0A3E54]">Temukan Peluangmu, Wujudkan Aksimu</h3>
             <p className="text-gray-600 text-sm md:text-base">
@@ -72,17 +73,21 @@ const Service = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <button className="bg-[#0A3E54] text-white px-5 py-3 rounded-xl hover:bg-[#164D63] transition-colors w-full sm:w-auto">
+                <Link to='/auth'>
                 Buat Event Kamu
+                </Link>
               </button>
               <button className="border-[1.5px] border-[#0A3E54] text-slate-800 px-5 py-3 rounded-xl hover:bg-slate-50 transition-colors w-full sm:w-auto">
+                <Link to='/'>
                 Jadi Volunteer
+                </Link>
               </button>
             </div>
             <div className="flex justify-center md:justify-start gap-6 md:gap-12 pt-4 md:pt-8">
               {stats.map((stat, index) => (
                 <div key={index}>
                   <div className="text-3xl md:text-5xl font-bold text-[#0A3E54]">
-                    <CountUp end={stat.number} duration={5} suffix="+" />
+                    <CountUp end={stat.number} duration={4} suffix="+" />
                   </div>
                   <div className="text-sm md:text-base text-[#87A5B1]">{stat.label}</div>
                 </div>
