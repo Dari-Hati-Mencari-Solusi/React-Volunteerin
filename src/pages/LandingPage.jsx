@@ -95,7 +95,6 @@ const LandingPage = () => {
               </div>
             </div>
 
-            {/* SearchDropdown Lokasi */}
             <div className="w-full md:w-auto">
               <SearchDropdown />
             </div>
