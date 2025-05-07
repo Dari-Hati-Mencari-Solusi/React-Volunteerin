@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 
-const VolunteerinRequirements = ({ setIsLogin, handleNext }) => {
+const VolunteerinRequirements = ({ setIsLogin, handleNext, isSubmitting }) => {
+  const [isAgreed, setIsAgreed] = useState(false);
+  
   const requirements = [
     {
       id: 1,
@@ -38,7 +40,16 @@ const VolunteerinRequirements = ({ setIsLogin, handleNext }) => {
   ];
 
   const handlePrevious = () => {
-    setIsLogin(true); // This should switch back to the form
+    setIsLogin(true);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!isAgreed) {
+      alert('Anda harus menyetujui syarat dan ketentuan terlebih dahulu');
+      return;
+    }
+    handleNext(e);
   };
 
   return (
@@ -60,21 +71,38 @@ const VolunteerinRequirements = ({ setIsLogin, handleNext }) => {
         </div>
       </div>
 
+      <div className='flex items-center gap-4'>
+        <input 
+          type="checkbox" 
+          className="w-6 h-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" 
+          checked={isAgreed}
+          onChange={(e) => setIsAgreed(e.target.checked)}
+          required
+        />
+        <p className='text-md font-medium'>
+          Saya telah membaca dan menyetujui ketentuan yang berlaku.
+          <span className='text-red-600'>*</span>
+        </p>
+      </div>
+
       <div className="flex justify-between py-6 gap-2">
         <button
           onClick={handlePrevious}
           type="button"
           className="w-full md:w-[150px] lg:w-[150px] flex flex-row-reverse justify-center items-center gap-2 bg-white border border-[#0A3E54] text-[#0A3E54] py-2 rounded-xl font-medium hover:bg-gray-50 transition-colors duration-200"
+          disabled={isSubmitting}
         >
           Sebelumnya
           <Icon icon="ic:round-keyboard-arrow-left" width="24" height="24" />
         </button>
         
         <button
+          onClick={handleSubmit}
           type="button"
           className="w-full md:w-[150px] lg:w-[150px] flex justify-center items-center gap-2 bg-[#0A3E54] text-white py-2 rounded-xl font-medium hover:bg-[#0A3E54]/90 transition-colors duration-200"
+          disabled={isSubmitting || !isAgreed}
         >
-          Daftar Partner
+          {isSubmitting ? "Memproses..." : "Daftar Partner"}
         </button>
       </div>
     </div>

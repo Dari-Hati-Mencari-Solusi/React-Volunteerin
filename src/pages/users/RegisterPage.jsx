@@ -12,7 +12,8 @@ import { usePasswordVisibility } from '../../hooks/usePasswordVisibility';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
+  const { showPassword: showPassword1, togglePasswordVisibility: togglePasswordVisibility1 } = usePasswordVisibility();
+  const { showPassword: showPassword2, togglePasswordVisibility: togglePasswordVisibility2 } = usePasswordVisibility();
   
   const {
     formData,
@@ -176,7 +177,7 @@ const RegisterPage = () => {
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword1 ? "text" : "password"}
                 name="password"
                 required
                 className={`w-full px-4 py-3 rounded-lg border ${
@@ -189,10 +190,10 @@ const RegisterPage = () => {
               />
               <button
                 type="button"
-                onClick={togglePasswordVisibility}
+                onClick={togglePasswordVisibility1}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? (
+                {showPassword1 ? (
                   <Icon icon="mdi:eye-off" className="w-5 h-5" />
                 ) : (
                   <Icon icon="solar:eye-outline" className="w-5 h-5" />
@@ -207,7 +208,7 @@ const RegisterPage = () => {
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword2 ? "text" : "password"}
                 name="confirmPassword"
                 required
                 className={`w-full px-4 py-3 rounded-lg border ${
@@ -220,10 +221,10 @@ const RegisterPage = () => {
               />
               <button
                 type="button"
-                onClick={togglePasswordVisibility}
+                onClick={togglePasswordVisibility2}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? (
+                {showPassword2 ? (
                   <Icon icon="mdi:eye-off" className="w-5 h-5" />
                 ) : (
                   <Icon icon="solar:eye-outline" className="w-5 h-5" />

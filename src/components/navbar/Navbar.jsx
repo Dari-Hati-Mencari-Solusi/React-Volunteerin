@@ -1,24 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/images/logo_volunteerin.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AlignRight } from "lucide-react";
 
 const Navbar = () => {
-  const { isAuthenticated, user } = useAuth(); // Get user from AuthContext
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  // Function to get only the first name from the user's full name
-  const getFirstName = () => {
-    if (user && user.name) {
-      // Split the name by spaces and return the first part
-      const nameParts = user.name.split(" ");
-      return nameParts[0]; // Return just the first name
+  const [firstName, setFirstName] = useState("User");
+  const [fullName, setFullName] = useState("User");
+  const [role, setRole] = useState("Mahasiswa");
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const userData = user && user.user ? user.user : user;
+      if (userData && userData.name) {
+        const nameParts = userData.name.split(" ");
+        setFirstName(nameParts[0]);
+        setFullName(userData.name);
+      }
+      if (userData && userData.role) {
+        setRole(userData.role);
+      }
     }
-    return "User"; // Fallback if no user name is available
-  };
+  }, [isAuthenticated, user]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -29,6 +39,16 @@ const Navbar = () => {
       setOpenDropdown(null);
     } else {
       setOpenDropdown(dropdown);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setOpenDropdown(null);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed", error);
     }
   };
 
@@ -43,7 +63,6 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop Navigation - Only visible on large screens */}
           <div className="hidden lg:block">
             <nav aria-label="Global">
               <ul className="flex items-center gap-12 text-md">
@@ -63,7 +82,7 @@ const Navbar = () => {
                     >
                       Aktivitas
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns="http://www.w3.org/2000/svg "
                         className={`h-5 w-5 transition-transform ${
                           openDropdown === "event" ? "rotate-180" : ""
                         }`}
@@ -123,7 +142,7 @@ const Navbar = () => {
                     >
                       Hubungi Kami
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns="http://www.w3.org/2000/svg "
                         className={`h-5 w-5 transition-transform ${
                           openDropdown === "hubungiKami" ? "rotate-180" : ""
                         }`}
@@ -159,23 +178,59 @@ const Navbar = () => {
             </nav>
           </div>
 
-          {/* Login/Register and Hamburger Button */}
           <div className="flex items-center gap-4">
             <div className="hidden lg:flex gap-4 items-center">
               {isAuthenticated ? (
                 <>
                   <Link
-                    to="/notifications"
+                    to="/notification"
                     className="text-gray-600 hover:text-[#0A3E54]"
                   >
                     <Icon icon="mdi:bell-outline" className="w-6 h-6" />
                   </Link>
-                  <Link to="/profile" className="flex items-center gap-2">
-                    <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2">
-                      <Icon icon="mdi:account" className="w-6 h-6 mr-2" />
-                      <span className="font-medium">{getFirstName()}</span>
-                    </div>
-                  </Link>
+                  <div className="relative">
+                    <button
+                      onClick={() => toggleDropdown("profile")}
+                      className="flex items-center gap-2"
+                    >
+                      <div className="flex items-center bg-[#0A3E54] text-white rounded-full px-4 py-2 shadow-lg border border-gray-300">
+                        <Icon
+                          icon="mdi:account-circle"
+                          className="w-8 h-8 mr-2"
+                        />
+                        <span className="font-medium">
+                          {firstName || "User"}
+                        </span>
+                      </div>
+                    </button>
+                    {openDropdown === "profile" && (
+                      <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg overflow-hidden z-50">
+                        <div className="bg-white px-6 py-4">
+                          <p className="text-xl font-semibold">
+                            {fullName || "User"}
+                          </p>
+                          <p className="text-gray-500 text-sm">{role}</p>
+                        </div>
+
+                        <div className="flex flex-col border-t border-gray-100">
+                          <Link
+                            to="/profile-user"
+                            className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
+                          >
+                            <Icon icon="mdi:cog" className="w-6 h-6" />
+                            <span className="font-medium">Pengaturan Akun</span>
+                          </Link>
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 px-6 py-3 text-red-600 hover:bg-gray-50 transition duration-150 w-full text-left border-t border-gray-100"
+                          >
+                            <Icon icon="mdi:logout" className="w-6 h-6" />
+                            <span className="font-medium">Keluar</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <div className="flex gap-4">
@@ -252,7 +307,7 @@ const Navbar = () => {
                   >
                     <span>Aktivitas</span>
                     <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns="http://www.w3.org/2000/svg "
                       className={`h-5 w-5 transition-transform ${
                         openDropdown === "event" ? "rotate-180" : ""
                       }`}

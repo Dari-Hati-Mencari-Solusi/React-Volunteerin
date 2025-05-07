@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/images/logo_volunteerin.jpg';
 import ErrorAlert from '../components/Elements/Alert/ErrorAlert';
-import SuccessAlert from '../components/Elements/Alert/SuccesAlert';
+import SuccesAlert from '../components/Elements/Alert/SuccesAlert';
 import WhatsAppButton from "../components/Elements/buttons/BtnWhatsapp";
+import { authService } from '../services/authService';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -18,11 +19,12 @@ const ForgotPassword = () => {
     setSuccess('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSuccess('Link reset password telah dikirim ke email Anda');
+      const response = await authService.forgotPassword(email);
+      setSuccess(response.message); // Display the message from the response
+
     } catch (err) {
-      setError('Terjadi kesalahan. Silakan coba lagi.');
+      console.error("Reset password error:", err);
+      setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setIsSubmitting(false);
     }
@@ -46,7 +48,7 @@ const ForgotPassword = () => {
         </div>
 
         <ErrorAlert message={error} />
-        <SuccessAlert message={success} />
+        <SuccesAlert message={success} />
 
         <form onSubmit={handleSubmit} className="space-y-6 max-h-[469px]">
           <div className="space-y-2">

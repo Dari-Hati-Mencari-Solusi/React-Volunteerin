@@ -104,7 +104,7 @@ const LoginPartner = () => {
                 Kata Sandi
               </label>
               <Link
-                to="/reset-password"
+                to="/forgot-password"
                 className="text-sm text-[#0a3e54] hover:text-[#0a3e54]/80"
               >
                 Lupa kata sandi?
