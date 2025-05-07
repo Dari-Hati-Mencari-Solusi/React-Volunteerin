@@ -12,10 +12,8 @@ const Events = ({ selectedCategory, limit }) => {
     const fetchEventsData = async () => {
       try {
         setLoading(true);
-        // Log nilai parameter untuk debugging
         console.log('Fetching with params:', { limit, selectedCategory });
         
-        // Tambahkan delay kecil untuk memastikan loading state terlihat
         await new Promise(resolve => setTimeout(resolve, 300));
         
         const response = await fetchEvents(limit, selectedCategory);
@@ -94,7 +92,7 @@ const Events = ({ selectedCategory, limit }) => {
             </h2>
             <div className="space-y-3 text-sm font-normal text-[#0A3E54]">
               <div className="flex items-center gap-2">
-                <Icon icon="tdesign:location" width="18" height="18" />
+                <Icon icon="tdesign:location" width="24" height="24" />
                 <span className="truncate text-[14px]">{event.address}</span>
               </div>
               <div className="flex items-center gap-2">
@@ -127,7 +125,7 @@ const Events = ({ selectedCategory, limit }) => {
                   className="relative z-20"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Icon icon="stash:save-ribbon" width="18" height="18" />
+                  <Icon icon="akar-icons:ribbon" width="24" height="24" />
                 </Link>
               </div>
             </div>
