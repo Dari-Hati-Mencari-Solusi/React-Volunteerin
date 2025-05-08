@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/navbar/Navbar";
 import Footer from "../../components/footer/Footer";
-import BannerEvent from "../../assets/images/banner1.jpg"; // Fallback banner
+import BannerEvent from "../../assets/images/banner1.jpg"; 
 import { Icon } from "@iconify/react";
 import BtnDaftarVolunteer from "../../components/Elements/buttons/BtnDaftarVolunteer";
 import Marketing from "../../components/Fragments/Marketing";
@@ -142,10 +142,10 @@ const EventPage = () => {
     organizer: {
       name: event.user?.name || "Penyelenggara Event",
       logo: event.user?.profilePictureUrl || BannerEvent,
-      instagram: event.user?.instagram || "Aksipeduli",
+      instagram: event.user?.partner.instagram || "Aksipeduli",
     },
     description: event.description,
-    quota: `${event.registrationCount || 0} / ${event.maxApplicant} Kuota`,
+    quota: `${event.registrationCount || 0} / ${event.maxApplicant} Terdaftar`,
   };
 
   // Parse requirements dari respons API

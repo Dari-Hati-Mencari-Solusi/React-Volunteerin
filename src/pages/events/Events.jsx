@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "@iconify/react";
-import { fetchEvents } from "../../services/eventService"; 
+import { fetchEvents } from "../../services/eventService";
 
 const Events = ({ selectedCategory, limit }) => {
   const [events, setEvents] = useState([]);
@@ -12,21 +12,40 @@ const Events = ({ selectedCategory, limit }) => {
     const fetchEventsData = async () => {
       try {
         setLoading(true);
-        console.log('Fetching with params:', { limit, selectedCategory });
+        console.log('Events component - fetching with category ID:', selectedCategory, 'limit:', limit);
         
+        // Simulasi delay untuk visual feedback
         await new Promise(resolve => setTimeout(resolve, 300));
         
+        // Ambil data events dengan kategori yang dipilih (jika ada)
         const response = await fetchEvents(limit, selectedCategory);
-        console.log('Response received:', response);
         
         if (!response || !response.data) {
           throw new Error('Invalid response format');
         }
         
-        setEvents(response.data);
+        // Jika selectedCategory ada, filter client-side untuk memastikan hanya event dengan kategori tersebut yang ditampilkan
+        let filteredEvents = response.data;
+        
+        if (selectedCategory) {
+          // Filter untuk hanya menampilkan event yang memiliki kategori yang dipilih
+          filteredEvents = filteredEvents.filter(event => {
+            // Pastikan event.categories adalah array dan ada
+            if (!event.categories || !Array.isArray(event.categories)) {
+              return false;
+            }
+            
+            // Cek apakah event memiliki kategori yang dipilih
+            return event.categories.some(cat => cat.id === selectedCategory);
+          });
+          
+          console.log(`Filtered to ${filteredEvents.length} events for category ID ${selectedCategory}`);
+        }
+        
+        setEvents(filteredEvents);
         setError(null);
       } catch (err) {
-        console.error('Error in component:', err);
+        console.error('Error in Events component:', err);
         setError("Gagal mengambil data event: " + (err.message || 'Unknown error'));
       } finally {
         setLoading(false);
@@ -35,10 +54,6 @@ const Events = ({ selectedCategory, limit }) => {
   
     fetchEventsData();
   }, [selectedCategory, limit]);
-  
-  // Hindari double filtering - karena sudah difilter di service
-  // Gunakan events langsung dari response
-  const limitedEvents = events;
 
   if (loading) {
     return (
@@ -56,17 +71,17 @@ const Events = ({ selectedCategory, limit }) => {
     );
   }
 
-  if (!limitedEvents || limitedEvents.length === 0) {
+  if (!events || events.length === 0) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">Tidak ada event yang tersedia.</p>
+        <p className="text-gray-500">Tidak ada event yang tersedia untuk kategori ini.</p>
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {limitedEvents.map((event) => (
+      {events.map((event) => (
         <div
           key={event.id}
           className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 relative"
@@ -107,8 +122,8 @@ const Events = ({ selectedCategory, limit }) => {
               </div>
               <div className="flex items-center gap-2 mb-2">
                 <Icon icon="fa6-solid:user" width="16" height="16" />
-                <span className="truncate text-[14px]">
-                  By: {event.user?.name || "Unknown"}
+                <span className="text-[14px]">
+                  {`${event.registrationCount || 0} / ${event.maxApplicant} Terdaftar`}
                 </span>
               </div>
               <div className="flex justify-between items-center">
