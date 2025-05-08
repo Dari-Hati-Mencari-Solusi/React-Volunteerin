@@ -32,7 +32,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login-landing" element={<LoginPageLanding />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/event/:id" element={<EventPage />} /> {/* Add this line */}
+        <Route path="/event/:id" element={<EventPage />} /> 
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
