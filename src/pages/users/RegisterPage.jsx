@@ -31,51 +31,77 @@ const RegisterPage = () => {
     phoneNumber: ''
   });
 
+  // Validasi field kosong
+  const validateRequiredFields = () => {
+    const { name, email, password, confirmPassword, phoneNumber } = formData;
+    if (!name || !email || !password || !confirmPassword || !phoneNumber) {
+      setStatus('error', 'Semua field harus diisi!');
+      return false;
+    }
+    return true;
+  };
+
+  // Validasi email
+  const validateEmailFormat = () => {
+    if (!validateEmail(formData.email)) {
+      setStatus('error', 'Format email tidak valid!');
+      return false;
+    }
+    return true;
+  };
+
+  // Validasi password
+  const validatePasswordRequirements = () => {
+    if (formData.password.length < 8) {
+      setStatus('error', 'Kata sandi minimal 8 karakter!');
+      return false;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      setStatus('error', 'Kata sandi tidak cocok!');
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Validasi nomor telepon
+  const validatePhoneNumber = () => {
+    if (!/^[0-9]+$/.test(formData.phoneNumber)) {
+      setStatus('error', 'Nomor telepon hanya boleh berisi angka!');
+      return false;
+    }
+    
+    if (!formData.phoneNumber.startsWith('0')) {
+      setStatus('error', 'Nomor telepon harus diawali dengan 0!');
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Validasi form
+  const isFormValid = () => {
+    return (
+      validateRequiredFields() &&
+      validateEmailFormat() &&
+      validatePasswordRequirements() &&
+      validatePhoneNumber()
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     // Validasi form
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword || !formData.phoneNumber) {
-      setStatus('error', 'Semua field harus diisi!');
+    if (!isFormValid()) {
       setIsSubmitting(false);
       return;
     }
 
-    if (!validateEmail(formData.email)) {
-      setStatus('error', 'Format email tidak valid!');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setStatus('error', 'Kata sandi minimal 8 karakter!');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setStatus('error', 'Kata sandi tidak cocok!');
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Validate phone number format
-    if (!/^[0-9]+$/.test(formData.phoneNumber)) {
-      setStatus('error', 'Nomor telepon hanya boleh berisi angka!');
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Check if phone number starts with '0'
-    if (!formData.phoneNumber.startsWith('0')) {
-      setStatus('error', 'Nomor telepon harus diawali dengan 0!');
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Format phone number to ensure it starts with "62"
-    let formattedPhone = '62' + formData.phoneNumber.slice(1);
+    // Format nomor telepon untuk API
+    const formattedPhone = '62' + formData.phoneNumber.slice(1);
 
     try {
       await authService.register({
@@ -85,6 +111,7 @@ const RegisterPage = () => {
         phoneNumber: formattedPhone,
         role: 'VOLUNTEER'
       });
+      
       setStatus('success', 'Registrasi berhasil! Silakan login.');
       setTimeout(() => {
         navigate('/login');
