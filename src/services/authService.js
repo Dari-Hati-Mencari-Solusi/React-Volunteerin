@@ -9,7 +9,13 @@ const API_URL = import.meta.env.VITE_BE_BASE_URL;
  * @throws {Object} Formatted error object with message
  */
 const handleApiError = (error, defaultMessage) => {
-  throw error.response?.data || { message: defaultMessage };
+  if (error.response?.data?.message) {
+    throw { message: error.response.data.message };
+  } else if (error.message) {
+    throw { message: error.message };
+  } else {
+    throw { message: defaultMessage };
+  }
 };
 
 /**
@@ -58,6 +64,10 @@ export const authService = {
       });
       
       const { token, user } = response.data.data;
+      
+      // Store login response in sessionStorage for fallback access
+      sessionStorage.setItem('loginResponse', JSON.stringify(response.data));
+      
       return storeUserData(token, user);
     } catch (error) {
       handleApiError(error, 'An error occurred during login');
@@ -79,7 +89,11 @@ export const authService = {
       });
       
       const { token, user } = response.data.data;
-      return storeUserData(token, null);
+      
+      // Store login response in sessionStorage for fallback access
+      sessionStorage.setItem('loginResponse', JSON.stringify(response.data));
+      
+      return storeUserData(token, user);
     } catch (error) {
       handleApiError(error, 'An error occurred during login');
     }
@@ -116,6 +130,7 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('loginResponse');
   },
 
   /**
@@ -179,7 +194,29 @@ export const authService = {
    */
   getStoredUser: () => {
     const userString = localStorage.getItem('user');
-    return userString ? JSON.parse(userString) : null;
+    if (!userString || userString === "null") {
+      // Try to get from session storage if not in localStorage
+      const loginResponse = sessionStorage.getItem('loginResponse');
+      if (loginResponse) {
+        try {
+          const parsedResponse = JSON.parse(loginResponse);
+          if (parsedResponse.data && parsedResponse.data.user) {
+            // Store in localStorage for future use
+            localStorage.setItem('user', JSON.stringify(parsedResponse.data.user));
+            return parsedResponse.data.user;
+          }
+        } catch (e) {
+          console.error("Error parsing login response:", e);
+        }
+      }
+      return null;
+    }
+    try {
+      return JSON.parse(userString);
+    } catch (e) {
+      console.error("Error parsing user JSON:", e);
+      return null;
+    }
   },
 
   /**
@@ -188,6 +225,15 @@ export const authService = {
    */
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
+  },
+
+  /**
+   * Check if user is a partner
+   * @returns {boolean} True if user is a partner, false otherwise
+   */
+  isPartner: () => {
+    const user = authService.getStoredUser();
+    return user && user.role === 'PARTNER';
   },
 
   /**
@@ -247,6 +293,35 @@ export const authService = {
     } catch (error) {
       authService.logout();
       handleApiError(error, 'Session expired. Please login again.');
+    }
+  },
+
+  /**
+   * Decode JWT token to get payload
+   * @param {string} token - JWT token to decode
+   * @returns {Object|null} Decoded token payload or null if invalid
+   */
+  decodeToken: (token = null) => {
+    try {
+      if (!token) {
+        token = localStorage.getItem('token');
+      }
+      
+      if (!token) return null;
+      
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) return null;
+      
+      const base64Url = tokenParts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error("Error decoding token:", e);
+      return null;
     }
   }
 };
