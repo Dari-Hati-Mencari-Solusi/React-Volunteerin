@@ -54,15 +54,19 @@ function App() {
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
         <Route path="/notification" element={<NotificationUser />} />
-        <Route path="/login-partner" element={<LoginPartner />} />
-        <Route path="/register-partner" element={<RegisterPartner />} />
         <Route path="/auth" element={<VolunteerinAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-pw" element={<ResetPassword />} />
         <Route path="/layanan" element={<Service />} />
-        <Route path="/buat-event" element={<EventDashboard />} />
+
+        {/* partner route */}
+        <Route path="/login-partner" element={<LoginPartner />} />
+        <Route path="/register-partner" element={<RegisterPartner />} />
         <Route path="/form-register" element={<FormRegisterUser />} />
 
+        {/* admin route */}
+
+        {/* Not found route */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ThemeProvider>
