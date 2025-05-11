@@ -25,14 +25,31 @@ function App() {
   return (
     <ThemeProvider storageKey="theme">
       <Routes>
-        {/* Dashboard route with hash-based navigation handled internally */}
+        {/* dashboard partner route */}
         <Route path="/partner/dashboard" element={<Layout />} />
+        <Route path="/partner/dashboard/analytics" element={<Layout />} />
+        <Route path="/partner/dashboard/buat-event" element={<Layout />} />
+        <Route path="/partner/dashboard/create-event" element={<Layout />} />
+        <Route path="/partner/dashboard/create-formulir" element={<Layout />} />
+        <Route path="/partner/dashboard/pendaftar" element={<Layout />} />
+        <Route path="/partner/dashboard/pencairan-dana" element={<Layout />} />
+        <Route path="/partner/dashboard/profile-partner" element={<Layout />} />
+        <Route
+          path="/partner/dashboard/penanggung-jawab"
+          element={<Layout />}
+        />
+        <Route path="/partner/dashboard/legalitas" element={<Layout />} />
+        <Route path="/partner/dashboard/media-sosial" element={<Layout />} />
+        <Route path="/partner/dashboard/faq" element={<Layout />} />
+        <Route path="/partner/dashboard/cs-partner" element={<Layout />} />
+        <Route path="/partner/dashboard/panduan" element={<Layout />} />
 
+        {/* user route */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login-landing" element={<LoginPageLanding />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/event/:id" element={<EventPage />} /> 
+        <Route path="/event/:id" element={<EventPage />} />
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
