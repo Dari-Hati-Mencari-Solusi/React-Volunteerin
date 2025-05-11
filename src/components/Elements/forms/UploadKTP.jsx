@@ -1,252 +1,122 @@
 import React, { useState, useRef } from "react";
-import { Icon } from "@iconify/react";
+import { Upload } from "lucide-react";
+import { toast } from "react-toastify";
+import { partnerService } from "../../../services/partnerService";
 
-const UploadKTP = ({ onClose }) => {
-  const [bannerFile, setBannerFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [sizeError, setSizeError] = useState(false);
+const UploadKTP = ({ onUploadSuccess, initialImageUrl = null }) => {
+  const [preview, setPreview] = useState(initialImageUrl);
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
 
-  const MAX_FILE_SIZE = 1 * 1024 * 1024;
-  const validateFileSize = (file) => {
-    if (file.size > MAX_FILE_SIZE) {
-      setSizeError(true);
-      return false;
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.includes('image/')) {
+      toast.error('File harus berupa gambar (JPG, PNG, dll)');
+      return;
     }
 
-    setSizeError(false);
-    return true;
-  };
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ukuran file tidak boleh lebih dari 2MB');
+      return;
+    }
 
-  const handleBannerUpload = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-
-      if (!validateFileSize(file)) {
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
+    try {
+      setLoading(true);
+      
+      const formData = new FormData();
+      formData.append('ktpImage', file);
+      
+      const response = await partnerService.uploadKtpImage(formData);
+      
+      if (response && response.data) {
+        const { ktpUrl, ktpImageId } = response.data;
+        setPreview(ktpUrl);
+        
+        if (onUploadSuccess) {
+          onUploadSuccess(file, ktpUrl, ktpImageId);
         }
-        return;
+        
+        toast.success('KTP berhasil diunggah');
       }
-
-      setBannerFile(file);
-
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading KTP:', error);
+      toast.error(error.message || 'Gagal mengunggah KTP');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isDragging) {
-      setIsDragging(true);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-
-      if (!validateFileSize(file)) {
-        return;
-      }
-
-      setBannerFile(file);
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
-
-      if (fileInputRef.current) {
-        fileInputRef.current.files = e.dataTransfer.files;
-      }
-    }
-  };
-
-  const togglePreview = () => {
-    if (previewUrl) {
-      setShowPreview(!showPreview);
-    }
-  };
-
-  const removeFile = (e) => {
-    e.stopPropagation();
-    setBannerFile(null);
-    setPreviewUrl(null);
-    setShowPreview(false);
-    setSizeError(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const downloadImage = () => {
-    const link = document.createElement("a");
-    link.href = previewUrl;
-    link.download = bannerFile.name || "banner-image";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleContainerClick = (e) => {
-    if (previewUrl && !showPreview) {
-      e.preventDefault();
-      togglePreview();
-    }
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes < 1024) return bytes + " B";
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + " KB";
-    else return (bytes / 1048576).toFixed(2) + " MB";
+  const handleClickUpload = () => {
+    fileInputRef.current.click();
   };
 
   return (
-    <div className="w-full max-w-full mx-auto">
-      <div className="w-full">
-        <div>
-          <div className="flex justify-between items-center">
-            <label className="block text-sm font-medium">
-              Upload KTP <span className="text-red-500">*</span>
-            </label>
-            <span className="text-red-500 text-sm">
-              Ukuran maksimal file adalah 300px × 600px Max 1MB
-            </span>
-          </div>
-
-          {sizeError && (
-            <div className="mt-2 text-red-500 text-sm font-medium">
-              Ukuran file terlalu besar. Maksimal 1MB. Silakan pilih file yang
-              lebih kecil.
+    <div>
+      <label className="block text-sm font-medium mb-2">
+        Upload KTP <span className="text-red-500">*</span>
+      </label>
+      
+      <div className="border border-dashed border-gray-300 rounded-lg p-4 bg-white">
+        {preview ? (
+          <div className="flex flex-col items-center">
+            <img 
+              src={preview} 
+              alt="Preview KTP" 
+              className="max-h-48 max-w-full object-contain mb-3"
+            />
+            <div className="flex items-center mt-2">
+              <button
+                type="button"
+                onClick={handleClickUpload}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg"
+              >
+                <Upload size={16} />
+                <span>Ganti Foto</span>
+              </button>
             </div>
-          )}
-
-          <div className="mt-2">
-            <div
-              className={`border rounded-lg text-center cursor-pointer bg-white
-                    ${
-                      isDragging
-                        ? "border-blue-500 bg-blue-50"
-                        : sizeError
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300"
-                    }
-                    ${bannerFile && !sizeError ? "border-none" : ""}`}
-              onDragEnter={handleDragEnter}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={handleContainerClick}
-            >
-              {(!previewUrl || !showPreview) && (
-                <>
-                  <input
-                    type="file"
-                    onChange={handleBannerUpload}
-                    className="hidden"
-                    id="banner-upload"
-                    ref={fileInputRef}
-                    accept="image/*"
-                  />
-                  <label
-                    htmlFor={previewUrl ? "" : "banner-upload"}
-                    className="cursor-pointer w-full h-full block"
-                    onClick={(e) => {
-                      if (previewUrl) {
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    {previewUrl ? (
-                      <div className="flex flex-col items-center justify-center p-8">
-                        <Icon
-                          icon="mdi:file-image-outline"
-                          className="text-gray-400 text-5xl mb-2"
-                        />
-                        <p className="text-blue-500 underline">
-                          Klik untuk buka
-                        </p>
-                        {bannerFile && (
-                          <p className="text-gray-500 text-sm mt-1">
-                            {bannerFile.name} ({formatFileSize(bannerFile.size)}
-                            )
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center p-8">
-                        <Icon
-                          icon="mdi:file-outline"
-                          className="text-gray-400 text-5xl mb-2"
-                        />
-                        <p className="text-gray-400">
-                          Seret file anda disini
-                        </p>
-                        <p className="text-gray-400 text-sm mt-1">
-                          Atau klik untuk memilih file (Max 1MB)
-                        </p>
-                      </div>
-                    )}
-                  </label>
-                </>
-              )}
-
-              {previewUrl && showPreview && (
-                <div className="relative w-full">
-                  <img
-                    src={previewUrl}
-                    alt="Banner preview"
-                    className="w-full h-auto object-contain rounded-lg"
-                  />
-                  <button
-                    onClick={removeFile}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
-                  >
-                    <Icon icon="mdi:close" className="text-xl" />
-                  </button>
-                  <button
-                    onClick={downloadImage}
-                    className="absolute bottom-2 right-2 bg-blue-500 text-white p-1 rounded-full"
-                  >
-                    <Icon icon="mdi:download" className="text-xl" />
-                  </button>
-                  {bannerFile && (
-                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-sm">
-                      {bannerFile.name} ({formatFileSize(bannerFile.size)})
-                    </div>
-                  )}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-center w-full min-h-32">
+              {loading ? (
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 border-t-2 border-b-2 border-[#0A3E54] rounded-full animate-spin"></div>
+                  <p className="mt-2 text-sm text-gray-500">Mengunggah...</p>
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleClickUpload}
+                  className="flex flex-col items-center px-6 py-8 cursor-pointer"
+                >
+                  <Upload size={32} className="mb-2 text-gray-400" />
+                  <span className="text-sm text-gray-500">
+                    Upload KTP (JPG, PNG, max 2MB)
+                  </span>
+                  <span className="mt-1 text-xs text-gray-400">
+                    Klik atau drag & drop di sini
+                  </span>
+                </button>
               )}
             </div>
           </div>
-        </div>
+        )}
+        
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="image/*"
+          className="hidden"
+        />
       </div>
+      <p className="text-xs text-gray-500 mt-1">
+        Pastikan foto KTP jelas dan dapat dibaca
+      </p>
     </div>
   );
 };
