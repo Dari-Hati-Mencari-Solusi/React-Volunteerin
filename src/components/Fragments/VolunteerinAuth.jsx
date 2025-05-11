@@ -16,11 +16,13 @@ const VolunteerinAuth = () => {
     <section className="min-h-screen bg-white p-2 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="text-center space-y-3 md:py-14 lg:py-4 py-4 flex justify-center flex-col items-center">
+          <Link to="/" >
           <img
             src={Logo}
             alt="logo volunteerin"
             className="lg:w-[295px] lg:h-[64px] md:w-[295px] md:h-[64px] w-[250px] h-[50px]"
           />
+          </Link>
           <p className="text-[#0A3E54] text-xl font-semibold">
             Slogan Volunteerin
           </p>
