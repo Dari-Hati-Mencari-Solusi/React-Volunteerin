@@ -18,12 +18,12 @@ export const navbarLinks = [
       {
         label: "Dashboard",
         icon: Home,
-        path: "/dashboard",
+        path: "/partner/dashboard",
       },
       {
         label: "Analytics",
         icon: ChartColumn,
-        path: "/analytics",
+        path: "/partner/dashboard/analytics",
       },
     ],
   },
@@ -33,12 +33,12 @@ export const navbarLinks = [
       {
         label: "Buat Event",
         icon: Users,
-        path: "/buat-event",
+        path: "/partner/dashboard/buat-event",
       },
       {
         label: "Buat Formulir",
         icon: UserPlus,
-        path: "/create-formulir",
+        path: "/partner/dashboard/create-formulir",
       },
     ],
   },
@@ -48,7 +48,7 @@ export const navbarLinks = [
       {
         label: "Pendaftar",
         icon: Package,
-        path: "/pendaftar",
+        path: "/partner/dashboard/pendaftar",
       },
     ],
   },
@@ -58,7 +58,7 @@ export const navbarLinks = [
       {
         label: "Pencairan Dana",
         icon: Settings,
-        path: "/pencairan-dana",
+        path: "/partner/dashboard/pencairan-dana",
       },
     ],
   },
@@ -68,17 +68,17 @@ export const navbarLinks = [
       {
         label: "Profile",
         icon: Home,
-        path: "/profile-partner",
+        path: "/partner/dashboard/profile-partner",
       },
       {
         label: "Penanggung Jawab",
         icon: ChartColumn,
-        path: "/penanggung-jawab",
+        path: "/partner/dashboard/penanggung-jawab",
       },
       {
         label: "Legalitas",
         icon: NotepadText,
-        path: "/legalitas",
+        path: "/partner/dashboard/legalitas",
       },
     ],
   },
@@ -88,7 +88,7 @@ export const navbarLinks = [
       {
         label: "Instagram",
         icon: Users,
-        path: "/media-sosial",
+        path: "/partner/dashboard/media-sosial",
       },
     ],
   },
@@ -98,17 +98,17 @@ export const navbarLinks = [
       {
         label: "FAQ",
         icon: Users,
-        path: "/faq",
+        path: "/partner/dashboard/faq",
       },
       {
         label: "CS Partner",
         icon: Users,
-        path: "/cs-partner",
+        path: "/partner/dashboard/cs-partner",
       },
       {
         label: "Panduan",
         icon: Users,
-        path: "/panduan",
+        path: "/partner/dashboard/panduan",
       },
     ],
   },

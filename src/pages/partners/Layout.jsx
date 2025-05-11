@@ -6,9 +6,9 @@ import { Header } from "../partners/layouts/Header";
 
 import { cn } from "../../utils/cn";
 import { useEffect, useRef, useState } from "react";
-import DashboardPartner from "./DashboardPartner";
 import { useLocation } from "react-router-dom";
 
+import DashboardPartner from "./DashboardPartner";
 import Analytics from "../../components/Fragments/AnalyticPage";
 import CreateEvent from "../../pages/partners/CreateEvent";
 import ListEvents from "../../components/Fragments/ListEvents";
@@ -22,22 +22,12 @@ import LegalitasPage from "../../components/Fragments/LegalitasPage";
 const Layout = () => {
   const isDesktopDevice = useMediaQuery("(min-width: 768px)");
   const [collapsed, setCollapsed] = useState(!isDesktopDevice);
-  const [activeContent, setActiveContent] = useState("dashboard");
   const location = useLocation();
   const sidebarRef = useRef(null);
 
   useEffect(() => {
     setCollapsed(!isDesktopDevice);
   }, [isDesktopDevice]);
-
-  useEffect(() => {
-    const hash = location.hash.replace("#", "");
-    if (hash) {
-      setActiveContent(hash);
-    } else {
-      setActiveContent("dashboard");
-    }
-  }, [location]);
 
   useClickOutside([sidebarRef], () => {
     if (!isDesktopDevice && !collapsed) {
@@ -46,7 +36,11 @@ const Layout = () => {
   });
 
   const renderContent = () => {
-    switch (activeContent) {
+    // Extract the current path and use it to determine which content to display
+    const path = location.pathname;
+    const contentKey = path.split('/').pop(); // Get the last segment of the path
+
+    switch (contentKey) {
       case "dashboard":
         return <DashboardPartner />;
       case "analytics":
@@ -84,7 +78,6 @@ const Layout = () => {
       <Sidebar
         ref={sidebarRef}
         collapsed={collapsed}
-        onContentChange={setActiveContent}
       />
       <div
         className={cn(
