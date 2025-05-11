@@ -5,7 +5,6 @@ import { useTheme } from "../../hooks/UseTheme";
 const Analytics = () => {
     const { theme } = useTheme();
     
-    // Sample data for analytics
     const analyticsData = [
         { month: "Jan", users: 1200, revenue: 5000 },
         { month: "Feb", users: 1900, revenue: 7500 },

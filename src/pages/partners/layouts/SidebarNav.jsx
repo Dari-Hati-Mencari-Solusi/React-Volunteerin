@@ -1,32 +1,30 @@
 import { forwardRef, useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { navbarLinks } from "../../../constants";
 import LogoVolunter from "../../../assets/images/logowhite.svg";
 import { cn } from "../../../utils/cn";
 import PropTypes from "prop-types";
 
-export const Sidebar = forwardRef(({ collapsed, onContentChange }, ref) => {
+export const Sidebar = forwardRef(({ collapsed }, ref) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeLink, setActiveLink] = useState(null);
 
-  const getContentKeyFromPath = (path) => {
-    return path.startsWith("/") ? path.substring(1) : path;
-  };
-
   useEffect(() => {
-    const hash = location.hash.substring(1);
-    if (hash) {
-      setActiveLink(hash);
-    } else if (location.pathname === "/dashboard") {
+    // Extract the content key from the current path
+    const path = location.pathname;
+    const contentKey = path.split('/').pop(); // Get the last segment of the path
+    
+    if (contentKey) {
+      setActiveLink(contentKey);
+    } else {
       setActiveLink("dashboard");
     }
   }, [location]);
 
   const handleNavClick = (e, path) => {
     e.preventDefault();
-    const contentKey = getContentKeyFromPath(path);
-    setActiveLink(contentKey); 
-    onContentChange(contentKey);
+    navigate(path); // Use React Router's navigate to change routes
   };
 
   return (
@@ -58,13 +56,15 @@ export const Sidebar = forwardRef(({ collapsed, onContentChange }, ref) => {
               {navbarLink.title}
             </p>
             {navbarLink.links.map((link) => {
-              const contentKey = getContentKeyFromPath(link.path);
+              // Extract the last part of the path for comparison
+              const pathSegments = link.path.split('/');
+              const contentKey = pathSegments[pathSegments.length - 1];
               const isActive = activeLink === contentKey;
 
               return (
                 <a
                   key={link.label}
-                  href={`#${contentKey}`}
+                  href={link.path}
                   className={cn(
                     "sidebar-item",
                     collapsed && "md:w-[45px]",
@@ -89,6 +89,5 @@ export const Sidebar = forwardRef(({ collapsed, onContentChange }, ref) => {
 Sidebar.displayName = "Sidebar";
 
 Sidebar.propTypes = {
-  collapsed: PropTypes.bool,
-  onContentChange: PropTypes.func,
-};
+  collapsed: PropTypes.bool
+};  
