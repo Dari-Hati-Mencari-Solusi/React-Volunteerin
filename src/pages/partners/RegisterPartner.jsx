@@ -159,11 +159,13 @@ const RegisterPartner = () => {
   return (
     <section className="min-h-screen bg-white flex flex-col items-center p-4">
       <div className="lg:py-3 md:py-3 py-8">
+        <Link to="/">
         <img
           src={logo}
           alt="logo volunteerin"
           className="lg:w-[295px] lg:h-[64px] md:w-[295px] md:h-[64px] w-[250px] h-[50px]"
         />
+        </Link>
       </div>
       <div className="bg-white rounded-2xl border border-[#ECECEC] shadow-xl p-8 w-full max-w-[514px]">
         <div className="text-center mb-8">
