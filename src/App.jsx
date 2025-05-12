@@ -20,6 +20,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import Layout from "./pages/partners/Layout";
 import EventDashboard from "./pages/partners/CreateEvent";
 import FormRegisterUser from "./pages/users/FormRegisterUser";
+import Gamification from "./components/Fragments/Gamification";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-pw" element={<ResetPassword />} />
         <Route path="/layanan" element={<Service />} />
+        <Route path="/misi-kamu" element={<Gamification />} />
 
         {/* partner route */}
         <Route path="/login-partner" element={<LoginPartner />} />
