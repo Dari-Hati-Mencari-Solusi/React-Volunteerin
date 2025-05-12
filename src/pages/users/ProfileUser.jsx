@@ -4,13 +4,13 @@ import { Icon } from "@iconify/react";
 import Navbar from "../../components/navbar/Navbar";
 import { Link } from "react-router-dom";
 import Footer from "../../components/footer/Footer";
-import { toast } from "react-toastify"; // Assuming you use react-toastify for notifications
+import { toast } from "react-toastify";
 
 const ProfileUser = () => {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -19,24 +19,29 @@ const ProfileUser = () => {
     phoneNumber: "",
     bio: "",
   });
-  
+
   const [passwordData, setPasswordData] = useState({
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
+  const missionVolunteer = {
+    type: "Point Volunteer",
+    points: 1300,
+  };
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         setIsLoading(true);
         const token = localStorage.getItem("token");
-        
+
         if (!token) {
           window.location.href = "/login";
           return;
         }
-        
+
         let user = null;
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
@@ -46,7 +51,7 @@ const ProfileUser = () => {
           user = profile.data.user;
           localStorage.setItem("user", JSON.stringify(user));
         }
-        
+
         setUserData(user);
         setFormData({
           name: user.name || "",
@@ -64,50 +69,56 @@ const ProfileUser = () => {
 
     fetchUserProfile();
   }, []);
-  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
-      [name]: value
+      [name]: value,
     }));
   };
-  
+
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
-    setPasswordData(prevState => ({
+    setPasswordData((prevState) => ({
       ...prevState,
-      [name]: value
+      [name]: value,
     }));
   };
-  
+
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
       const response = await authService.updateUserProfile(formData);
-      setUserData({...userData, ...formData});
-      localStorage.setItem("user", JSON.stringify({...userData, ...formData}));
+      setUserData({ ...userData, ...formData });
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ ...userData, ...formData })
+      );
       toast.success("Profile updated successfully");
     } catch (error) {
       console.error("Failed to update profile:", error);
       toast.error("Failed to update profile");
     }
   };
-  
+
   const handlePasswordUpdate = async (e) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error("New passwords don't match");
       return;
     }
-    
+
     try {
-      await authService.changePassword(passwordData.oldPassword, passwordData.newPassword);
+      await authService.changePassword(
+        passwordData.oldPassword,
+        passwordData.newPassword
+      );
       setPasswordData({
         oldPassword: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
       });
       toast.success("Password updated successfully");
     } catch (error) {
@@ -142,7 +153,37 @@ const ProfileUser = () => {
           </span>
         </div>
         <div className="h-[1px] bg-gray-200 w-full mb-10"></div>
-        <div className="mx-auto space-y-6">
+
+        <div className="shadow-md bg-white rounded-lg">
+          <div className="bg-orange-500 rounded-t-lg p-7">
+            <div className="justify-center flex items-center flex-col text-center space-y-4">
+              <div className="bg-orange-400 rounded-full w-32 h-32 flex items-center justify-center mr-4">
+                <Icon icon="lucide:users" className="text-white w-20 h-20" />
+              </div>
+              <div>
+                <p className="text-white text-xl font-bold">
+                  {missionVolunteer.type}
+                </p>
+                <p className="text-white text-2xl font-bold">
+                  {missionVolunteer.points.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg p-5 flex justify-center items-center">
+            <Link
+              to="/misi-kamu"
+              className="flex items-center text-[#0A3E54] text-lg"
+            >
+              Lihat misi
+              <span>
+                <Icon icon="weui:arrow-filled" width="24" height="28" />
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="mx-auto space-y-6 mt-6">
           <div className="space-y-4">
             <div className="bg-[#FBFBFB] p-6 rounded-lg border border-gray-200">
               <div className="flex items-center gap-2 mb-4">
@@ -191,12 +232,12 @@ const ProfileUser = () => {
 
                   <div>
                     <label className="block text-sm mb-2">Bio Anda</label>
-                    <textarea 
+                    <textarea
                       name="bio"
                       value={formData.bio}
                       onChange={handleInputChange}
-                      className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]" 
-                      rows={4} 
+                      className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]"
+                      rows={4}
                     />
                   </div>
 
@@ -207,11 +248,16 @@ const ProfileUser = () => {
                     <input
                       type="tel"
                       value={userData ? userData.phoneNumber : ""}
-                      onChange={(e) => setUserData({ ...userData, phoneNumber: e.target.value })}
+                      onChange={(e) =>
+                        setUserData({
+                          ...userData,
+                          phoneNumber: e.target.value,
+                        })
+                      }
                       className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#14464B]/20 focus:border-[#14464B]"
                     />
 
-                    <button 
+                    <button
                       type="submit"
                       className="mt-6 px-12 py-3 bg-[#0A3E54] text-white rounded-[12px]"
                     >
@@ -238,11 +284,13 @@ const ProfileUser = () => {
               <p className="text-md text-[#A1A1A1] mb-4">
                 Pastikan akun kamu menggunakan kata sandi yang kuat dan aman.
               </p>
-              
+
               <form onSubmit={handlePasswordUpdate}>
                 <div className="gap-4 md:grid md:grid-cols-2 lg:grid lg:grid-cols-2 block">
                   <div>
-                    <label className="block text-sm mb-2">Kata Sandi Lama</label>
+                    <label className="block text-sm mb-2">
+                      Kata Sandi Lama
+                    </label>
                     <div className="relative">
                       <input
                         type={showOldPassword ? "text" : "password"}
@@ -257,14 +305,20 @@ const ProfileUser = () => {
                         onClick={() => setShowOldPassword(!showOldPassword)}
                       >
                         <Icon
-                          icon={showOldPassword ? "heroicons:eye-slash" : "heroicons:eye"}
+                          icon={
+                            showOldPassword
+                              ? "heroicons:eye-slash"
+                              : "heroicons:eye"
+                          }
                           className="w-5 h-5 text-gray-500"
                         />
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm mb-2">Kata Sandi Baru</label>
+                    <label className="block text-sm mb-2">
+                      Kata Sandi Baru
+                    </label>
                     <div className="relative">
                       <input
                         type={showNewPassword ? "text" : "password"}
@@ -279,7 +333,11 @@ const ProfileUser = () => {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                       >
                         <Icon
-                          icon={showNewPassword ? "heroicons:eye-slash" : "heroicons:eye"}
+                          icon={
+                            showNewPassword
+                              ? "heroicons:eye-slash"
+                              : "heroicons:eye"
+                          }
                           className="w-5 h-5 text-gray-500"
                         />
                       </button>
@@ -301,10 +359,16 @@ const ProfileUser = () => {
                       <button
                         type="button"
                         className="absolute right-2 top-2.5"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                       >
                         <Icon
-                          icon={showConfirmPassword ? "heroicons:eye-slash" : "heroicons:eye"}
+                          icon={
+                            showConfirmPassword
+                              ? "heroicons:eye-slash"
+                              : "heroicons:eye"
+                          }
                           className="w-5 h-5 text-gray-500"
                         />
                       </button>
@@ -312,7 +376,7 @@ const ProfileUser = () => {
                   </div>
                 </div>
 
-                <button 
+                <button
                   type="submit"
                   className="mt-6 px-10 py-3 bg-[#0A3E54] text-white rounded-xl"
                 >
