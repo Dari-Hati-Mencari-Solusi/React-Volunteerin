@@ -12,8 +12,7 @@ const Footer = () => {
             </div>
 
             <p className="mt-6 max-w-md text-start leading-relaxed text-white sm:max-w-xs sm:text-left">
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Incidunt
-              consequuntur amet culpa cum itaque neque.
+              Temukan Peluangmu, Tunjukan Aksimu
             </p>
 
             <ul className="mt-8 flex justify-start gap-6 md:gap-8">
@@ -117,7 +116,7 @@ const Footer = () => {
                     className="text-white transition hover:text-white/75"
                     href="#"
                   >
-                    Company History
+                    Beranda
                   </a>
                 </li>
 
@@ -126,7 +125,7 @@ const Footer = () => {
                     className="text-white transition hover:text-white/75"
                     href="#"
                   >
-                    Meet the Team
+                    Aktivitas
                   </a>
                 </li>
 
@@ -135,7 +134,7 @@ const Footer = () => {
                     className="text-white transition hover:text-white/75"
                     href="#"
                   >
-                    Employee Handbook
+                    Layanan
                   </a>
                 </li>
 
@@ -144,7 +143,7 @@ const Footer = () => {
                     className="text-white transition hover:text-white/75"
                     href="#"
                   >
-                    Careers
+                    Hubungi Kami
                   </a>
                 </li>
               </ul>
@@ -159,7 +158,7 @@ const Footer = () => {
                     className="text-white transition hover:text-white/75"
                     href="#"
                   >
-                    Web Development
+                    Cs
                   </a>
                 </li>
 
@@ -168,25 +167,7 @@ const Footer = () => {
                     className="text-white transition hover:text-white/75"
                     href="#"
                   >
-                    Web Design
-                  </a>
-                </li>
-
-                <li>
-                  <a
-                    className="text-white transition hover:text-white/75"
-                    href="#"
-                  >
-                    Marketing
-                  </a>
-                </li>
-
-                <li>
-                  <a
-                    className="text-white transition hover:text-white/75"
-                    href="#"
-                  >
-                    Google Ads
+                    Customer upport
                   </a>
                 </li>
               </ul>
@@ -194,9 +175,31 @@ const Footer = () => {
 
             <div className="text-start sm:text-left">
               <p className="text-lg font-medium text-white">Helpful Links</p>
-
               <ul className="mt-8 space-y-4 text-sm">
-                {/* Add links here if needed */}
+                 <li>
+                  <a
+                    className="text-white transition hover:text-white/75"
+                    href="#"
+                  >
+                   Masuk
+                  </a>
+                </li>
+                  <li>
+                  <a
+                    className="text-white transition hover:text-white/75"
+                    href="#"
+                  >
+                  Buat Akun
+                  </a>
+                </li>
+                  <li>
+                  <a
+                    className="text-white transition hover:text-white/75"
+                    href="#"
+                  >
+                   Gabung Patnership
+                  </a>
+                </li>
               </ul>
             </div>
 
