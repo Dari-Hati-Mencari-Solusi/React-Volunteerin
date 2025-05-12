@@ -11,6 +11,10 @@ import { authService } from '../../services/authService';
 import { validateEmail } from '../../utils/validation';
 import { usePasswordVisibility } from '../../hooks/usePasswordVisibility';
 
+/**
+ * Login component for user authentication
+ * Handles form validation and user login
+ */
 const Login = () => {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
@@ -29,31 +33,55 @@ const Login = () => {
     password: '',
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
+  /**
+   * Validates the form data
+   * @returns {boolean} True if valid, false otherwise
+   */
+  const validateForm = () => {
     if (!formData.email || !formData.password) {
       setStatus('error', 'Email dan kata sandi harus diisi!');
-      setIsSubmitting(false);
-      return;
+      return false;
     }
 
     if (!validateEmail(formData.email)) {
       setStatus('error', 'Format email tidak valid!');
-      setIsSubmitting(false);
-      return;
+      return false;
     }
 
+    return true;
+  };
+
+  /**
+   * Process login and handle response
+   */
+  const processLogin = async () => {
     try {
       const response = await authService.login(formData.email, formData.password);
       authLogin(response.user);
       setStatus('success', 'Login berhasil!');
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
+      
+      // Redirect after successful login
+      setTimeout(() => navigate('/'), 1500);
     } catch (err) {
       setStatus('error', err.message || 'Email atau kata sandi salah!');
+    }
+  };
+
+  /**
+   * Form submission handler
+   * @param {Event} e - Form submission event
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Validate form first
+      if (!validateForm()) {
+        return;
+      }
+
+      await processLogin();
     } finally {
       setIsSubmitting(false);
     }
@@ -62,11 +90,13 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center p-4">
       <div className="lg:py-3 md:py-3 py-8">
+        <Link to="/">
         <img
           src={logo}
           alt="logo volunteerin"
           className="lg:w-[295px] lg:h-[64px] md:w-[295px] md:h-[64px] w-[250px] h-[50px]"
         />
+        </Link>
       </div>
       <div className="bg-white rounded-2xl border border-[#ECECEC] shadow-xl p-8 w-full max-w-[480px]">
         <div className="text-center mb-8">
@@ -80,6 +110,7 @@ const Login = () => {
         <SuccessAlert message={success} />
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email Field */}
           <div className="space-y-2">
             <label className="text-gray-700 block font-medium">
               Alamat Email
@@ -99,6 +130,7 @@ const Login = () => {
             />
           </div>
 
+          {/* Password Field */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <label className="text-gray-700 font-medium">
@@ -139,6 +171,7 @@ const Login = () => {
             </div>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-[#0a3e54] text-white py-3 rounded-lg font-medium hover:bg-[#0a3e54]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -147,6 +180,7 @@ const Login = () => {
             {isSubmitting ? "Memproses..." : "Masuk"}
           </button>
 
+          {/* Register Link */}
           <div className="text-center text-gray-600">
             Belum punya akun?{" "}
             <Link to="/register" className="text-[#0a3e54] font-medium hover:underline">

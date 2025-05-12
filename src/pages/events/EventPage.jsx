@@ -391,19 +391,38 @@ const EventPage = () => {
 
 // Helper function untuk menentukan icon berdasarkan nama benefit
 function getBenefitIcon(benefitName) {
+  // Define mapping of keyword patterns to icon names
+  const BENEFIT_ICON_MAP = {
+    'akomodasi': 'mdi:hotel',
+    'hotel': 'mdi:hotel',
+    'penghargaan': 'mdi:trophy-award',
+    'award': 'mdi:trophy-award',
+    'sertifikat': 'tabler:certificate',
+    'uang': 'tabler:wallet',
+    'saku': 'tabler:wallet',
+    'makan': 'fluent-mdl2:eat-drink',
+    'snack': 'fluent-mdl2:eat-drink',
+    'koneksi': 'ic:round-connect-without-contact',
+    'network': 'ic:round-connect-without-contact',
+    'kaos': 'mdi:tshirt-crew',
+    'baju': 'mdi:tshirt-crew',
+    'pengalaman': 'tabler:medal'
+  };
+  
+  // Default icon if no match found
+  const DEFAULT_ICON = 'mdi:gift-outline';
+  
+  if (!benefitName) return DEFAULT_ICON;
+  
   const name = benefitName.toLowerCase();
   
-  if (name.includes('akomodasi') || name.includes('hotel')) return 'mdi:hotel';
-  if (name.includes('penghargaan') || name.includes('award')) return 'mdi:trophy-award';
-  if (name.includes('sertifikat')) return 'tabler:certificate';
-  if (name.includes('uang') || name.includes('saku')) return 'tabler:wallet';
-  if (name.includes('makan') || name.includes('snack')) return 'fluent-mdl2:eat-drink';
-  if (name.includes('koneksi') || name.includes('network')) return 'ic:round-connect-without-contact';
-  if (name.includes('kaos') || name.includes('baju')) return 'mdi:tshirt-crew';
-  if (name.includes('pengalaman')) return 'tabler:medal';
+  // Find the first keyword that matches in the benefit name
+  const matchedKeyword = Object.keys(BENEFIT_ICON_MAP).find(keyword => 
+    name.includes(keyword)
+  );
   
-  // Default icon
-  return 'mdi:gift-outline';
+  // Return matched icon or default
+  return matchedKeyword ? BENEFIT_ICON_MAP[matchedKeyword] : DEFAULT_ICON;
 }
 
 export default EventPage;

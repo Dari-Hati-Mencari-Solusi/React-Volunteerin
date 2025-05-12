@@ -444,29 +444,4 @@ const LandingPage = () => {
   );
 };
 
-// Tambahkan CSS animation
-const addFadeInAnimation = () => {
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes fade-in-down {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .animate-fade-in-down {
-      animation: fade-in-down 0.5s ease forwards;
-    }
-  `;
-  document.head.appendChild(style);
-};
-
-// Panggil fungsi animasi saat komponen dimuat
-addFadeInAnimation();
-
 export default LandingPage;
