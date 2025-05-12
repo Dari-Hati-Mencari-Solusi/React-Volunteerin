@@ -471,6 +471,13 @@ const Navbar = () => {
                                 Pengaturan Akun
                               </span>
                             </Link>
+                              <Link
+                            to= "/misi-kamu"
+                            className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
+                          >
+                            <Icon icon="mingcute:target-line" className="w-6 h-6" />
+                            <span className="font-medium">Misi Kamu</span>
+                          </Link>
                             <button
                               onClick={handleLogout}
                               className="flex items-center gap-2 px-6 py-3 text-red-600 hover:bg-gray-50 transition duration-150 w-full text-left border-t border-gray-100"
