@@ -59,12 +59,10 @@ const Marketing = () => {
           </div>
         </div>
         <div className="bg-[#FBFBFB] border border-gray-200 mt-4 space-y-2 rounded-[12px] p-6 w-full text-[#0A3E54]">
-          <div className="flex items-center gap-4 text-center">
+          <div className="gap-4 text-center">
             <p>
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ullam
-              nisi sed quia veniam vel accusamus voluptas qui aliquam. Similique
-              commodi laudantium repellat dignissimos earum possimus placeat
-              veniam quam ea incidunt?
+             Bergabunglah dengan Volunteerin dan temukan kesempatan relawan yang berdampak. <br />
+Mulai aksi kecilmu hari ini, untuk perubahan besar esok hari.
             </p>
           </div>
         </div>
