@@ -1,6 +1,6 @@
 import { forwardRef, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { navbarLinksPartner } from "../../../constants";
+import { navbarLinksAdmin } from "../../../constants";
 import LogoVolunter from "../../../assets/images/logowhite.svg";
 import { cn } from "../../../utils/cn";
 import PropTypes from "prop-types";
@@ -45,7 +45,7 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
         )}
       </div>
       <div className="flex w-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden p-3 [scrollbar-width:_thin]">
-        {navbarLinksPartner.map((navbarLink) => (
+        {navbarLinksAdmin.map((navbarLink) => (
           <nav
             key={navbarLink.title}
             className={cn("sidebar-group", collapsed && "md:items-center")}

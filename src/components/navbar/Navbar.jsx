@@ -110,25 +110,25 @@ const Navbar = () => {
                     {openDropdown === "event" && (
                       <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
                         <Link
-                          to="/event"
+                          to="/"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Semua Event
                         </Link>
                         <Link
-                          to="#"
+                          to="/"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Lingkungan
                         </Link>
                         <Link
-                          to="#"
+                          to="/"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Sosial
                         </Link>
                         <Link
-                          to="#"
+                          to="/"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Pendidikan
@@ -348,25 +348,25 @@ const Navbar = () => {
                   {openDropdown === "event" && (
                     <div className="mt-2 bg-white rounded-lg py-2 z-50 text-md md:text-xl">
                       <Link
-                        to="/event"
+                        to="/"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Semua Event
                       </Link>
                       <Link
-                        to="#"
+                        to="/"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Lingkungan
                       </Link>
                       <Link
-                        to="#"
+                        to="/"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Sosial
                       </Link>
                       <Link
-                        to="#"
+                        to="/"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Pendidikan

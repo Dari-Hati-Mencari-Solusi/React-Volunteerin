@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import CountUp from "react-countup";
 import { authService } from "../../services/authService";
 import { Icon } from "@iconify/react";
 import Navbar from "../../components/navbar/Navbar";
@@ -160,12 +161,19 @@ const ProfileUser = () => {
               <div className="bg-orange-400 rounded-full w-32 h-32 flex items-center justify-center mr-4">
                 <Icon icon="lucide:users" className="text-white w-20 h-20" />
               </div>
-              <div>
+            <div>
                 <p className="text-white text-xl font-bold">
                   {missionVolunteer.type}
                 </p>
-                <p className="text-white text-2xl font-bold">
-                  {missionVolunteer.points.toLocaleString()}
+                <p className="text-white text-2xl font-bold drop-shadow-[0_2px_2px_rgba(255,255,255,0.3)]">
+                  <CountUp 
+                    start={0} 
+                    end={missionVolunteer.points} 
+                    duration={2} 
+                    separator="," 
+                    enableScrollSpy={true}
+                    scrollSpyOnce={true}
+                  />
                 </p>
               </div>
             </div>

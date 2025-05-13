@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import CountUp from "react-countup";
 import { authService } from "../../services/authService";
 import { Icon } from "@iconify/react";
 import Navbar from "../../components/navbar/Navbar";
@@ -137,9 +138,16 @@ const Gamification = () => {
                       {mission.title}
                     </h3>
                     {mission.points > 0 && (
-                      <div className="flex items-center text-[#FFCC29] px-2  rounded-full">
+                      <div className="flex items-center text-[#FFCC29] px-2 rounded-full">
                         <span className="lg:text-2xl md:text-2xl text-lg font-bold mr-2 drop-shadow-[0_2px_2px_rgba(255,204,41,0.5)]">
-                          + {mission.points}
+                          <CountUp 
+                            start={0} 
+                            end={mission.points} 
+                            duration={1.5} 
+                            prefix="+ "
+                            enableScrollSpy={true}
+                            scrollSpyOnce={true}
+                          />
                         </span>
                         {mission.icon && (
                           <img
