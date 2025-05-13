@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import Dashboard from "./Dashboard";
-import UserRole from "./UserRole";
+import UserManagement from "./UserManagement";
 import PartnerRole from "./PartnerRole";
 
 const LayoutAdmin = () => {
@@ -34,7 +34,7 @@ const LayoutAdmin = () => {
     if (path === "/admin/dashboard") {
       return <Dashboard />;
     } else if (path === "/admin/data-user") {
-      return <UserRole />;
+      return <UserManagement />;
     } else if (path === "/admin/data-partner") {
       return <PartnerRole />;
     }
