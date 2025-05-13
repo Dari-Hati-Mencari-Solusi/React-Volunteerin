@@ -17,33 +17,39 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Service from "./pages/Service";
 import { ThemeProvider } from "./context/ThemeContext";
-import Layout from "./pages/partners/Layout";
-import EventDashboard from "./pages/partners/CreateEvent";
+import LayoutPartner from "./pages/partners/Layout";
 import FormRegisterUser from "./pages/users/FormRegisterUser";
 import Gamification from "./components/Fragments/Gamification";
+import LayoutAdmin from "./pages/admin/LayoutAdmin";
+// import EventDashboard from "./pages/partners/CreateEvent";
 
 function App() {
   return (
     <ThemeProvider storageKey="theme">
       <Routes>
+        {/* admin route */}
+        <Route path="/admin/dashboard" element={<LayoutAdmin />} />
+        <Route path="/admin/data-user" element={<LayoutAdmin />} />
+        <Route path="/admin/data-partner" element={<LayoutAdmin />} />
+
         {/* dashboard partner route */}
-        <Route path="/partner/dashboard" element={<Layout />} />
-        <Route path="/partner/dashboard/analytics" element={<Layout />} />
-        <Route path="/partner/dashboard/buat-event" element={<Layout />} />
-        <Route path="/partner/dashboard/create-event" element={<Layout />} />
-        <Route path="/partner/dashboard/create-formulir" element={<Layout />} />
-        <Route path="/partner/dashboard/pendaftar" element={<Layout />} />
-        <Route path="/partner/dashboard/pencairan-dana" element={<Layout />} />
-        <Route path="/partner/dashboard/profile-partner" element={<Layout />} />
+        <Route path="/partner/dashboard" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/analytics" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/buat-event" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/create-event" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/create-formulir" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/pendaftar" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/pencairan-dana" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/profile-partner" element={<LayoutPartner />} />
         <Route
           path="/partner/dashboard/penanggung-jawab"
-          element={<Layout />}
+          element={<LayoutPartner />}
         />
-        <Route path="/partner/dashboard/legalitas" element={<Layout />} />
-        <Route path="/partner/dashboard/media-sosial" element={<Layout />} />
-        <Route path="/partner/dashboard/faq" element={<Layout />} />
-        <Route path="/partner/dashboard/cs-partner" element={<Layout />} />
-        <Route path="/partner/dashboard/panduan" element={<Layout />} />
+        <Route path="/partner/dashboard/legalitas" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/media-sosial" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/faq" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/cs-partner" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/panduan" element={<LayoutPartner />} />
 
         {/* user route */}
         <Route path="/" element={<LandingPage />} />
@@ -66,7 +72,6 @@ function App() {
         <Route path="/register-partner" element={<RegisterPartner />} />
         <Route path="/form-register" element={<FormRegisterUser />} />
 
-        {/* admin route */}
 
         {/* Not found route */}
         <Route path="*" element={<NotFoundPage />} />

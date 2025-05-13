@@ -8,10 +8,35 @@ import {
   Users,
 } from "lucide-react";
 
-import ProfileImage from "../assets/images/profile-image.jpg";
-import ProductImage from "../assets/images/profile-image.jpg";
+export const navbarLinksAdmin = [
+  {
+    title: "Dashboard-admin",
+    links: [
+      {
+        label: "Dashboard",
+        icon: Home,
+        path: "/admin/dashboard",
+      },
+    ],
+  },
+  {
+    title: "Role",
+    links: [
+      {
+        label: "User",
+        icon: Users,
+        path: "/admin/data-user",
+      },
+      {
+        label: "Partner",
+        icon: UserPlus,
+        path: "/admin/data-partner",
+      },
+    ],
+  },
+];
 
-export const navbarLinks = [
+export const navbarLinksPartner = [
   {
     title: "Dashboard",
     links: [
@@ -164,4 +189,3 @@ export const overviewData = [
     total: 2500,
   },
 ];
-
