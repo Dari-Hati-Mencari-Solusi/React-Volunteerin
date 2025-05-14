@@ -15,7 +15,7 @@ jobs:
           webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
           webhook_auth: ${{ secrets.WEBHOOK_AUTH }}
           data: >-
-            {"commands":["git pull origin main","npm install","npm run
-            build","restart"],"features":["node
+            {"features":["node
             lts"],"nginx":{"root":"public_html/dist","locations":[{"match":"/","try_files":"$uri
-            $uri/ /index.html"}]}}
+            $uri/ /index.html"}]},"commands":["git pull origin main","npm
+            install","npm run build","restart"]}
