@@ -9,16 +9,12 @@ import BannerUpload from "../../components/Elements/forms/BannerUpload";
 import Swal from "sweetalert2";
 import { partnerService } from "../../services/partnerService";
 import { authService } from "../../services/authService";
-import axios from "axios";
 
-// Static IDs for fallback
+// Static IDs for fallback in case API fails
 const STATIC_BENEFIT_IDS = {
   sertifikat: "1f92b274-39b5-4104-af5a-831982496a9c",
   uangSaku: "d9e7c6e0-3d73-4d1c-9930-35c0855cb752",
   pengalaman: "550e8400-e29b-41d4-a716-446655440000",
-  networking: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-  makanan: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
-  kaos: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
 };
 
 const STATIC_CATEGORY_IDS = {
@@ -38,432 +34,8 @@ const apiUtils = {
 
     return "http://localhost:3000";
   },
-
-  detectApiServer: async (setLoading, setApiStatus) => {
-    try {
-      setLoading(true);
-
-      Swal.fire({
-        title: "Mencari Server API...",
-        text: "Sedang mencari server API yang aktif",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
-      const url = "http://localhost:3000";
-
-      // First try /partners/me/events endpoint if we have a token
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-      if (token) {
-        try {
-          const eventsResponse = await fetch(`${url}/partners/me/events`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            signal: AbortSignal.timeout(3000),
-          });
-
-          if (eventsResponse.ok) {
-            localStorage.setItem("api_url", url);
-
-            Swal.fire({
-              icon: "success",
-              title: "Server Ditemukan!",
-              text: `Berhasil terhubung ke API Events di ${url}`,
-              confirmButtonText: "OK",
-            });
-
-            setApiStatus({
-              url: url,
-              isConnected: true,
-              lastChecked: new Date().toLocaleTimeString(),
-              error: null,
-            });
-
-            return url;
-          }
-        } catch (err) {
-          console.warn("Events endpoint check failed:", err.message);
-        }
-      }
-
-      // Fallback to /ping endpoint if events check fails
-      try {
-        const pingResponse = await fetch(`${url}/ping`, {
-          method: "GET",
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-          signal: AbortSignal.timeout(3000),
-        });
-
-        if (pingResponse.ok) {
-          localStorage.setItem("api_url", url);
-
-          Swal.fire({
-            icon: "success",
-            title: "Server Ditemukan!",
-            text: `Berhasil terhubung ke server API di ${url}`,
-            confirmButtonText: "OK",
-          });
-
-          setApiStatus({
-            url: url,
-            isConnected: true,
-            lastChecked: new Date().toLocaleTimeString(),
-            error: null,
-          });
-
-          return url;
-        }
-      } catch (err) {
-        console.warn(`Failed to connect to ${url}:`, err.message);
-      }
-
-      Swal.fire({
-        icon: "error",
-        title: "Server API Tidak Ditemukan",
-        html: `
-          <div class="text-left">
-            <p>Tidak dapat menemukan server API yang aktif.</p>
-            <p class="mt-2 font-semibold">Opsi yang tersedia:</p>
-            <ul class="list-disc pl-5">
-              <li>Aktifkan mode simulasi untuk testing UI</li>
-              <li>Periksa apakah server API berjalan di lokasi yang benar</li>
-              <li>Pastikan tidak ada blocking dari firewall</li>
-            </ul>
-          </div>
-        `,
-        confirmButtonText: "Aktifkan Mode Simulasi",
-        showCancelButton: true,
-        cancelButtonText: "Tutup",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          localStorage.setItem("simulate_create_event", "true");
-          window.location.reload();
-        }
-      });
-
-      return null;
-    } catch (error) {
-      console.error("Error detecting API server:", error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Terjadi kesalahan saat mencari server API: " + error.message,
-        confirmButtonText: "OK",
-      });
-
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  },
-
-  testServerConnection: async (setLoading) => {
-    try {
-      setLoading(true);
-
-      Swal.fire({
-        title: "Memeriksa Server...",
-        text: "Sedang memeriksa koneksi ke server API",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
-      const API_URL = apiUtils.getApiUrl();
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-
-      // First try /partners/me/events endpoint if we have a token
-      if (token) {
-        try {
-          const eventsResponse = await fetch(`${API_URL}/partners/me/events`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "X-Requested-With": "XMLHttpRequest",
-            },
-          });
-
-          if (eventsResponse.ok) {
-            const eventsData = await eventsResponse.json();
-
-            Swal.fire({
-              icon: "success",
-              title: "Koneksi Berhasil",
-              html: `
-                <div class="text-left">
-                  <p>Berhasil terhubung ke API Events!</p>
-                  <p>Jumlah Event: ${eventsData.data?.events?.length || 0}</p>
-                  <p class="mt-2 text-sm text-green-600">Status: Koneksi dan Autentikasi Berhasil</p>
-                </div>
-              `,
-              confirmButtonText: "OK",
-            });
-            return true;
-          }
-        } catch (error) {
-          console.warn("partners/me/events check failed:", error);
-        }
-      }
-
-      // Try partnerService next
-      try {
-        const profileData = await partnerService.getPartnerProfile();
-
-        if (profileData && profileData.data) {
-          Swal.fire({
-            icon: "success",
-            title: "Koneksi Berhasil",
-            html: `
-              <div class="text-left">
-                <p>Berhasil terhubung ke server API!</p>
-                <p>Partner Name: ${profileData.data.name || "Unknown"}</p>
-                <p class="mt-2 text-sm text-green-600">Status: Koneksi Berhasil</p>
-              </div>
-            `,
-            confirmButtonText: "OK",
-          });
-          return true;
-        }
-      } catch (error) {
-        console.warn("partnerService check failed:", error);
-      }
-
-      // Fallback to /ping as last resort
-      try {
-        const response = await fetch(`${API_URL}/ping`, {
-          method: "GET",
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        });
-
-        if (response.ok) {
-          Swal.fire({
-            icon: "success",
-            title: "Server Aktif",
-            text: "Server API merespons permintaan ping dengan sukses.",
-            confirmButtonText: "OK",
-          });
-          return true;
-        }
-      } catch (error) {
-        console.warn("API ping failed:", error);
-      }
-
-      // If all checks fail
-      Swal.fire({
-        icon: "error",
-        title: "Koneksi Gagal",
-        html: `
-          <div class="text-left">
-            <p>Tidak dapat terhubung ke server API!</p>
-            <p>Status: Server tidak merespons</p>
-            <hr class="my-2">
-            <p class="mt-2 text-sm">Periksa apakah:</p>
-            <ul class="list-disc pl-5 text-sm">
-              <li>Server API sedang berjalan</li>
-              <li>URL API benar: <code>${apiUtils.getApiUrl()}</code></li>
-              <li>Token autentikasi Anda valid</li>
-              <li>Tidak ada masalah jaringan</li>
-            </ul>
-          </div>
-        `,
-        confirmButtonText: "OK",
-      });
-
-      return false;
-    } catch (error) {
-      console.error("Test connection error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message || "Terjadi kesalahan saat memeriksa koneksi",
-        confirmButtonText: "OK",
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  },
-
-  // Fungsi untuk mengambil event berdasarkan id
-  getEventById: async (eventId) => {
-    try {
-      const API_URL = apiUtils.getApiUrl();
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error("Token tidak ditemukan");
-      }
-
-      const response = await fetch(`${API_URL}/partners/me/events/${eventId}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to get event: ${response.status} ${errorText}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error getting event by ID:", error);
-      throw error;
-    }
-  },
-
-  // Fungsi untuk mengambil daftar event partner
-  getPartnerEvents: async (page = 1, limit = 10) => {
-    try {
-      const API_URL = apiUtils.getApiUrl();
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error("Token tidak ditemukan");
-      }
-
-      const response = await fetch(
-        `${API_URL}/partners/me/events?page=${page}&limit=${limit}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Failed to get events: ${response.status} ${errorText}`
-        );
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error getting partner events:", error);
-      throw error;
-    }
-  },
 };
-// Add to CreateEvent.jsx
-const fetchValidIds = async () => {
-  try {
-    Swal.fire({
-      title: "Mengambil data...",
-      text: "Sedang mengambil data yang valid dari server",
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
 
-    const API_URL = apiUtils.getApiUrl();
-    const token =
-      localStorage.getItem("authToken") || localStorage.getItem("token");
-
-    // Fetch valid benefits
-    const benefitResponse = await fetch(`${API_URL}/benefits`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const benefitData = await benefitResponse.json();
-
-    // Fetch valid categories
-    const categoryResponse = await fetch(`${API_URL}/categories?type=EVENT`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const categoryData = await categoryResponse.json();
-
-    Swal.close();
-
-    if (benefitData.data?.length > 0 && categoryData.data?.length > 0) {
-      // Instead of trying to set state directly, return the valid IDs
-      const validBenefitIds = benefitData.data.slice(0, 2).map((b) => b.id);
-      const validCategoryIds = categoryData.data.slice(0, 1).map((c) => c.id);
-
-      console.log("Valid benefit IDs:", validBenefitIds);
-      console.log("Valid category IDs:", validCategoryIds);
-
-      // Show the valid IDs in a Swal dialog for user to copy
-      Swal.fire({
-        icon: "success",
-        title: "Valid IDs Found",
-        html: `
-          <div class="text-left">
-            <p><strong>Benefit IDs:</strong></p>
-            <pre style="background:#f0f0f0;padding:5px;max-height:100px;overflow:auto">${JSON.stringify(
-              validBenefitIds,
-              null,
-              2
-            )}</pre>
-            <p><strong>Category IDs:</strong></p>
-            <pre style="background:#f0f0f0;padding:5px;max-height:100px;overflow:auto">${JSON.stringify(
-              validCategoryIds,
-              null,
-              2
-            )}</pre>
-          </div>
-        `,
-        confirmButtonText: "Use These IDs",
-        showCancelButton: true,
-        cancelButtonText: "Cancel",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Store in localStorage for your handleCreateEvent function to use
-          localStorage.setItem(
-            "valid_benefit_ids",
-            JSON.stringify(validBenefitIds)
-          );
-          localStorage.setItem(
-            "valid_category_ids",
-            JSON.stringify(validCategoryIds)
-          );
-          localStorage.setItem("use_valid_ids", "true");
-
-          Swal.fire({
-            icon: "success",
-            title: "IDs Saved",
-            text: "Valid IDs will be used for the next event creation attempt",
-          });
-        }
-      });
-
-      return true;
-    } else {
-      console.error("No valid benefits or categories found");
-      Swal.fire({
-        icon: "warning",
-        title: "No Valid Data",
-        text: "No valid benefits or categories found in the database",
-      });
-      return false;
-    }
-  } catch (error) {
-    console.error("Error fetching valid IDs:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Gagal mengambil data valid dari server: " + error.message,
-    });
-    return false;
-  }
-};
 // Form utilities
 const formUtils = {
   validateForm: (formData, refs) => {
@@ -576,9 +148,6 @@ const formUtils = {
       // Release status
       apiFormData.append("isRelease", isReadyToPublish);
 
-      // Safety check for categoryIds
-      let hasValidCategories = false;
-
       // Append categoryIds
       if (
         formData.categoryIds &&
@@ -588,55 +157,33 @@ const formUtils = {
         formData.categoryIds.forEach((id) => {
           if (id) {
             apiFormData.append("categoryIds[]", id);
-            hasValidCategories = true;
           }
         });
-      }
-
-      // If no valid categories, use fallback
-      if (!hasValidCategories) {
+      } else {
+        // Use fallback if no valid categories
         apiFormData.append("categoryIds[]", STATIC_CATEGORY_IDS.pendidikan);
       }
 
-      // Ensure we have valid benefitIds
+      // Append benefitIds
       if (
         formData.benefitIds &&
         Array.isArray(formData.benefitIds) &&
         formData.benefitIds.length > 0
       ) {
-        // First try to use the IDs as they are
         formData.benefitIds.forEach((id) => {
           if (id) {
             apiFormData.append("benefitIds[]", id.toString().trim());
           }
         });
       } else {
-        // Use static fallback
-        console.log("Using fallback benefit ID");
+        // Use fallback if no valid benefits
         apiFormData.append("benefitIds[]", STATIC_BENEFIT_IDS.sertifikat);
-      }
-
-      // Apply same approach for categoryIds
-      if (
-        formData.categoryIds &&
-        Array.isArray(formData.categoryIds) &&
-        formData.categoryIds.length > 0
-      ) {
-        formData.categoryIds.forEach((id) => {
-          if (id) {
-            apiFormData.append("categoryIds[]", id.toString().trim());
-          }
-        });
-      } else {
-        console.log("Using fallback category ID");
-        apiFormData.append("categoryIds[]", STATIC_CATEGORY_IDS.pendidikan);
       }
 
       // Add banner file
       if (!formData.banner) {
         throw new Error("Banner event harus diunggah");
       }
-
       apiFormData.append("banner", formData.banner);
 
       return apiFormData;
@@ -674,217 +221,12 @@ const formUtils = {
   },
 };
 
-// Event creation strategies
-const eventCreationStrategies = {
-  isTokenExpired: (token) => {
-    try {
-      const decoded = authService.decodeToken(token);
-      if (!decoded || !decoded.exp) return true;
-
-      const now = Math.floor(Date.now() / 1000);
-      return decoded.exp < now;
-    } catch (e) {
-      console.error("Error decoding token:", e);
-      return true;
-    }
-  },
-
-  refreshAuthToken: async () => {
-    try {
-      const newToken = await authService.refreshToken();
-      console.log("Token refreshed successfully");
-      return newToken;
-    } catch (error) {
-      console.error("Failed to refresh token:", error);
-      return null;
-    }
-  },
-
-  createWithPartnerService: async (formData) => {
-    try {
-      console.log("Creating event using partnerService...");
-      const response = await partnerService.createEvent(formData);
-      console.log("Event created successfully using partnerService:", response);
-      return response;
-    } catch (error) {
-      console.error("Error using partnerService:", error);
-      throw error;
-    }
-  },
-
-  createDirect: async (formData) => {
-    try {
-      // Check if API URL is valid
-      const API_URL = apiUtils.getApiUrl();
-      if (!API_URL) {
-        throw new Error(
-          "API URL tidak ditemukan. Periksa konfigurasi aplikasi."
-        );
-      }
-
-      // Get token and check validity
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-      if (!token) {
-        throw new Error(
-          "Token tidak ditemukan. Silakan login terlebih dahulu."
-        );
-      }
-
-      // Refresh token if expired
-      if (eventCreationStrategies.isTokenExpired(token)) {
-        console.log("Token is expired, refreshing...");
-        const newToken = await eventCreationStrategies.refreshAuthToken();
-        if (!newToken) {
-          throw new Error("Gagal memperbaharui token. Silakan login kembali.");
-        }
-      }
-
-      const endpoint = "/partners/me/events";
-
-      try {
-        const currentToken =
-          localStorage.getItem("authToken") || localStorage.getItem("token");
-
-        console.log(`Sending request to: ${API_URL}${endpoint}`);
-
-        const response = await axios.post(`${API_URL}${endpoint}`, formData, {
-          headers: {
-            Authorization: `Bearer ${currentToken}`,
-            // Don't set Content-Type with FormData
-          },
-          timeout: 60000,
-        });
-
-        console.log(`Success creating event!`, response.data);
-        return response.data;
-      } catch (error) {
-        console.error(`Failed to create event:`, error.message);
-
-        // For 500 errors, provide more helpful message
-        if (error.response?.status === 500) {
-          throw new Error(
-            "Terjadi kesalahan server (500). Server mungkin sedang overload atau mengalami masalah internal. Silakan coba lagi nanti."
-          );
-        }
-
-        // For 401/403 errors, provide auth error message
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          throw new Error(
-            "Sesi Anda telah berakhir atau tidak memiliki akses. Silakan login kembali."
-          );
-        }
-
-        // For networking errors
-        if (
-          error.message?.includes("Network Error") ||
-          error.code === "ECONNABORTED"
-        ) {
-          throw new Error(
-            "Tidak dapat terhubung ke server. Periksa koneksi internet Anda dan coba lagi."
-          );
-        }
-
-        // Pass through any other errors
-        throw error;
-      }
-    } catch (error) {
-      // IN THE CATCH BLOCK OF createDirect
-      console.error("Direct API call failed:", error);
-
-      // MODIFY THIS SECTION - Add more detailed logging
-      console.log("=== API CALL DETAILS ===");
-      if (error.response) {
-        console.log("Status:", error.response.status);
-        console.log("Response headers:", error.response.headers);
-        console.log("Response data:", error.response.data);
-      }
-
-      // For 500 errors, provide more helpful message and try a simpler approach
-      if (error.response?.status === 500) {
-        // TRY ONE MORE APPROACH WITH VANILLA FETCH
-        try {
-          console.log("Attempting one last approach with fetch API");
-
-          const currentToken =
-            localStorage.getItem("authToken") || localStorage.getItem("token");
-
-          // Create a minimal version for final attempt
-          const minimalFormData = new FormData();
-          minimalFormData.append("title", "Event " + new Date().toISOString());
-          minimalFormData.append("description", "Test description");
-          minimalFormData.append("type", "OPEN");
-          minimalFormData.append("startAt", new Date().toISOString());
-          minimalFormData.append("province", "DKI JAKARTA");
-          minimalFormData.append("regency", "KOTA JAKARTA PUSAT");
-          minimalFormData.append("isPaid", "false");
-          minimalFormData.append("isRelease", "false");
-          minimalFormData.append("requirement", "Test requirement");
-          minimalFormData.append("contactPerson", "081234567890");
-
-          // Add one static benefit and category
-          minimalFormData.append("benefitIds[]", STATIC_BENEFIT_IDS.sertifikat);
-          minimalFormData.append(
-            "categoryIds[]",
-            STATIC_CATEGORY_IDS.pendidikan
-          );
-
-          // Add banner if available but with stricter check
-          if (formData.banner && formData.banner.size < 500 * 1024) {
-            minimalFormData.append("banner", formData.banner);
-          }
-
-          const response = await fetch(`${API_URL}/partners/me/events`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${currentToken}`,
-            },
-            body: minimalFormData,
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log("Fetch API approach successful:", data);
-            return data;
-          } else {
-            throw new Error(`Fetch API failed with status ${response.status}`);
-          }
-        } catch (finalError) {
-          console.error("Final attempt failed:", finalError);
-          throw new Error(
-            "Terjadi kesalahan server (500). Server mungkin sedang overload atau mengalami masalah internal. Silakan coba lagi nanti."
-          );
-        }
-      }
-
-      // Pass through any other errors
-      throw error;
-    }
-  },
-
-  simulateCreate: async (formData) => {
-    // Add a delay to simulate network latency
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    return {
-      success: true,
-      data: {
-        id: "simulated-event-" + Date.now(),
-        title: formData.title,
-        description: formData.description,
-        createdAt: new Date().toISOString(),
-      },
-      message: "Event created successfully (Simulation)",
-    };
-  },
-};
-
 const CreateEvent = ({ onBack }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isReadyToPublish, setIsReadyToPublish] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false); // Track if auth check has completed
-  const [authError, setAuthError] = useState(null); // Track auth error state
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authError, setAuthError] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     type: "OPEN",
@@ -919,18 +261,71 @@ const CreateEvent = ({ onBack }) => {
   // Form data state for backup
   const [formBackup, setFormBackup] = useState(null);
 
-  // API connection status
-  const [apiStatus, setApiStatus] = useState({
-    url: apiUtils.getApiUrl(),
-    isConnected: false,
-    lastChecked: null,
-    error: null,
-  });
+  // Fetch valid IDs and apply them directly to formData
+  const fetchValidIdsAndApply = async () => {
+    try {
+      Swal.fire({
+        title: "Menyiapkan Form",
+        text: "Sedang mengambil data manfaat dan kategori",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
 
-  // Check auth and API connection on load
+      const API_URL = apiUtils.getApiUrl();
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
+
+      // Fetch valid benefits
+      const benefitResponse = await fetch(`${API_URL}/benefits`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const benefitData = await benefitResponse.json();
+
+      // Fetch valid categories
+      const categoryResponse = await fetch(`${API_URL}/categories?type=EVENT`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const categoryData = await categoryResponse.json();
+
+      Swal.close();
+
+      if (benefitData.data?.length > 0 && categoryData.data?.length > 0) {
+        // Get valid IDs
+        const validBenefitIds = benefitData.data.slice(0, 2).map((b) => b.id);
+        const validCategoryIds = categoryData.data.slice(0, 1).map((c) => c.id);
+
+        // Apply directly to form data
+        setFormData((prev) => ({
+          ...prev,
+          benefitIds: validBenefitIds,
+          categoryIds: validCategoryIds,
+        }));
+
+        return true;
+      } else {
+        console.warn("No valid benefits or categories found");
+        Swal.fire({
+          icon: "warning",
+          title: "Perhatian",
+          text: "Tidak dapat mengambil data kategori dan manfaat. Form akan menggunakan data default.",
+          confirmButtonText: "OK",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Error fetching valid IDs:", error);
+      Swal.close();
+      return false;
+    }
+  };
+
+  // Check auth and fetch valid IDs on load
   useEffect(() => {
-    const checkAuth = async () => {
+    const initializeComponent = async () => {
       try {
+        // Check authentication
         if (!authService.isAuthenticated()) {
           setAuthError("not_authenticated");
           setAuthChecked(true);
@@ -966,20 +361,8 @@ const CreateEvent = ({ onBack }) => {
         setAuthChecked(true);
 
         try {
-          // Check partner profile with better error handling
+          // Check partner profile
           const profileData = await partnerService.getPartnerProfile();
-
-          // Debug the actual structure
-          console.log("Partner profile response:", profileData);
-
-          // More robust checking of nested properties
-          const partnerName =
-            profileData?.data?.name ||
-            profileData?.data?.partner?.name ||
-            profileData?.partner?.name ||
-            "Unknown Partner";
-
-          console.log("Partner profile loaded successfully:", partnerName);
 
           // Store the partner ID for event creation
           if (
@@ -987,20 +370,17 @@ const CreateEvent = ({ onBack }) => {
             profileData?.data?.partner?.id ||
             profileData?.partner?.id
           ) {
-            // Save partner ID to localStorage for use in event creation
             const partnerId =
               profileData?.data?.id ||
               profileData?.data?.partner?.id ||
               profileData?.partner?.id;
             localStorage.setItem("partnerId", partnerId);
-            console.log("Partner ID saved:", partnerId);
-          } else {
-            console.warn("Could not determine partner ID from profile data");
           }
+
+          // Fetch valid IDs automatically and apply them directly to formData
+          await fetchValidIdsAndApply();
         } catch (profileError) {
           console.warn("Failed to load partner profile:", profileError);
-
-          // Create a warning notification but don't block
           Swal.fire({
             icon: "warning",
             title: "Perhatian",
@@ -1015,13 +395,13 @@ const CreateEvent = ({ onBack }) => {
           });
         }
       } catch (error) {
-        console.error("Authentication check failed:", error);
+        console.error("Initialization failed:", error);
         setAuthError("check_failed");
         setAuthChecked(true);
       }
     };
 
-    checkAuth();
+    initializeComponent();
   }, [navigate]);
 
   // Handle toggle for isReadyToPublish
@@ -1096,80 +476,7 @@ const CreateEvent = ({ onBack }) => {
       }));
     }
   }, []);
-  const testWithCorrectSizedBanner = async () => {
-    try {
-      // Create a canvas with the EXACT dimensions expected
-      const canvas = document.createElement("canvas");
-      canvas.width = 600; // Exactly the max width allowed
-      canvas.height = 300; // Exactly the max height allowed
-      const ctx = canvas.getContext("2d");
 
-      // Fill with a gradient
-      const gradient = ctx.createLinearGradient(0, 0, 600, 0);
-      gradient.addColorStop(0, "#0A3E54");
-      gradient.addColorStop(1, "#2D8BBA");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 600, 300);
-
-      // Add text
-      ctx.fillStyle = "white";
-      ctx.font = "bold 40px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("Event Banner", 300, 150);
-
-      // Convert to blob
-      const blob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, "image/jpeg", 0.9)
-      );
-      const file = new File([blob], "banner-600x300.jpg", {
-        type: "image/jpeg",
-      });
-
-      console.log("Created banner with exact dimensions: 600×300 pixels");
-
-      // Create form data
-      const formData = new FormData();
-      formData.append("title", "Test With Correct Size " + Date.now());
-      formData.append("description", "Test description");
-      formData.append("type", "OPEN");
-      formData.append("startAt", new Date().toISOString());
-      formData.append("province", "DKI JAKARTA");
-      formData.append("regency", "KOTA JAKARTA PUSAT");
-      formData.append("requirement", "Test");
-      formData.append("contactPerson", "081234567890");
-      formData.append("isPaid", "false");
-      formData.append("isRelease", "false");
-      formData.append("benefitIds[]", "d962d895-d6df-4aed-8acb-a9315e3ed1f7");
-      formData.append("categoryIds[]", "d5ec8e93-4d7a-4a53-b528-a6ed4381649e");
-      formData.append("banner", file);
-
-      // Send request
-      const API_URL = apiUtils.getApiUrl();
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-
-      const response = await fetch(`${API_URL}/partners/me/events`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      console.log("Response status:", response.status);
-      const data = await response.json();
-      console.log("Response data:", data);
-
-      alert(
-        response.ok
-          ? "Success with correctly sized banner!"
-          : "Failed: " + data.message
-      );
-    } catch (error) {
-      console.error("Test failed:", error);
-      alert("Error: " + error.message);
-    }
-  };
   // Main event creation handler
   const handleCreateEvent = async () => {
     try {
@@ -1225,60 +532,17 @@ const CreateEvent = ({ onBack }) => {
         localStorage.getItem("authToken") || localStorage.getItem("token");
       const partnerId = localStorage.getItem("partnerId");
 
-      // Check if we should use valid IDs from localStorage
-      let dataToSubmit = { ...formData };
-
-      try {
-        // Override benefitIds and categoryIds if valid ones are available
-        if (localStorage.getItem("use_valid_ids") === "true") {
-          const validBenefitIds = JSON.parse(
-            localStorage.getItem("valid_benefit_ids") || "[]"
-          );
-          const validCategoryIds = JSON.parse(
-            localStorage.getItem("valid_category_ids") || "[]"
-          );
-
-          if (validBenefitIds.length > 0 && validCategoryIds.length > 0) {
-            console.log("Using valid IDs from localStorage:");
-            console.log("- Benefit IDs:", validBenefitIds);
-            console.log("- Category IDs:", validCategoryIds);
-
-            dataToSubmit = {
-              ...dataToSubmit,
-              benefitIds: validBenefitIds,
-              categoryIds: validCategoryIds,
-            };
-          }
-        }
-      } catch (parseError) {
-        console.warn("Error parsing valid IDs:", parseError);
-        // Continue with original data
-      }
-
       // Prepare form data
       let apiFormData;
       try {
         apiFormData = formUtils.prepareFormDataForSubmit(
-          dataToSubmit,
+          formData,
           isReadyToPublish
         );
 
         // Add partnerId to formData after it's created
         if (partnerId) {
-          console.log("Adding partner ID to request:", partnerId);
           apiFormData.append("partnerId", partnerId);
-        }
-
-        // Log the form data
-        console.log("Form data entries before sending:");
-        for (let [key, value] of apiFormData.entries()) {
-          if (key === "banner") {
-            console.log(
-              `${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`
-            );
-          } else {
-            console.log(`${key}: ${value}`);
-          }
         }
       } catch (prepareError) {
         Swal.close();
@@ -1297,33 +561,11 @@ const CreateEvent = ({ onBack }) => {
       setFormBackup({
         timestamp: new Date().toISOString(),
       });
-      formUtils.saveFormToLocalStorage(dataToSubmit);
-
-      // Check if simulation mode is enabled
-      if (localStorage.getItem("simulate_create_event") === "true") {
-        console.log("SIMULATION MODE: Using simulated event creation");
-        const simulatedResponse = await eventCreationStrategies.simulateCreate(
-          dataToSubmit
-        );
-
-        Swal.close();
-        Swal.fire({
-          icon: "success",
-          title: "Simulasi Berhasil",
-          text: "Event berhasil dibuat (Mode Simulasi)",
-          confirmButtonText: "OK",
-        }).then(() => {
-          navigate("/partner/events");
-        });
-        return;
-      }
+      formUtils.saveFormToLocalStorage(formData);
 
       // Attempt to create event using the service
       try {
-        console.log("Attempting to create event with partnerService...");
-        const response = await eventCreationStrategies.createWithPartnerService(
-          apiFormData
-        );
+        const response = await partnerService.createEvent(apiFormData);
 
         Swal.close();
         Swal.fire({
@@ -1346,29 +588,70 @@ const CreateEvent = ({ onBack }) => {
           serviceError.message.includes("tidak ditemukan")
         ) {
           Swal.close();
-          // This is a benefit/category ID error
+
+          // Try fetching valid IDs again and then retry
+          const success = await fetchValidIdsAndApply();
+
+          if (success) {
+            // Try again with the newly applied IDs
+            try {
+              Swal.fire({
+                title: "Mencoba Ulang...",
+                text: "Membuat event dengan ID yang valid",
+                allowOutsideClick: false,
+                didOpen: () => {
+                  Swal.showLoading();
+                },
+              });
+
+              // Create a new form data with the updated formData
+              apiFormData = formUtils.prepareFormDataForSubmit(
+                formData,
+                isReadyToPublish
+              );
+
+              if (partnerId) {
+                apiFormData.append("partnerId", partnerId);
+              }
+
+              const response = await partnerService.createEvent(apiFormData);
+
+              Swal.close();
+              Swal.fire({
+                icon: "success",
+                title: "Berhasil!",
+                text: isReadyToPublish
+                  ? "Event berhasil dibuat dan dipublish!"
+                  : "Event berhasil dibuat tetapi belum dipublish.",
+                confirmButtonText: "OK",
+              }).then(() => {
+                navigate("/partner/events");
+              });
+              return;
+            } catch (retryError) {
+              console.error(
+                "Failed to create event with fetched IDs:",
+                retryError
+              );
+              Swal.close();
+              Swal.fire({
+                icon: "error",
+                title: "Gagal Membuat Event",
+                text:
+                  retryError.message ||
+                  "Gagal membuat event bahkan dengan ID yang valid.",
+                confirmButtonText: "OK",
+              });
+              return;
+            }
+          }
+
+          // If retry fails or no valid IDs, show error
           Swal.fire({
             icon: "error",
             title: "ID Tidak Valid",
-            html: `
-            <div class="text-left">
-              <p>${serviceError.message}</p>
-              <p class="mt-2">Tindakan yang dapat dilakukan:</p>
-              <ul class="list-disc pl-5">
-                <li>Gunakan "Ambil ID Valid" untuk mendapatkan ID yang benar</li>
-                <li>Aktifkan mode simulasi untuk testing UI</li>
-                <li>Hubungi admin untuk memperbaiki data</li>
-              </ul>
-            </div>
-          `,
-            confirmButtonText: "Ambil ID Valid",
-            showCancelButton: true,
-            cancelButtonText: "Tutup",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // Call the fetchValidIds function
-              fetchValidIds();
-            }
+            text: serviceError.message,
+            confirmButtonText: "OK",
           });
           return;
         }
@@ -1392,132 +675,14 @@ const CreateEvent = ({ onBack }) => {
           return;
         }
 
-        // Try direct API call as fallback
-        try {
-          console.log("Partner service failed, trying direct API call...");
-          const directResponse = await eventCreationStrategies.createDirect(
-            apiFormData
-          );
-
-          Swal.close();
-          Swal.fire({
-            icon: "success",
-            title: "Berhasil!",
-            text: isReadyToPublish
-              ? "Event berhasil dibuat dan dipublish!"
-              : "Event berhasil dibuat tetapi belum dipublish.",
-            confirmButtonText: "OK",
-          }).then(() => {
-            navigate("/partner/events");
-          });
-          return;
-        } catch (directError) {
-          console.error("Direct API call failed:", directError);
-
-          // Add more detailed debugging
-          console.log("=== API CALL DETAILS ===");
-          if (directError.response) {
-            console.log("Status:", directError.response.status);
-            console.log("Response data:", directError.response.data);
-          }
-
-          // Handle specific error cases with helpful guidance
-          if (
-            directError.message &&
-            directError.message.includes("tidak ditemukan")
-          ) {
-            Swal.close();
-            Swal.fire({
-              icon: "error",
-              title: "ID Tidak Valid",
-              html: `
-              <div class="text-left">
-                <p>${directError.message}</p>
-                <p class="mt-2">Tindakan yang dapat dilakukan:</p>
-                <ul class="list-disc pl-5">
-                  <li>Gunakan "Ambil ID Valid" untuk mendapatkan ID yang benar</li>
-                  <li>Aktifkan mode simulasi untuk testing UI</li>
-                </ul>
-              </div>
-            `,
-              confirmButtonText: "Ambil ID Valid",
-              showCancelButton: true,
-              cancelButtonText: "Tutup",
-            }).then((result) => {
-              if (result.isConfirmed) {
-                // Call the fetchValidIds function
-                fetchValidIds();
-              }
-            });
-            return;
-          }
-
-          // Check for auth errors
-          if (
-            directError.response?.status === 401 ||
-            directError.response?.status === 403 ||
-            directError.message?.includes("tidak memiliki akses") ||
-            directError.message?.includes("login kembali")
-          ) {
-            Swal.close();
-            Swal.fire({
-              icon: "error",
-              title: "Sesi Berakhir",
-              text: "Sesi Anda telah berakhir. Silakan login kembali.",
-              confirmButtonText: "Login Sekarang",
-            }).then(() => {
-              navigate("/login");
-            });
-            return;
-          }
-
-          // Show error message
-          Swal.close();
-
-          let errorMessage =
-            directError.message ||
-            serviceError.message ||
-            "Terjadi kesalahan saat membuat event.";
-
-          // Special handling for 500 errors
-          if (
-            serviceError.status === 500 ||
-            directError?.response?.status === 500
-          ) {
-            errorMessage =
-              "Terjadi kesalahan server (500). Server mungkin sedang overload atau mengalami masalah internal.";
-
-            Swal.fire({
-              icon: "error",
-              title: "Gagal Membuat Event",
-              text: errorMessage,
-              confirmButtonText: "OK",
-              showCancelButton: true,
-              cancelButtonText: "Simpan Draft",
-              footer:
-                '<div class="text-xs text-gray-500">Tip: Coba gunakan Ambil ID Valid atau Aktifkan Simulasi</div>',
-            }).then((result) => {
-              if (result.dismiss === Swal.DismissReason.cancel) {
-                // Save as draft logic
-                if (formUtils.saveFormToLocalStorage(dataToSubmit)) {
-                  Swal.fire({
-                    icon: "success",
-                    title: "Draft Tersimpan",
-                    text: "Data event Anda telah disimpan sebagai draft. Anda dapat mencoba kembali nanti.",
-                    confirmButtonText: "OK",
-                  });
-                }
-              }
-            });
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Gagal Membuat Event",
-              text: errorMessage,
-              confirmButtonText: "OK",
-            });
-          }
-        }
+        // Show error message for other errors
+        Swal.close();
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Membuat Event",
+          text: serviceError.message || "Terjadi kesalahan saat membuat event",
+          confirmButtonText: "OK",
+        });
       }
     } catch (error) {
       console.error("Error in handleCreateEvent:", error);
@@ -1533,108 +698,6 @@ const CreateEvent = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Add the fetchValidIds function
-  const fetchValidIds = async () => {
-    try {
-      Swal.fire({
-        title: "Mengambil data...",
-        text: "Sedang mengambil data yang valid dari server",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
-      const API_URL = apiUtils.getApiUrl();
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-
-      // Fetch valid benefits
-      const benefitResponse = await fetch(`${API_URL}/benefits`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const benefitData = await benefitResponse.json();
-
-      // Fetch valid categories
-      const categoryResponse = await fetch(`${API_URL}/categories?type=EVENT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const categoryData = await categoryResponse.json();
-
-      Swal.close();
-
-      if (benefitData.data?.length > 0 && categoryData.data?.length > 0) {
-        // Save valid IDs to localStorage
-        const validBenefitIds = benefitData.data.slice(0, 2).map((b) => b.id);
-        const validCategoryIds = categoryData.data.slice(0, 1).map((c) => c.id);
-
-        console.log("Valid benefit IDs:", validBenefitIds);
-        console.log("Valid category IDs:", validCategoryIds);
-
-        localStorage.setItem(
-          "valid_benefit_ids",
-          JSON.stringify(validBenefitIds)
-        );
-        localStorage.setItem(
-          "valid_category_ids",
-          JSON.stringify(validCategoryIds)
-        );
-        localStorage.setItem("use_valid_ids", "true");
-
-        Swal.fire({
-          icon: "success",
-          title: "ID Valid Ditemukan",
-          html: `
-          <div class="text-left">
-            <p>ID valid telah disimpan dan akan digunakan untuk pembuatan event.</p>
-            <p><strong>Benefit IDs:</strong> ${validBenefitIds.length} ID</p>
-            <p><strong>Category IDs:</strong> ${validCategoryIds.length} ID</p>
-          </div>
-        `,
-          confirmButtonText: "OK",
-        });
-
-        return true;
-      } else {
-        console.error("No valid benefits or categories found");
-        Swal.fire({
-          icon: "warning",
-          title: "Tidak Ada Data Valid",
-          text: "Tidak ditemukan benefit atau kategori valid di database",
-          confirmButtonText: "OK",
-        });
-        return false;
-      }
-    } catch (error) {
-      console.error("Error fetching valid IDs:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Gagal mengambil data valid dari server: " + error.message,
-        confirmButtonText: "OK",
-      });
-      return false;
-    }
-  };
-
-  // Toggle simulation mode for development
-  const toggleSimulationMode = () => {
-    const currentMode =
-      localStorage.getItem("simulate_create_event") === "true";
-    localStorage.setItem("simulate_create_event", (!currentMode).toString());
-
-    Swal.fire({
-      icon: "info",
-      title: currentMode
-        ? "Mode Simulasi Dinonaktifkan"
-        : "Mode Simulasi Diaktifkan",
-      text: currentMode
-        ? "Pembuatan event akan menggunakan API sesungguhnya"
-        : "Pembuatan event akan menggunakan simulasi",
-      confirmButtonText: "OK",
-    });
   };
 
   // If auth check hasn't completed, show loading indicator
@@ -1757,98 +820,7 @@ const CreateEvent = ({ onBack }) => {
           )}
           Buat Event
         </button>
-        <button
-          type="button"
-          onClick={fetchValidIds}
-          className="bg-green-500 py-2 px-4 text-white rounded-lg hover:bg-green-600 transition-colors"
-        >
-          Gunakan ID Valid
-        </button>
-        <button
-          onClick={testWithCorrectSizedBanner}
-          className="bg-blue-500 py-2 px-4 text-white rounded-lg"
-        >
-          Test with correct size banner
-        </button>
-
-        {/* Debug buttons */}
-        {process.env.NODE_ENV === "development" && (
-          <>
-            <button
-              type="button"
-              onClick={() => apiUtils.testServerConnection(setLoading)}
-              disabled={loading}
-              className="bg-purple-500 py-2 px-4 text-white rounded-lg hover:bg-purple-600 transition-colors"
-            >
-              Test Koneksi Server
-            </button>
-            <button
-              type="button"
-              onClick={fetchValidIds}
-              className="bg-green-500 py-2 px-4 text-white rounded-lg hover:bg-green-600 transition-colors"
-            >
-              Ambil ID Valid
-            </button>
-
-            <button
-              type="button"
-              onClick={() => apiUtils.detectApiServer(setLoading, setApiStatus)}
-              disabled={loading}
-              className="bg-green-500 py-2 px-4 text-white rounded-lg hover:bg-green-600 transition-colors"
-            >
-              Cari Server API
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleSimulationMode}
-              className="bg-amber-500 py-2 px-4 text-white rounded-lg hover:bg-amber-600 transition-colors"
-            >
-              {localStorage.getItem("simulate_create_event") === "true"
-                ? "Nonaktifkan Simulasi"
-                : "Aktifkan Simulasi"}
-            </button>
-          </>
-        )}
       </div>
-
-      {/* Debug info */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-          <div className="flex justify-between items-center">
-            <h3 className="font-medium text-gray-700">Debug Info</h3>
-            <span
-              className={`text-xs px-2 py-1 rounded ${
-                apiStatus.isConnected
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {apiStatus.isConnected ? "API Connected" : "API Disconnected"}
-            </span>
-          </div>
-
-          <div className="mt-2 text-xs">
-            <p>API URL: {apiUtils.getApiUrl() || "Not defined"}</p>
-            <p>
-              Auth Status:{" "}
-              {authService.isAuthenticated()
-                ? "Authenticated"
-                : "Not Authenticated"}
-            </p>
-            <p>Is Partner: {authService.isPartner() ? "Yes" : "No"}</p>
-            <p>Selected Benefits: {formData.benefitIds?.length || 0}</p>
-            <p>Selected Categories: {formData.categoryIds?.length || 0}</p>
-            <p>Has Banner: {formData.banner ? "Yes" : "No"}</p>
-            <p>
-              Simulation Mode:{" "}
-              {localStorage.getItem("simulate_create_event") === "true"
-                ? "On"
-                : "Off"}
-            </p>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
