@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import EventForm from "../../components/Elements/forms/Event";
 import EventDate from "../../components/Elements/forms/Date";
@@ -13,115 +13,116 @@ import axios from "axios";
 
 // Static IDs for fallback
 const STATIC_BENEFIT_IDS = {
-  sertifikat: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  sertifikat: "1f92b274-39b5-4104-af5a-831982496a9c",
   uangSaku: "d9e7c6e0-3d73-4d1c-9930-35c0855cb752",
   pengalaman: "550e8400-e29b-41d4-a716-446655440000",
   networking: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
   makanan: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
-  kaos: "6ba7b814-9dad-11d1-80b4-00c04fd430c8"
+  kaos: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
 };
 
 const STATIC_CATEGORY_IDS = {
-  pendidikan: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+  pendidikan: "711cf650-e0d7-4028-950d-fc5d68039aa0",
   lingkungan: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
-  sosial: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"
+  sosial: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13",
 };
 
 // API utilities
 const apiUtils = {
   getApiUrl: () => {
-    const savedApiUrl = localStorage.getItem('api_url');
+    const savedApiUrl = localStorage.getItem("api_url");
     if (savedApiUrl) return savedApiUrl;
-    
+
     const envApiUrl = import.meta.env.VITE_BE_BASE_URL;
-    if (envApiUrl && envApiUrl !== 'undefined') return envApiUrl;
-    
-    return 'http://localhost:3000';
+    if (envApiUrl && envApiUrl !== "undefined") return envApiUrl;
+
+    return "http://localhost:3000";
   },
-  
+
   detectApiServer: async (setLoading, setApiStatus) => {
     try {
       setLoading(true);
-      
+
       Swal.fire({
         title: "Mencari Server API...",
         text: "Sedang mencari server API yang aktif",
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
-        }
+        },
       });
-      
-      const url = 'http://localhost:3000';
-      
+
+      const url = "http://localhost:3000";
+
       // First try /partners/me/events endpoint if we have a token
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
       if (token) {
         try {
           const eventsResponse = await fetch(`${url}/partners/me/events`, {
-            method: 'GET',
-            headers: { 
-              'Authorization': `Bearer ${token}`,
-              'X-Requested-With': 'XMLHttpRequest' 
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "X-Requested-With": "XMLHttpRequest",
             },
-            signal: AbortSignal.timeout(3000)
+            signal: AbortSignal.timeout(3000),
           });
-          
+
           if (eventsResponse.ok) {
-            localStorage.setItem('api_url', url);
-            
+            localStorage.setItem("api_url", url);
+
             Swal.fire({
               icon: "success",
               title: "Server Ditemukan!",
               text: `Berhasil terhubung ke API Events di ${url}`,
-              confirmButtonText: "OK"
+              confirmButtonText: "OK",
             });
-            
+
             setApiStatus({
               url: url,
               isConnected: true,
               lastChecked: new Date().toLocaleTimeString(),
-              error: null
+              error: null,
             });
-            
+
             return url;
           }
         } catch (err) {
           console.warn("Events endpoint check failed:", err.message);
         }
       }
-      
+
       // Fallback to /ping endpoint if events check fails
       try {
         const pingResponse = await fetch(`${url}/ping`, {
-          method: 'GET',
-          headers: { 'X-Requested-With': 'XMLHttpRequest' },
-          signal: AbortSignal.timeout(3000)
+          method: "GET",
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+          signal: AbortSignal.timeout(3000),
         });
-        
+
         if (pingResponse.ok) {
-          localStorage.setItem('api_url', url);
-          
+          localStorage.setItem("api_url", url);
+
           Swal.fire({
             icon: "success",
             title: "Server Ditemukan!",
             text: `Berhasil terhubung ke server API di ${url}`,
-            confirmButtonText: "OK"
+            confirmButtonText: "OK",
           });
-          
+
           setApiStatus({
             url: url,
             isConnected: true,
             lastChecked: new Date().toLocaleTimeString(),
-            error: null
+            error: null,
           });
-          
+
           return url;
         }
       } catch (err) {
         console.warn(`Failed to connect to ${url}:`, err.message);
       }
-      
+
       Swal.fire({
         icon: "error",
         title: "Server API Tidak Ditemukan",
@@ -138,61 +139,62 @@ const apiUtils = {
         `,
         confirmButtonText: "Aktifkan Mode Simulasi",
         showCancelButton: true,
-        cancelButtonText: "Tutup"
+        cancelButtonText: "Tutup",
       }).then((result) => {
         if (result.isConfirmed) {
-          localStorage.setItem('simulate_create_event', 'true');
+          localStorage.setItem("simulate_create_event", "true");
           window.location.reload();
         }
       });
-      
+
       return null;
     } catch (error) {
       console.error("Error detecting API server:", error);
-      
+
       Swal.fire({
         icon: "error",
         title: "Error",
         text: "Terjadi kesalahan saat mencari server API: " + error.message,
-        confirmButtonText: "OK"
+        confirmButtonText: "OK",
       });
-      
+
       return null;
     } finally {
       setLoading(false);
     }
   },
-  
+
   testServerConnection: async (setLoading) => {
     try {
       setLoading(true);
-      
+
       Swal.fire({
         title: "Memeriksa Server...",
         text: "Sedang memeriksa koneksi ke server API",
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
-        }
+        },
       });
-      
+
       const API_URL = apiUtils.getApiUrl();
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
+
       // First try /partners/me/events endpoint if we have a token
       if (token) {
         try {
           const eventsResponse = await fetch(`${API_URL}/partners/me/events`, {
-            method: 'GET',
-            headers: { 
-              'Authorization': `Bearer ${token}`,
-              'X-Requested-With': 'XMLHttpRequest' 
-            }
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "X-Requested-With": "XMLHttpRequest",
+            },
           });
-          
+
           if (eventsResponse.ok) {
             const eventsData = await eventsResponse.json();
-            
+
             Swal.fire({
               icon: "success",
               title: "Koneksi Berhasil",
@@ -203,7 +205,7 @@ const apiUtils = {
                   <p class="mt-2 text-sm text-green-600">Status: Koneksi dan Autentikasi Berhasil</p>
                 </div>
               `,
-              confirmButtonText: "OK"
+              confirmButtonText: "OK",
             });
             return true;
           }
@@ -211,11 +213,11 @@ const apiUtils = {
           console.warn("partners/me/events check failed:", error);
         }
       }
-      
+
       // Try partnerService next
       try {
         const profileData = await partnerService.getPartnerProfile();
-        
+
         if (profileData && profileData.data) {
           Swal.fire({
             icon: "success",
@@ -223,38 +225,38 @@ const apiUtils = {
             html: `
               <div class="text-left">
                 <p>Berhasil terhubung ke server API!</p>
-                <p>Partner Name: ${profileData.data.name || 'Unknown'}</p>
+                <p>Partner Name: ${profileData.data.name || "Unknown"}</p>
                 <p class="mt-2 text-sm text-green-600">Status: Koneksi Berhasil</p>
               </div>
             `,
-            confirmButtonText: "OK"
+            confirmButtonText: "OK",
           });
           return true;
         }
       } catch (error) {
         console.warn("partnerService check failed:", error);
       }
-      
+
       // Fallback to /ping as last resort
       try {
         const response = await fetch(`${API_URL}/ping`, {
-          method: 'GET',
-          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+          method: "GET",
+          headers: { "X-Requested-With": "XMLHttpRequest" },
         });
-        
+
         if (response.ok) {
           Swal.fire({
             icon: "success",
             title: "Server Aktif",
             text: "Server API merespons permintaan ping dengan sukses.",
-            confirmButtonText: "OK"
+            confirmButtonText: "OK",
           });
           return true;
         }
       } catch (error) {
         console.warn("API ping failed:", error);
       }
-      
+
       // If all checks fail
       Swal.fire({
         icon: "error",
@@ -273,9 +275,9 @@ const apiUtils = {
             </ul>
           </div>
         `,
-        confirmButtonText: "OK"
+        confirmButtonText: "OK",
       });
-      
+
       return false;
     } catch (error) {
       console.error("Test connection error:", error);
@@ -283,37 +285,38 @@ const apiUtils = {
         icon: "error",
         title: "Error",
         text: error.message || "Terjadi kesalahan saat memeriksa koneksi",
-        confirmButtonText: "OK"
+        confirmButtonText: "OK",
       });
       return false;
     } finally {
       setLoading(false);
     }
   },
-  
+
   // Fungsi untuk mengambil event berdasarkan id
   getEventById: async (eventId) => {
     try {
       const API_URL = apiUtils.getApiUrl();
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
+
       if (!token) {
         throw new Error("Token tidak ditemukan");
       }
-      
+
       const response = await fetch(`${API_URL}/partners/me/events/${eventId}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to get event: ${response.status} ${errorText}`);
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -321,47 +324,157 @@ const apiUtils = {
       throw error;
     }
   },
-  
+
   // Fungsi untuk mengambil daftar event partner
   getPartnerEvents: async (page = 1, limit = 10) => {
     try {
       const API_URL = apiUtils.getApiUrl();
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
+
       if (!token) {
         throw new Error("Token tidak ditemukan");
       }
-      
-      const response = await fetch(`${API_URL}/partners/me/events?page=${page}&limit=${limit}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+
+      const response = await fetch(
+        `${API_URL}/partners/me/events?page=${page}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
-      
+      );
+
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to get events: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to get events: ${response.status} ${errorText}`
+        );
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
       console.error("Error getting partner events:", error);
       throw error;
     }
+  },
+};
+// Add to CreateEvent.jsx
+const fetchValidIds = async () => {
+  try {
+    Swal.fire({
+      title: "Mengambil data...",
+      text: "Sedang mengambil data yang valid dari server",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    const API_URL = apiUtils.getApiUrl();
+    const token =
+      localStorage.getItem("authToken") || localStorage.getItem("token");
+
+    // Fetch valid benefits
+    const benefitResponse = await fetch(`${API_URL}/benefits`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const benefitData = await benefitResponse.json();
+
+    // Fetch valid categories
+    const categoryResponse = await fetch(`${API_URL}/categories?type=EVENT`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const categoryData = await categoryResponse.json();
+
+    Swal.close();
+
+    if (benefitData.data?.length > 0 && categoryData.data?.length > 0) {
+      // Instead of trying to set state directly, return the valid IDs
+      const validBenefitIds = benefitData.data.slice(0, 2).map((b) => b.id);
+      const validCategoryIds = categoryData.data.slice(0, 1).map((c) => c.id);
+
+      console.log("Valid benefit IDs:", validBenefitIds);
+      console.log("Valid category IDs:", validCategoryIds);
+
+      // Show the valid IDs in a Swal dialog for user to copy
+      Swal.fire({
+        icon: "success",
+        title: "Valid IDs Found",
+        html: `
+          <div class="text-left">
+            <p><strong>Benefit IDs:</strong></p>
+            <pre style="background:#f0f0f0;padding:5px;max-height:100px;overflow:auto">${JSON.stringify(
+              validBenefitIds,
+              null,
+              2
+            )}</pre>
+            <p><strong>Category IDs:</strong></p>
+            <pre style="background:#f0f0f0;padding:5px;max-height:100px;overflow:auto">${JSON.stringify(
+              validCategoryIds,
+              null,
+              2
+            )}</pre>
+          </div>
+        `,
+        confirmButtonText: "Use These IDs",
+        showCancelButton: true,
+        cancelButtonText: "Cancel",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Store in localStorage for your handleCreateEvent function to use
+          localStorage.setItem(
+            "valid_benefit_ids",
+            JSON.stringify(validBenefitIds)
+          );
+          localStorage.setItem(
+            "valid_category_ids",
+            JSON.stringify(validCategoryIds)
+          );
+          localStorage.setItem("use_valid_ids", "true");
+
+          Swal.fire({
+            icon: "success",
+            title: "IDs Saved",
+            text: "Valid IDs will be used for the next event creation attempt",
+          });
+        }
+      });
+
+      return true;
+    } else {
+      console.error("No valid benefits or categories found");
+      Swal.fire({
+        icon: "warning",
+        title: "No Valid Data",
+        text: "No valid benefits or categories found in the database",
+      });
+      return false;
+    }
+  } catch (error) {
+    console.error("Error fetching valid IDs:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Gagal mengambil data valid dari server: " + error.message,
+    });
+    return false;
   }
 };
-
 // Form utilities
 const formUtils = {
   validateForm: (formData, refs) => {
     let errors = [];
-    
+
     try {
       // Event form validation
-      if (refs.eventFormRef.current && typeof refs.eventFormRef.current.validate === 'function') {
+      if (
+        refs.eventFormRef.current &&
+        typeof refs.eventFormRef.current.validate === "function"
+      ) {
         const eventErrors = refs.eventFormRef.current.validate();
         if (Array.isArray(eventErrors)) {
           errors = [...errors, ...eventErrors];
@@ -369,33 +482,40 @@ const formUtils = {
       } else {
         if (!formData.title) errors.push("Judul event harus diisi");
         if (!formData.description) errors.push("Deskripsi event harus diisi");
-        if (!formData.categoryIds || formData.categoryIds.length === 0) 
+        if (!formData.categoryIds || formData.categoryIds.length === 0)
           errors.push("Minimal pilih satu kategori event");
-        if (!formData.benefitIds || formData.benefitIds.length === 0) 
+        if (!formData.benefitIds || formData.benefitIds.length === 0)
           errors.push("Minimal pilih satu manfaat event");
       }
-      
+
       // Date validation
-      if (refs.dateFormRef.current && typeof refs.dateFormRef.current.validate === 'function') {
+      if (
+        refs.dateFormRef.current &&
+        typeof refs.dateFormRef.current.validate === "function"
+      ) {
         const dateErrors = refs.dateFormRef.current.validate();
         if (Array.isArray(dateErrors)) {
           errors = [...errors, ...dateErrors];
         }
       } else {
-        if (!formData.startAt) errors.push("Tanggal & jam pembukaan pendaftaran harus diisi");
+        if (!formData.startAt)
+          errors.push("Tanggal & jam pembukaan pendaftaran harus diisi");
       }
-      
+
       // Location validation
-      if (refs.locationFormRef.current && typeof refs.locationFormRef.current.validate === 'function') {
+      if (
+        refs.locationFormRef.current &&
+        typeof refs.locationFormRef.current.validate === "function"
+      ) {
         const locationErrors = refs.locationFormRef.current.validate();
         if (Array.isArray(locationErrors)) {
           errors = [...errors, ...locationErrors];
         }
       } else {
-        if (!formData.province || !formData.regency) 
+        if (!formData.province || !formData.regency)
           errors.push("Provinsi dan kabupaten/kota harus diisi");
       }
-      
+
       // Banner validation
       if (!formData.banner) {
         errors.push("Banner event harus diunggah");
@@ -404,126 +524,154 @@ const formUtils = {
       console.error("Validation error:", validationError);
       errors.push("Terjadi kesalahan saat validasi form");
     }
-    
+
     return errors;
   },
-  
+
   prepareFormDataForSubmit: (formData, isReadyToPublish) => {
     try {
       const apiFormData = new FormData();
-      
+
       // Basic event data validation
       if (!formData.title) {
         throw new Error("Judul event harus diisi");
       }
-      
+
       // Basic event data
-      apiFormData.append('title', formData.title || '');
-      apiFormData.append('type', formData.type || 'OPEN');
-      apiFormData.append('description', formData.description || '');
-      
+      apiFormData.append("title", formData.title || "");
+      apiFormData.append("type", formData.type || "OPEN");
+      apiFormData.append("description", formData.description || "");
+
       // Volunteer data
-      apiFormData.append('requirement', formData.requirement || '');
-      apiFormData.append('contactPerson', formData.contactPerson || '');
-      if (formData.maxApplicant) apiFormData.append('maxApplicant', formData.maxApplicant);
-      if (formData.acceptedQuota) apiFormData.append('acceptedQuota', formData.acceptedQuota);
-      
+      apiFormData.append("requirement", formData.requirement || "");
+      apiFormData.append("contactPerson", formData.contactPerson || "");
+      if (formData.maxApplicant)
+        apiFormData.append("maxApplicant", formData.maxApplicant);
+      if (formData.acceptedQuota)
+        apiFormData.append("acceptedQuota", formData.acceptedQuota);
+
       // Date data
       if (!formData.startAt) {
         throw new Error("Tanggal dan waktu mulai harus diisi");
       }
-      apiFormData.append('startAt', formData.startAt);
-      if (formData.endAt) apiFormData.append('endAt', formData.endAt);
-      
+      apiFormData.append("startAt", formData.startAt);
+      if (formData.endAt) apiFormData.append("endAt", formData.endAt);
+
       // Location data
       if (!formData.province || !formData.regency) {
         throw new Error("Provinsi dan kota/kabupaten harus diisi");
       }
-      apiFormData.append('province', formData.province);
-      apiFormData.append('regency', formData.regency);
-      if (formData.address) apiFormData.append('address', formData.address);
-      if (formData.gmaps) apiFormData.append('gmaps', formData.gmaps);
-      if (formData.latitude) apiFormData.append('latitude', formData.latitude);
-      if (formData.longitude) apiFormData.append('longitude', formData.longitude);
-      
+      apiFormData.append("province", formData.province);
+      apiFormData.append("regency", formData.regency);
+      if (formData.address) apiFormData.append("address", formData.address);
+      if (formData.gmaps) apiFormData.append("gmaps", formData.gmaps);
+      if (formData.latitude) apiFormData.append("latitude", formData.latitude);
+      if (formData.longitude)
+        apiFormData.append("longitude", formData.longitude);
+
       // Fee data
-      apiFormData.append('isPaid', formData.isPaid);
-      apiFormData.append('price', formData.price || '0');
-      
+      apiFormData.append("isPaid", formData.isPaid);
+      apiFormData.append("price", formData.price || "0");
+
       // Release status
-      apiFormData.append('isRelease', isReadyToPublish);
-      
+      apiFormData.append("isRelease", isReadyToPublish);
+
       // Safety check for categoryIds
       let hasValidCategories = false;
-      
+
       // Append categoryIds
-      if (formData.categoryIds && Array.isArray(formData.categoryIds) && formData.categoryIds.length > 0) {
-        formData.categoryIds.forEach(id => {
+      if (
+        formData.categoryIds &&
+        Array.isArray(formData.categoryIds) &&
+        formData.categoryIds.length > 0
+      ) {
+        formData.categoryIds.forEach((id) => {
           if (id) {
-            apiFormData.append('categoryIds[]', id);
+            apiFormData.append("categoryIds[]", id);
             hasValidCategories = true;
           }
         });
       }
-      
+
       // If no valid categories, use fallback
       if (!hasValidCategories) {
-        apiFormData.append('categoryIds[]', STATIC_CATEGORY_IDS.pendidikan);
+        apiFormData.append("categoryIds[]", STATIC_CATEGORY_IDS.pendidikan);
       }
-      
-      // Safety check for benefitIds
-      let hasValidBenefits = false;
-      
-      // Append benefitIds
-      if (formData.benefitIds && Array.isArray(formData.benefitIds) && formData.benefitIds.length > 0) {
-        formData.benefitIds.forEach(id => {
+
+      // Ensure we have valid benefitIds
+      if (
+        formData.benefitIds &&
+        Array.isArray(formData.benefitIds) &&
+        formData.benefitIds.length > 0
+      ) {
+        // First try to use the IDs as they are
+        formData.benefitIds.forEach((id) => {
           if (id) {
-            apiFormData.append('benefitIds[]', id);
-            hasValidBenefits = true;
+            apiFormData.append("benefitIds[]", id.toString().trim());
           }
         });
+      } else {
+        // Use static fallback
+        console.log("Using fallback benefit ID");
+        apiFormData.append("benefitIds[]", STATIC_BENEFIT_IDS.sertifikat);
       }
-      
-      // If no valid benefits, use fallback
-      if (!hasValidBenefits) {
-        apiFormData.append('benefitIds[]', STATIC_BENEFIT_IDS.sertifikat);
+
+      // Apply same approach for categoryIds
+      if (
+        formData.categoryIds &&
+        Array.isArray(formData.categoryIds) &&
+        formData.categoryIds.length > 0
+      ) {
+        formData.categoryIds.forEach((id) => {
+          if (id) {
+            apiFormData.append("categoryIds[]", id.toString().trim());
+          }
+        });
+      } else {
+        console.log("Using fallback category ID");
+        apiFormData.append("categoryIds[]", STATIC_CATEGORY_IDS.pendidikan);
       }
-      
+
       // Add banner file
       if (!formData.banner) {
         throw new Error("Banner event harus diunggah");
       }
-      
-      apiFormData.append('banner', formData.banner);
-      
+
+      apiFormData.append("banner", formData.banner);
+
       return apiFormData;
     } catch (error) {
       console.error("Error in prepareFormDataForSubmit:", error);
       throw error;
     }
   },
-  
+
   saveFormToLocalStorage: (formData) => {
     try {
-      const formCopy = {...formData};
+      const formCopy = { ...formData };
       // Remove the file object which can't be serialized
-      formCopy.banner = formCopy.banner ? {
-        name: formCopy.banner.name,
-        size: formCopy.banner.size,
-        type: formCopy.banner.type
-      } : null;
-      
-      localStorage.setItem('eventFormBackup', JSON.stringify({
-        formData: formCopy,
-        savedAt: new Date().toISOString()
-      }));
-      
+      formCopy.banner = formCopy.banner
+        ? {
+            name: formCopy.banner.name,
+            size: formCopy.banner.size,
+            type: formCopy.banner.type,
+          }
+        : null;
+
+      localStorage.setItem(
+        "eventFormBackup",
+        JSON.stringify({
+          formData: formCopy,
+          savedAt: new Date().toISOString(),
+        })
+      );
+
       return true;
     } catch (error) {
       console.error("Failed to save form data to localStorage:", error);
       return false;
     }
-  }
+  },
 };
 
 // Event creation strategies
@@ -532,7 +680,7 @@ const eventCreationStrategies = {
     try {
       const decoded = authService.decodeToken(token);
       if (!decoded || !decoded.exp) return true;
-      
+
       const now = Math.floor(Date.now() / 1000);
       return decoded.exp < now;
     } catch (e) {
@@ -540,7 +688,7 @@ const eventCreationStrategies = {
       return true;
     }
   },
-  
+
   refreshAuthToken: async () => {
     try {
       const newToken = await authService.refreshToken();
@@ -551,7 +699,7 @@ const eventCreationStrategies = {
       return null;
     }
   },
-  
+
   createWithPartnerService: async (formData) => {
     try {
       console.log("Creating event using partnerService...");
@@ -563,21 +711,26 @@ const eventCreationStrategies = {
       throw error;
     }
   },
-  
+
   createDirect: async (formData) => {
     try {
       // Check if API URL is valid
       const API_URL = apiUtils.getApiUrl();
       if (!API_URL) {
-        throw new Error("API URL tidak ditemukan. Periksa konfigurasi aplikasi.");
+        throw new Error(
+          "API URL tidak ditemukan. Periksa konfigurasi aplikasi."
+        );
       }
-      
+
       // Get token and check validity
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
       if (!token) {
-        throw new Error("Token tidak ditemukan. Silakan login terlebih dahulu.");
+        throw new Error(
+          "Token tidak ditemukan. Silakan login terlebih dahulu."
+        );
       }
-      
+
       // Refresh token if expired
       if (eventCreationStrategies.isTokenExpired(token)) {
         console.log("Token is expired, refreshing...");
@@ -586,66 +739,144 @@ const eventCreationStrategies = {
           throw new Error("Gagal memperbaharui token. Silakan login kembali.");
         }
       }
-      
+
       const endpoint = "/partners/me/events";
-      
+
       try {
-        const currentToken = localStorage.getItem('authToken') || localStorage.getItem('token');
-        
+        const currentToken =
+          localStorage.getItem("authToken") || localStorage.getItem("token");
+
         console.log(`Sending request to: ${API_URL}${endpoint}`);
-        
+
         const response = await axios.post(`${API_URL}${endpoint}`, formData, {
           headers: {
-            'Authorization': `Bearer ${currentToken}`,
+            Authorization: `Bearer ${currentToken}`,
             // Don't set Content-Type with FormData
           },
-          timeout: 60000
+          timeout: 60000,
         });
-        
+
         console.log(`Success creating event!`, response.data);
         return response.data;
       } catch (error) {
         console.error(`Failed to create event:`, error.message);
-        
+
         // For 500 errors, provide more helpful message
         if (error.response?.status === 500) {
-          throw new Error("Terjadi kesalahan server (500). Server mungkin sedang overload atau mengalami masalah internal. Silakan coba lagi nanti.");
+          throw new Error(
+            "Terjadi kesalahan server (500). Server mungkin sedang overload atau mengalami masalah internal. Silakan coba lagi nanti."
+          );
         }
-        
+
         // For 401/403 errors, provide auth error message
         if (error.response?.status === 401 || error.response?.status === 403) {
-          throw new Error("Sesi Anda telah berakhir atau tidak memiliki akses. Silakan login kembali.");
+          throw new Error(
+            "Sesi Anda telah berakhir atau tidak memiliki akses. Silakan login kembali."
+          );
         }
-        
+
         // For networking errors
-        if (error.message?.includes('Network Error') || error.code === 'ECONNABORTED') {
-          throw new Error("Tidak dapat terhubung ke server. Periksa koneksi internet Anda dan coba lagi.");
+        if (
+          error.message?.includes("Network Error") ||
+          error.code === "ECONNABORTED"
+        ) {
+          throw new Error(
+            "Tidak dapat terhubung ke server. Periksa koneksi internet Anda dan coba lagi."
+          );
         }
-        
+
         // Pass through any other errors
         throw error;
       }
     } catch (error) {
+      // IN THE CATCH BLOCK OF createDirect
       console.error("Direct API call failed:", error);
+
+      // MODIFY THIS SECTION - Add more detailed logging
+      console.log("=== API CALL DETAILS ===");
+      if (error.response) {
+        console.log("Status:", error.response.status);
+        console.log("Response headers:", error.response.headers);
+        console.log("Response data:", error.response.data);
+      }
+
+      // For 500 errors, provide more helpful message and try a simpler approach
+      if (error.response?.status === 500) {
+        // TRY ONE MORE APPROACH WITH VANILLA FETCH
+        try {
+          console.log("Attempting one last approach with fetch API");
+
+          const currentToken =
+            localStorage.getItem("authToken") || localStorage.getItem("token");
+
+          // Create a minimal version for final attempt
+          const minimalFormData = new FormData();
+          minimalFormData.append("title", "Event " + new Date().toISOString());
+          minimalFormData.append("description", "Test description");
+          minimalFormData.append("type", "OPEN");
+          minimalFormData.append("startAt", new Date().toISOString());
+          minimalFormData.append("province", "DKI JAKARTA");
+          minimalFormData.append("regency", "KOTA JAKARTA PUSAT");
+          minimalFormData.append("isPaid", "false");
+          minimalFormData.append("isRelease", "false");
+          minimalFormData.append("requirement", "Test requirement");
+          minimalFormData.append("contactPerson", "081234567890");
+
+          // Add one static benefit and category
+          minimalFormData.append("benefitIds[]", STATIC_BENEFIT_IDS.sertifikat);
+          minimalFormData.append(
+            "categoryIds[]",
+            STATIC_CATEGORY_IDS.pendidikan
+          );
+
+          // Add banner if available but with stricter check
+          if (formData.banner && formData.banner.size < 500 * 1024) {
+            minimalFormData.append("banner", formData.banner);
+          }
+
+          const response = await fetch(`${API_URL}/partners/me/events`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${currentToken}`,
+            },
+            body: minimalFormData,
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Fetch API approach successful:", data);
+            return data;
+          } else {
+            throw new Error(`Fetch API failed with status ${response.status}`);
+          }
+        } catch (finalError) {
+          console.error("Final attempt failed:", finalError);
+          throw new Error(
+            "Terjadi kesalahan server (500). Server mungkin sedang overload atau mengalami masalah internal. Silakan coba lagi nanti."
+          );
+        }
+      }
+
+      // Pass through any other errors
       throw error;
     }
   },
-  
+
   simulateCreate: async (formData) => {
     // Add a delay to simulate network latency
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     return {
       success: true,
       data: {
         id: "simulated-event-" + Date.now(),
         title: formData.title,
         description: formData.description,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       },
-      message: "Event created successfully (Simulation)"
+      message: "Event created successfully (Simulation)",
     };
-  }
+  },
 };
 
 const CreateEvent = ({ onBack }) => {
@@ -674,7 +905,7 @@ const CreateEvent = ({ onBack }) => {
     acceptedQuota: "",
     isPaid: false,
     price: "0",
-    banner: null
+    banner: null,
   });
 
   // References to child components for validation
@@ -687,13 +918,13 @@ const CreateEvent = ({ onBack }) => {
 
   // Form data state for backup
   const [formBackup, setFormBackup] = useState(null);
-  
+
   // API connection status
   const [apiStatus, setApiStatus] = useState({
     url: apiUtils.getApiUrl(),
     isConnected: false,
     lastChecked: null,
-    error: null
+    error: null,
   });
 
   // Check auth and API connection on load
@@ -703,48 +934,85 @@ const CreateEvent = ({ onBack }) => {
         if (!authService.isAuthenticated()) {
           setAuthError("not_authenticated");
           setAuthChecked(true);
-          
+
           Swal.fire({
             icon: "error",
             title: "Tidak Terautentikasi",
             text: "Anda harus login untuk membuat event",
-            confirmButtonText: "Login Sekarang"
+            confirmButtonText: "Login Sekarang",
           }).then(() => {
             navigate("/login");
           });
           return;
         }
-        
+
         // Check if user is a partner
         if (!authService.isPartner()) {
           setAuthError("not_partner");
           setAuthChecked(true);
-          
+
           Swal.fire({
             icon: "error",
             title: "Akses Dibatasi",
             text: "Hanya partner yang dapat membuat event",
-            confirmButtonText: "OK"
+            confirmButtonText: "OK",
           }).then(() => {
             navigate("/dashboard");
           });
           return;
         }
-        
+
         // User is authenticated and a partner
         setAuthChecked(true);
-        
+
         try {
-          // We'll try to check partner profile, but we'll continue even if it fails
-          // since the user is already authenticated and is a partner
+          // Check partner profile with better error handling
           const profileData = await partnerService.getPartnerProfile();
-          
-          if (profileData && profileData.data) {
-            console.log("Partner profile loaded successfully:", profileData.data.name);
+
+          // Debug the actual structure
+          console.log("Partner profile response:", profileData);
+
+          // More robust checking of nested properties
+          const partnerName =
+            profileData?.data?.name ||
+            profileData?.data?.partner?.name ||
+            profileData?.partner?.name ||
+            "Unknown Partner";
+
+          console.log("Partner profile loaded successfully:", partnerName);
+
+          // Store the partner ID for event creation
+          if (
+            profileData?.data?.id ||
+            profileData?.data?.partner?.id ||
+            profileData?.partner?.id
+          ) {
+            // Save partner ID to localStorage for use in event creation
+            const partnerId =
+              profileData?.data?.id ||
+              profileData?.data?.partner?.id ||
+              profileData?.partner?.id;
+            localStorage.setItem("partnerId", partnerId);
+            console.log("Partner ID saved:", partnerId);
+          } else {
+            console.warn("Could not determine partner ID from profile data");
           }
         } catch (profileError) {
-          console.warn("Failed to load partner profile, but continuing:", profileError);
-          // Don't redirect or show error, just log it
+          console.warn("Failed to load partner profile:", profileError);
+
+          // Create a warning notification but don't block
+          Swal.fire({
+            icon: "warning",
+            title: "Perhatian",
+            text: "Profil partner tidak lengkap. Sebaiknya lengkapi profil partner terlebih dahulu.",
+            confirmButtonText: "Lanjutkan",
+            showCancelButton: true,
+            cancelButtonText: "Ke Halaman Profil",
+          }).then((result) => {
+            if (result.dismiss === Swal.DismissReason.cancel) {
+              navigate("/partner/profile");
+            }
+          });
         }
       } catch (error) {
         console.error("Authentication check failed:", error);
@@ -763,103 +1031,186 @@ const CreateEvent = ({ onBack }) => {
 
   // Form update handlers
   const handleEventFormUpdate = (data) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       title: data.title || prev.title,
       description: data.description || prev.description,
       type: data.type || prev.type,
-      categoryIds: Array.isArray(data.categoryIds) ? data.categoryIds : prev.categoryIds,
-      benefitIds: Array.isArray(data.benefitIds) ? data.benefitIds : prev.benefitIds,
+      categoryIds: Array.isArray(data.categoryIds)
+        ? data.categoryIds
+        : prev.categoryIds,
+      benefitIds: Array.isArray(data.benefitIds)
+        ? data.benefitIds
+        : prev.benefitIds,
     }));
   };
 
   const handleDateFormUpdate = (data) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       startAt: data.startAt || prev.startAt,
-      endAt: data.endAt || prev.endAt
+      endAt: data.endAt || prev.endAt,
     }));
   };
 
   const handleLocationFormUpdate = (data) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       province: data.province || prev.province,
       regency: data.regency || prev.regency,
       address: data.address || prev.address,
       gmaps: data.gmaps || prev.gmaps,
       latitude: data.latitude || prev.latitude,
-      longitude: data.longitude || prev.longitude
+      longitude: data.longitude || prev.longitude,
     }));
   };
 
   const handleVolunteerFormUpdate = (data) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       requirement: data.requirement || prev.requirement,
       contactPerson: data.contactPerson || prev.contactPerson,
       maxApplicant: data.maxApplicant || prev.maxApplicant,
-      acceptedQuota: data.acceptedQuota || prev.acceptedQuota
+      acceptedQuota: data.acceptedQuota || prev.acceptedQuota,
     }));
   };
 
   const handleFeeFormUpdate = (data) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       isPaid: data.isPaid,
-      price: data.isPaid ? data.price : "0"
+      price: data.isPaid ? data.price : "0",
     }));
   };
 
-  const handleBannerUpdate = (data) => {
+  const handleBannerUpdate = useCallback((data) => {
     if (data && data.banner) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        banner: data.banner
+        banner: data.banner,
       }));
     } else if (data) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        banner: data
+        banner: data,
       }));
     }
-  };
+  }, []);
+  const testWithCorrectSizedBanner = async () => {
+    try {
+      // Create a canvas with the EXACT dimensions expected
+      const canvas = document.createElement("canvas");
+      canvas.width = 600; // Exactly the max width allowed
+      canvas.height = 300; // Exactly the max height allowed
+      const ctx = canvas.getContext("2d");
 
+      // Fill with a gradient
+      const gradient = ctx.createLinearGradient(0, 0, 600, 0);
+      gradient.addColorStop(0, "#0A3E54");
+      gradient.addColorStop(1, "#2D8BBA");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 600, 300);
+
+      // Add text
+      ctx.fillStyle = "white";
+      ctx.font = "bold 40px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Event Banner", 300, 150);
+
+      // Convert to blob
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.9)
+      );
+      const file = new File([blob], "banner-600x300.jpg", {
+        type: "image/jpeg",
+      });
+
+      console.log("Created banner with exact dimensions: 600×300 pixels");
+
+      // Create form data
+      const formData = new FormData();
+      formData.append("title", "Test With Correct Size " + Date.now());
+      formData.append("description", "Test description");
+      formData.append("type", "OPEN");
+      formData.append("startAt", new Date().toISOString());
+      formData.append("province", "DKI JAKARTA");
+      formData.append("regency", "KOTA JAKARTA PUSAT");
+      formData.append("requirement", "Test");
+      formData.append("contactPerson", "081234567890");
+      formData.append("isPaid", "false");
+      formData.append("isRelease", "false");
+      formData.append("benefitIds[]", "d962d895-d6df-4aed-8acb-a9315e3ed1f7");
+      formData.append("categoryIds[]", "d5ec8e93-4d7a-4a53-b528-a6ed4381649e");
+      formData.append("banner", file);
+
+      // Send request
+      const API_URL = apiUtils.getApiUrl();
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
+
+      const response = await fetch(`${API_URL}/partners/me/events`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      console.log("Response status:", response.status);
+      const data = await response.json();
+      console.log("Response data:", data);
+
+      alert(
+        response.ok
+          ? "Success with correctly sized banner!"
+          : "Failed: " + data.message
+      );
+    } catch (error) {
+      console.error("Test failed:", error);
+      alert("Error: " + error.message);
+    }
+  };
   // Main event creation handler
   const handleCreateEvent = async () => {
     try {
       setLoading(true);
-      
+
       // Re-check authentication before submitting
       if (!authService.isAuthenticated()) {
         Swal.fire({
           icon: "error",
           title: "Tidak Terautentikasi",
           text: "Sesi Anda telah berakhir. Silakan login kembali.",
-          confirmButtonText: "Login Sekarang"
+          confirmButtonText: "Login Sekarang",
         }).then(() => {
           navigate("/login");
         });
         return;
       }
-      
+
       // Validate form
       const errors = formUtils.validateForm(formData, {
-        eventFormRef, dateFormRef, locationFormRef, 
-        volunteerFormRef, feeFormRef, bannerUploadRef
+        eventFormRef,
+        dateFormRef,
+        locationFormRef,
+        volunteerFormRef,
+        feeFormRef,
+        bannerUploadRef,
       });
-      
+
       if (errors.length > 0) {
         Swal.fire({
           icon: "error",
           title: "Form Tidak Lengkap",
-          html: `<ul class="text-left">${errors.map(err => `<li>• ${err}</li>`).join('')}</ul>`,
+          html: `<ul class="text-left">${errors
+            .map((err) => `<li>• ${err}</li>`)
+            .join("")}</ul>`,
           confirmButtonText: "OK",
         });
         return;
       }
-      
-      // Tampilkan loading state
+
+      // Show loading state
       Swal.fire({
         title: "Memproses...",
         text: "Sedang membuat event, harap tunggu.",
@@ -868,33 +1219,93 @@ const CreateEvent = ({ onBack }) => {
           Swal.showLoading();
         },
       });
-      
+
+      // Get token and partnerId
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
+      const partnerId = localStorage.getItem("partnerId");
+
+      // Check if we should use valid IDs from localStorage
+      let dataToSubmit = { ...formData };
+
+      try {
+        // Override benefitIds and categoryIds if valid ones are available
+        if (localStorage.getItem("use_valid_ids") === "true") {
+          const validBenefitIds = JSON.parse(
+            localStorage.getItem("valid_benefit_ids") || "[]"
+          );
+          const validCategoryIds = JSON.parse(
+            localStorage.getItem("valid_category_ids") || "[]"
+          );
+
+          if (validBenefitIds.length > 0 && validCategoryIds.length > 0) {
+            console.log("Using valid IDs from localStorage:");
+            console.log("- Benefit IDs:", validBenefitIds);
+            console.log("- Category IDs:", validCategoryIds);
+
+            dataToSubmit = {
+              ...dataToSubmit,
+              benefitIds: validBenefitIds,
+              categoryIds: validCategoryIds,
+            };
+          }
+        }
+      } catch (parseError) {
+        console.warn("Error parsing valid IDs:", parseError);
+        // Continue with original data
+      }
+
       // Prepare form data
       let apiFormData;
       try {
-        apiFormData = formUtils.prepareFormDataForSubmit(formData, isReadyToPublish);
+        apiFormData = formUtils.prepareFormDataForSubmit(
+          dataToSubmit,
+          isReadyToPublish
+        );
+
+        // Add partnerId to formData after it's created
+        if (partnerId) {
+          console.log("Adding partner ID to request:", partnerId);
+          apiFormData.append("partnerId", partnerId);
+        }
+
+        // Log the form data
+        console.log("Form data entries before sending:");
+        for (let [key, value] of apiFormData.entries()) {
+          if (key === "banner") {
+            console.log(
+              `${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`
+            );
+          } else {
+            console.log(`${key}: ${value}`);
+          }
+        }
       } catch (prepareError) {
         Swal.close();
         Swal.fire({
           icon: "error",
           title: "Gagal Menyiapkan Data",
-          text: prepareError.message || "Terjadi kesalahan saat menyiapkan data event",
+          text:
+            prepareError.message ||
+            "Terjadi kesalahan saat menyiapkan data event",
           confirmButtonText: "OK",
         });
         return;
       }
-      
+
       // Save backup
       setFormBackup({
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      formUtils.saveFormToLocalStorage(formData);
-      
+      formUtils.saveFormToLocalStorage(dataToSubmit);
+
       // Check if simulation mode is enabled
-      if (localStorage.getItem('simulate_create_event') === 'true') {
+      if (localStorage.getItem("simulate_create_event") === "true") {
         console.log("SIMULATION MODE: Using simulated event creation");
-        const simulatedResponse = await eventCreationStrategies.simulateCreate(formData);
-        
+        const simulatedResponse = await eventCreationStrategies.simulateCreate(
+          dataToSubmit
+        );
+
         Swal.close();
         Swal.fire({
           icon: "success",
@@ -904,19 +1315,21 @@ const CreateEvent = ({ onBack }) => {
         }).then(() => {
           navigate("/partner/events");
         });
-        
         return;
       }
-      
-      // Try creating with partnerService first
+
+      // Attempt to create event using the service
       try {
-        const response = await eventCreationStrategies.createWithPartnerService(apiFormData);
-        
+        console.log("Attempting to create event with partnerService...");
+        const response = await eventCreationStrategies.createWithPartnerService(
+          apiFormData
+        );
+
         Swal.close();
         Swal.fire({
           icon: "success",
           title: "Berhasil!",
-          text: isReadyToPublish 
+          text: isReadyToPublish
             ? "Event berhasil dibuat dan dipublish!"
             : "Event berhasil dibuat tetapi belum dipublish.",
           confirmButtonText: "OK",
@@ -926,32 +1339,71 @@ const CreateEvent = ({ onBack }) => {
         return;
       } catch (serviceError) {
         console.error("partnerService.createEvent failed:", serviceError);
-        
-        // Check for authentication error in service response
-        if (serviceError.status === 401 || serviceError.status === 403 || 
-            serviceError.message?.includes("unauthorized") || 
-            serviceError.message?.includes("tidak memiliki akses")) {
+
+        // Handle specific error types based on the message
+        if (
+          serviceError.message &&
+          serviceError.message.includes("tidak ditemukan")
+        ) {
+          Swal.close();
+          // This is a benefit/category ID error
+          Swal.fire({
+            icon: "error",
+            title: "ID Tidak Valid",
+            html: `
+            <div class="text-left">
+              <p>${serviceError.message}</p>
+              <p class="mt-2">Tindakan yang dapat dilakukan:</p>
+              <ul class="list-disc pl-5">
+                <li>Gunakan "Ambil ID Valid" untuk mendapatkan ID yang benar</li>
+                <li>Aktifkan mode simulasi untuk testing UI</li>
+                <li>Hubungi admin untuk memperbaiki data</li>
+              </ul>
+            </div>
+          `,
+            confirmButtonText: "Ambil ID Valid",
+            showCancelButton: true,
+            cancelButtonText: "Tutup",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Call the fetchValidIds function
+              fetchValidIds();
+            }
+          });
+          return;
+        }
+
+        // Check for authentication errors
+        if (
+          serviceError.status === 401 ||
+          serviceError.status === 403 ||
+          serviceError.message?.includes("unauthorized") ||
+          serviceError.message?.includes("tidak memiliki akses")
+        ) {
           Swal.close();
           Swal.fire({
             icon: "error",
             title: "Sesi Berakhir",
             text: "Sesi Anda telah berakhir. Silakan login kembali.",
-            confirmButtonText: "Login Sekarang"
+            confirmButtonText: "Login Sekarang",
           }).then(() => {
             navigate("/login");
           });
           return;
         }
-        
-        // Fallback to direct API call
+
+        // Try direct API call as fallback
         try {
-          const directResponse = await eventCreationStrategies.createDirect(apiFormData);
-          
+          console.log("Partner service failed, trying direct API call...");
+          const directResponse = await eventCreationStrategies.createDirect(
+            apiFormData
+          );
+
           Swal.close();
           Swal.fire({
             icon: "success",
             title: "Berhasil!",
-            text: isReadyToPublish 
+            text: isReadyToPublish
               ? "Event berhasil dibuat dan dipublish!"
               : "Event berhasil dibuat tetapi belum dipublish.",
             confirmButtonText: "OK",
@@ -961,32 +1413,80 @@ const CreateEvent = ({ onBack }) => {
           return;
         } catch (directError) {
           console.error("Direct API call failed:", directError);
-          
+
+          // Add more detailed debugging
+          console.log("=== API CALL DETAILS ===");
+          if (directError.response) {
+            console.log("Status:", directError.response.status);
+            console.log("Response data:", directError.response.data);
+          }
+
+          // Handle specific error cases with helpful guidance
+          if (
+            directError.message &&
+            directError.message.includes("tidak ditemukan")
+          ) {
+            Swal.close();
+            Swal.fire({
+              icon: "error",
+              title: "ID Tidak Valid",
+              html: `
+              <div class="text-left">
+                <p>${directError.message}</p>
+                <p class="mt-2">Tindakan yang dapat dilakukan:</p>
+                <ul class="list-disc pl-5">
+                  <li>Gunakan "Ambil ID Valid" untuk mendapatkan ID yang benar</li>
+                  <li>Aktifkan mode simulasi untuk testing UI</li>
+                </ul>
+              </div>
+            `,
+              confirmButtonText: "Ambil ID Valid",
+              showCancelButton: true,
+              cancelButtonText: "Tutup",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // Call the fetchValidIds function
+                fetchValidIds();
+              }
+            });
+            return;
+          }
+
           // Check for auth errors
-          if (directError.response?.status === 401 || directError.response?.status === 403 ||
-              directError.message?.includes("tidak memiliki akses") ||
-              directError.message?.includes("login kembali")) {
+          if (
+            directError.response?.status === 401 ||
+            directError.response?.status === 403 ||
+            directError.message?.includes("tidak memiliki akses") ||
+            directError.message?.includes("login kembali")
+          ) {
             Swal.close();
             Swal.fire({
               icon: "error",
               title: "Sesi Berakhir",
               text: "Sesi Anda telah berakhir. Silakan login kembali.",
-              confirmButtonText: "Login Sekarang"
+              confirmButtonText: "Login Sekarang",
             }).then(() => {
               navigate("/login");
             });
             return;
           }
-          
+
           // Show error message
           Swal.close();
-          
-          let errorMessage = directError.message || serviceError.message || "Terjadi kesalahan saat membuat event.";
-          
+
+          let errorMessage =
+            directError.message ||
+            serviceError.message ||
+            "Terjadi kesalahan saat membuat event.";
+
           // Special handling for 500 errors
-          if (serviceError.status === 500 || directError?.response?.status === 500) {
-            errorMessage = "Terjadi kesalahan server (500). Server mungkin sedang overload atau mengalami masalah internal.";
-            
+          if (
+            serviceError.status === 500 ||
+            directError?.response?.status === 500
+          ) {
+            errorMessage =
+              "Terjadi kesalahan server (500). Server mungkin sedang overload atau mengalami masalah internal.";
+
             Swal.fire({
               icon: "error",
               title: "Gagal Membuat Event",
@@ -994,10 +1494,12 @@ const CreateEvent = ({ onBack }) => {
               confirmButtonText: "OK",
               showCancelButton: true,
               cancelButtonText: "Simpan Draft",
+              footer:
+                '<div class="text-xs text-gray-500">Tip: Coba gunakan Ambil ID Valid atau Aktifkan Simulasi</div>',
             }).then((result) => {
               if (result.dismiss === Swal.DismissReason.cancel) {
                 // Save as draft logic
-                if (formUtils.saveFormToLocalStorage(formData)) {
+                if (formUtils.saveFormToLocalStorage(dataToSubmit)) {
                   Swal.fire({
                     icon: "success",
                     title: "Draft Tersimpan",
@@ -1019,12 +1521,13 @@ const CreateEvent = ({ onBack }) => {
       }
     } catch (error) {
       console.error("Error in handleCreateEvent:", error);
-      
+
       Swal.close();
       Swal.fire({
         icon: "error",
         title: "Gagal Membuat Event",
-        text: error.message || "Terjadi kesalahan tak terduga saat membuat event.",
+        text:
+          error.message || "Terjadi kesalahan tak terduga saat membuat event.",
         confirmButtonText: "OK",
       });
     } finally {
@@ -1032,18 +1535,105 @@ const CreateEvent = ({ onBack }) => {
     }
   };
 
+  // Add the fetchValidIds function
+  const fetchValidIds = async () => {
+    try {
+      Swal.fire({
+        title: "Mengambil data...",
+        text: "Sedang mengambil data yang valid dari server",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const API_URL = apiUtils.getApiUrl();
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
+
+      // Fetch valid benefits
+      const benefitResponse = await fetch(`${API_URL}/benefits`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const benefitData = await benefitResponse.json();
+
+      // Fetch valid categories
+      const categoryResponse = await fetch(`${API_URL}/categories?type=EVENT`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const categoryData = await categoryResponse.json();
+
+      Swal.close();
+
+      if (benefitData.data?.length > 0 && categoryData.data?.length > 0) {
+        // Save valid IDs to localStorage
+        const validBenefitIds = benefitData.data.slice(0, 2).map((b) => b.id);
+        const validCategoryIds = categoryData.data.slice(0, 1).map((c) => c.id);
+
+        console.log("Valid benefit IDs:", validBenefitIds);
+        console.log("Valid category IDs:", validCategoryIds);
+
+        localStorage.setItem(
+          "valid_benefit_ids",
+          JSON.stringify(validBenefitIds)
+        );
+        localStorage.setItem(
+          "valid_category_ids",
+          JSON.stringify(validCategoryIds)
+        );
+        localStorage.setItem("use_valid_ids", "true");
+
+        Swal.fire({
+          icon: "success",
+          title: "ID Valid Ditemukan",
+          html: `
+          <div class="text-left">
+            <p>ID valid telah disimpan dan akan digunakan untuk pembuatan event.</p>
+            <p><strong>Benefit IDs:</strong> ${validBenefitIds.length} ID</p>
+            <p><strong>Category IDs:</strong> ${validCategoryIds.length} ID</p>
+          </div>
+        `,
+          confirmButtonText: "OK",
+        });
+
+        return true;
+      } else {
+        console.error("No valid benefits or categories found");
+        Swal.fire({
+          icon: "warning",
+          title: "Tidak Ada Data Valid",
+          text: "Tidak ditemukan benefit atau kategori valid di database",
+          confirmButtonText: "OK",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Error fetching valid IDs:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Gagal mengambil data valid dari server: " + error.message,
+        confirmButtonText: "OK",
+      });
+      return false;
+    }
+  };
+
   // Toggle simulation mode for development
   const toggleSimulationMode = () => {
-    const currentMode = localStorage.getItem('simulate_create_event') === 'true';
-    localStorage.setItem('simulate_create_event', (!currentMode).toString());
-    
+    const currentMode =
+      localStorage.getItem("simulate_create_event") === "true";
+    localStorage.setItem("simulate_create_event", (!currentMode).toString());
+
     Swal.fire({
       icon: "info",
-      title: currentMode ? "Mode Simulasi Dinonaktifkan" : "Mode Simulasi Diaktifkan",
-      text: currentMode 
-        ? "Pembuatan event akan menggunakan API sesungguhnya" 
+      title: currentMode
+        ? "Mode Simulasi Dinonaktifkan"
+        : "Mode Simulasi Diaktifkan",
+      text: currentMode
+        ? "Pembuatan event akan menggunakan API sesungguhnya"
         : "Pembuatan event akan menggunakan simulasi",
-      confirmButtonText: "OK"
+      confirmButtonText: "OK",
     });
   };
 
@@ -1066,13 +1656,23 @@ const CreateEvent = ({ onBack }) => {
       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            <svg
+              className="h-5 w-5 text-yellow-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
           <div className="ml-3">
             <p className="text-sm text-yellow-700">
-              Gagal memeriksa profil. Anda dapat melanjutkan tetapi sebagian fitur mungkin tidak berfungsi dengan baik.
+              Gagal memeriksa profil. Anda dapat melanjutkan tetapi sebagian
+              fitur mungkin tidak berfungsi dengan baik.
             </p>
           </div>
         </div>
@@ -1083,42 +1683,24 @@ const CreateEvent = ({ onBack }) => {
   return (
     <section className="space-y-6">
       <h1 className="title">Buat Event Baru</h1>
-      
+
       {/* Event info section */}
-      <EventForm 
-        ref={eventFormRef}
-        onUpdate={handleEventFormUpdate}
-      />
-      
+      <EventForm ref={eventFormRef} onUpdate={handleEventFormUpdate} />
+
       {/* Date/schedule section */}
-      <EventDate 
-        ref={dateFormRef}
-        onUpdate={handleDateFormUpdate}
-      />
-      
+      <EventDate ref={dateFormRef} onUpdate={handleDateFormUpdate} />
+
       {/* Location section */}
-      <Location 
-        ref={locationFormRef}
-        onUpdate={handleLocationFormUpdate}
-      />
-      
+      <Location ref={locationFormRef} onUpdate={handleLocationFormUpdate} />
+
       {/* Volunteer requirements section */}
-      <Volunteer 
-        ref={volunteerFormRef}
-        onUpdate={handleVolunteerFormUpdate}
-      />
-      
+      <Volunteer ref={volunteerFormRef} onUpdate={handleVolunteerFormUpdate} />
+
       {/* Registration fee section */}
-      <RegistrationFee 
-        ref={feeFormRef}
-        onUpdate={handleFeeFormUpdate}
-      />
-      
+      <RegistrationFee ref={feeFormRef} onUpdate={handleFeeFormUpdate} />
+
       {/* Banner upload section */}
-      <BannerUpload 
-        ref={bannerUploadRef}
-        onUpdate={handleBannerUpdate}
-      />
+      <BannerUpload ref={bannerUploadRef} onUpdate={handleBannerUpdate} />
 
       {/* Toggle Switch for publish status */}
       <div className="flex items-center space-x-2">
@@ -1175,9 +1757,22 @@ const CreateEvent = ({ onBack }) => {
           )}
           Buat Event
         </button>
-        
+        <button
+          type="button"
+          onClick={fetchValidIds}
+          className="bg-green-500 py-2 px-4 text-white rounded-lg hover:bg-green-600 transition-colors"
+        >
+          Gunakan ID Valid
+        </button>
+        <button
+          onClick={testWithCorrectSizedBanner}
+          className="bg-blue-500 py-2 px-4 text-white rounded-lg"
+        >
+          Test with correct size banner
+        </button>
+
         {/* Debug buttons */}
-        {process.env.NODE_ENV === 'development' && (
+        {process.env.NODE_ENV === "development" && (
           <>
             <button
               type="button"
@@ -1187,7 +1782,14 @@ const CreateEvent = ({ onBack }) => {
             >
               Test Koneksi Server
             </button>
-            
+            <button
+              type="button"
+              onClick={fetchValidIds}
+              className="bg-green-500 py-2 px-4 text-white rounded-lg hover:bg-green-600 transition-colors"
+            >
+              Ambil ID Valid
+            </button>
+
             <button
               type="button"
               onClick={() => apiUtils.detectApiServer(setLoading, setApiStatus)}
@@ -1196,38 +1798,54 @@ const CreateEvent = ({ onBack }) => {
             >
               Cari Server API
             </button>
-            
+
             <button
               type="button"
               onClick={toggleSimulationMode}
               className="bg-amber-500 py-2 px-4 text-white rounded-lg hover:bg-amber-600 transition-colors"
             >
-              {localStorage.getItem('simulate_create_event') === 'true' 
-                ? 'Nonaktifkan Simulasi' 
-                : 'Aktifkan Simulasi'}
+              {localStorage.getItem("simulate_create_event") === "true"
+                ? "Nonaktifkan Simulasi"
+                : "Aktifkan Simulasi"}
             </button>
           </>
         )}
       </div>
-      
+
       {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div className="mt-4 p-4 bg-gray-100 rounded-lg">
           <div className="flex justify-between items-center">
             <h3 className="font-medium text-gray-700">Debug Info</h3>
-            <span className={`text-xs px-2 py-1 rounded ${apiStatus.isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              {apiStatus.isConnected ? 'API Connected' : 'API Disconnected'}
+            <span
+              className={`text-xs px-2 py-1 rounded ${
+                apiStatus.isConnected
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {apiStatus.isConnected ? "API Connected" : "API Disconnected"}
             </span>
           </div>
-          
+
           <div className="mt-2 text-xs">
-            <p>API URL: {apiUtils.getApiUrl() || 'Not defined'}</p>
-            <p>Auth Status: {authService.isAuthenticated() ? 'Authenticated' : 'Not Authenticated'}</p>
-            <p>Is Partner: {authService.isPartner() ? 'Yes' : 'No'}</p>
+            <p>API URL: {apiUtils.getApiUrl() || "Not defined"}</p>
+            <p>
+              Auth Status:{" "}
+              {authService.isAuthenticated()
+                ? "Authenticated"
+                : "Not Authenticated"}
+            </p>
+            <p>Is Partner: {authService.isPartner() ? "Yes" : "No"}</p>
             <p>Selected Benefits: {formData.benefitIds?.length || 0}</p>
             <p>Selected Categories: {formData.categoryIds?.length || 0}</p>
-            <p>Has Banner: {formData.banner ? 'Yes' : 'No'}</p>
-            <p>Simulation Mode: {localStorage.getItem('simulate_create_event') === 'true' ? 'On' : 'Off'}</p>
+            <p>Has Banner: {formData.banner ? "Yes" : "No"}</p>
+            <p>
+              Simulation Mode:{" "}
+              {localStorage.getItem("simulate_create_event") === "true"
+                ? "On"
+                : "Off"}
+            </p>
           </div>
         </div>
       )}
