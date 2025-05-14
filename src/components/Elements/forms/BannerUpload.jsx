@@ -1,4 +1,10 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+  useEffect,
+} from "react";
 
 const BannerUpload = forwardRef(({ onUpdate }, ref) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -6,7 +12,7 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
   const [previewUrl, setPreviewUrl] = useState("");
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
-  
+
   // Keep track of whether onUpdate has been called already for this file
   const hasUpdatedRef = useRef(false);
 
@@ -17,22 +23,26 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
         return ["Banner event harus diunggah"];
       }
       return [];
-    }
+    },
   }));
 
   // FIXED: Use useEffect with bannerFile dependency only
   // Call onUpdate only when bannerFile changes and only once per file
   useEffect(() => {
+    // Only update if we have a file and haven't already updated for this file
     if (bannerFile && onUpdate && !hasUpdatedRef.current) {
+      console.log(
+        `Updating with banner: ${bannerFile.name}, size: ${bannerFile.size}`
+      );
       onUpdate({ banner: bannerFile });
       hasUpdatedRef.current = true;
     }
-    
+
     // Reset the flag if bannerFile changes to null
     if (!bannerFile) {
       hasUpdatedRef.current = false;
     }
-    
+
     // Cleanup function for preview URL
     return () => {
       if (previewUrl) {
@@ -43,7 +53,7 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    
+
     if (!file) {
       setBannerFile(null);
       setPreviewUrl("");
@@ -65,10 +75,10 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
 
     // Reset the update flag for the new file
     hasUpdatedRef.current = false;
-    
+
     // Create preview URL
     const url = URL.createObjectURL(file);
-    
+
     // Update state
     setBannerFile(file);
     setPreviewUrl(url);
@@ -79,12 +89,12 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
     setBannerFile(null);
     setPreviewUrl("");
     setError("");
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    
+
     // Notify parent component
     if (onUpdate) {
       onUpdate({ banner: null });
@@ -97,29 +107,31 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
 
   return (
     <div className="border rounded-lg p-6 bg-white shadow-sm">
-      <div 
-        className="flex justify-between items-center cursor-pointer" 
+      <div
+        className="flex justify-between items-center cursor-pointer"
         onClick={toggleExpandCollapse}
       >
         <h2 className="text-xl font-medium">Banner Event</h2>
-        <button 
+        <button
           type="button"
           className="text-gray-400 hover:text-gray-500"
           aria-expanded={isExpanded}
           aria-label={isExpanded ? "Collapse section" : "Expand section"}
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className={`h-6 w-6 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-            fill="none" 
-            viewBox="0 0 24 24" 
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-6 w-6 transition-transform ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+            fill="none"
+            viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M19 9l-7 7-7-7" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
             />
           </svg>
         </button>
@@ -128,7 +140,9 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
       {isExpanded && (
         <div className="mt-4 space-y-4">
           <div className="space-y-2">
-            <label htmlFor="banner" className="block text-gray-700">Upload Banner</label>
+            <label htmlFor="banner" className="block text-gray-700">
+              Upload Banner
+            </label>
             <input
               ref={fileInputRef}
               type="file"

@@ -1,52 +1,87 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from "react";
 import { Icon } from "@iconify/react";
 import axios from "axios";
 import { debounce } from "lodash";
-import { v4 as uuidv4 } from 'uuid'; // Tambahkan import ini (npm install uuid)
+import { v4 as uuidv4 } from "uuid"; // Tambahkan import ini (npm install uuid)
 
 const API_URL = import.meta.env.VITE_BE_BASE_URL;
 
-
 // Tambahkan static benefit IDs yang pasti valid
 const STATIC_BENEFIT_IDS = {
-  sertifikat: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  sertifikat: "1f92b274-39b5-4104-af5a-831982496a9c",
   uangSaku: "d9e7c6e0-3d73-4d1c-9930-35c0855cb752",
   pengalaman: "550e8400-e29b-41d4-a716-446655440000",
   networking: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
   makanan: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
-  kaos: "6ba7b814-9dad-11d1-80b4-00c04fd430c8"
+  kaos: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
 };
 
 // Ganti hardcoded benefits di useEffect dengan yang menggunakan Static IDs
 const fetchBenefits = async () => {
   try {
-    setLoading(prev => ({ ...prev, benefits: true }));
-    
+    setLoading((prev) => ({ ...prev, benefits: true }));
+
     // Fallback benefits dengan UUID static yang valid
     const hardcodedBenefits = [
-      { id: STATIC_BENEFIT_IDS.sertifikat, name: "Sertifikat", icon: "tabler:certificate" },
-      { id: STATIC_BENEFIT_IDS.uangSaku, name: "Uang Saku", icon: "tabler:wallet" },
-      { id: STATIC_BENEFIT_IDS.pengalaman, name: "Pengalaman", icon: "tabler:medal" },
-      { id: STATIC_BENEFIT_IDS.networking, name: "Networking", icon: "ic:round-connect-without-contact" },
-      { id: STATIC_BENEFIT_IDS.makanan, name: "Makanan", icon: "fluent-mdl2:eat-drink" },
-      { id: STATIC_BENEFIT_IDS.kaos, name: "Kaos/Baju", icon: "mdi:tshirt-crew" }
+      {
+        id: STATIC_BENEFIT_IDS.sertifikat,
+        name: "Sertifikat",
+        icon: "tabler:certificate",
+      },
+      {
+        id: STATIC_BENEFIT_IDS.uangSaku,
+        name: "Uang Saku",
+        icon: "tabler:wallet",
+      },
+      {
+        id: STATIC_BENEFIT_IDS.pengalaman,
+        name: "Pengalaman",
+        icon: "tabler:medal",
+      },
+      {
+        id: STATIC_BENEFIT_IDS.networking,
+        name: "Networking",
+        icon: "ic:round-connect-without-contact",
+      },
+      {
+        id: STATIC_BENEFIT_IDS.makanan,
+        name: "Makanan",
+        icon: "fluent-mdl2:eat-drink",
+      },
+      {
+        id: STATIC_BENEFIT_IDS.kaos,
+        name: "Kaos/Baju",
+        icon: "mdi:tshirt-crew",
+      },
     ];
-    
+
     try {
       const response = await axios.get(`${API_URL}/benefits`);
-      
-      if (response.data && response.data.data && response.data.data.length > 0) {
+
+      if (
+        response.data &&
+        response.data.data &&
+        response.data.data.length > 0
+      ) {
         // Gunakan sistem icon yang sama dengan EventPage
-        const formattedBenefits = response.data.data.map(benefit => ({
+        const formattedBenefits = response.data.data.map((benefit) => ({
           id: benefit.id,
           name: benefit.name || "Manfaat Tanpa Nama",
-          icon: benefit.icon || getBenefitIcon(benefit.name)
+          icon: benefit.icon || getBenefitIcon(benefit.name),
         }));
-        
+
         setBenefits(formattedBenefits);
         console.log("Benefits loaded from API:", formattedBenefits.length);
       } else {
-        console.warn("API benefits tidak mengembalikan data yang valid, menggunakan hardcoded");
+        console.warn(
+          "API benefits tidak mengembalikan data yang valid, menggunakan hardcoded"
+        );
         setBenefits(hardcodedBenefits);
       }
     } catch (apiError) {
@@ -55,16 +90,28 @@ const fetchBenefits = async () => {
     }
   } catch (error) {
     console.error("Error fetching benefits:", error);
-    
+
     // Fallback benefits jika ada error - gunakan STATIC ID
     const fallbackBenefits = [
-      { id: STATIC_BENEFIT_IDS.sertifikat, name: "Sertifikat", icon: "tabler:certificate" },
-      { id: STATIC_BENEFIT_IDS.uangSaku, name: "Uang Saku", icon: "tabler:wallet" },
-      { id: STATIC_BENEFIT_IDS.pengalaman, name: "Pengalaman", icon: "tabler:medal" }
+      {
+        id: STATIC_BENEFIT_IDS.sertifikat,
+        name: "Sertifikat",
+        icon: "tabler:certificate",
+      },
+      {
+        id: STATIC_BENEFIT_IDS.uangSaku,
+        name: "Uang Saku",
+        icon: "tabler:wallet",
+      },
+      {
+        id: STATIC_BENEFIT_IDS.pengalaman,
+        name: "Pengalaman",
+        icon: "tabler:medal",
+      },
     ];
     setBenefits(fallbackBenefits);
   } finally {
-    setLoading(prev => ({ ...prev, benefits: false }));
+    setLoading((prev) => ({ ...prev, benefits: false }));
   }
 };
 
@@ -72,34 +119,34 @@ const fetchBenefits = async () => {
 function getBenefitIcon(benefitName) {
   // Define mapping of keyword patterns to icon names
   const BENEFIT_ICON_MAP = {
-    'akomodasi': 'mdi:hotel',
-    'hotel': 'mdi:hotel',
-    'penghargaan': 'mdi:trophy-award',
-    'award': 'mdi:trophy-award',
-    'sertifikat': 'tabler:certificate',
-    'uang': 'tabler:wallet',
-    'saku': 'tabler:wallet',
-    'makan': 'fluent-mdl2:eat-drink',
-    'snack': 'fluent-mdl2:eat-drink',
-    'koneksi': 'ic:round-connect-without-contact',
-    'network': 'ic:round-connect-without-contact',
-    'kaos': 'mdi:tshirt-crew',
-    'baju': 'mdi:tshirt-crew',
-    'pengalaman': 'tabler:medal'
+    akomodasi: "mdi:hotel",
+    hotel: "mdi:hotel",
+    penghargaan: "mdi:trophy-award",
+    award: "mdi:trophy-award",
+    sertifikat: "tabler:certificate",
+    uang: "tabler:wallet",
+    saku: "tabler:wallet",
+    makan: "fluent-mdl2:eat-drink",
+    snack: "fluent-mdl2:eat-drink",
+    koneksi: "ic:round-connect-without-contact",
+    network: "ic:round-connect-without-contact",
+    kaos: "mdi:tshirt-crew",
+    baju: "mdi:tshirt-crew",
+    pengalaman: "tabler:medal",
   };
-  
+
   // Default icon if no match found
-  const DEFAULT_ICON = 'mdi:gift-outline';
-  
+  const DEFAULT_ICON = "mdi:gift-outline";
+
   if (!benefitName) return DEFAULT_ICON;
-  
+
   const name = benefitName.toLowerCase();
-  
+
   // Find the first keyword that matches in the benefit name
-  const matchedKeyword = Object.keys(BENEFIT_ICON_MAP).find(keyword => 
+  const matchedKeyword = Object.keys(BENEFIT_ICON_MAP).find((keyword) =>
     name.includes(keyword)
   );
-  
+
   // Return matched icon or default
   return matchedKeyword ? BENEFIT_ICON_MAP[matchedKeyword] : DEFAULT_ICON;
 }
@@ -112,16 +159,16 @@ const EventForm = forwardRef(({ onUpdate }, ref) => {
   const [notification, setNotification] = useState("");
   const [loading, setLoading] = useState({
     categories: false,
-    benefits: false
+    benefits: false,
   });
-  
+
   const [categories, setCategories] = useState([]);
   const [benefits, setBenefits] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
     type: "OPEN",
     description: "",
-    slug: ""
+    slug: "",
   });
 
   // Tambahkan state untuk modal dan custom benefit
@@ -132,73 +179,79 @@ const EventForm = forwardRef(({ onUpdate }, ref) => {
   const [searchResults, setSearchResults] = useState([]);
 
   // Referensi untuk mencegah pemanggilan onUpdate berulang kali
-  const updateParentRef = useRef(debounce((data) => {
-    if (onUpdate) {
-      console.log("Updating parent (debounced):", data.title);
-      onUpdate(data);
-    }
-  }, 500));
+  const updateParentRef = useRef(
+    debounce((data) => {
+      if (onUpdate) {
+        console.log("Updating parent (debounced):", data.title);
+        onUpdate(data);
+      }
+    }, 500)
+  );
 
-// Tambahkan fungsi error boundary di useImperativeHandle
-useImperativeHandle(ref, () => ({
-  validate: () => {
-    try {
-      const errors = [];
-      if (!formData.title) errors.push("Judul event harus diisi");
-      if (!formData.description) errors.push("Deskripsi event harus diisi");
-      if (selectedCategories.length === 0) errors.push("Minimal pilih satu kategori event");
-      if (selectedBenefits.length === 0) errors.push("Minimal pilih satu manfaat event");
-      
-      // Debug log
-      console.log("EventForm validation:", { 
-        hasTitle: !!formData.title,
-        hasDescription: !!formData.description,
-        categoryCount: selectedCategories.length,
-        benefitCount: selectedBenefits.length,
-        errors 
-      });
-      
-      return errors;
-    } catch (error) {
-      console.error("Error during validation:", error);
-      return ["Terjadi kesalahan pada validasi form"];
-    }
-  },
-  getData: () => {
-    try {
-      // CRITICAL: Pastikan benefitIds adalah array string dari ID benefit yang valid
-      const benefitIds = selectedBenefits.map(benefit => benefit.id || STATIC_BENEFIT_IDS.sertifikat);
-      
-      const data = {
-        title: formData.title,
-        description: formData.description,
-        type: formData.type,
-        categoryIds: selectedCategories.map(cat => cat.id),
-        benefitIds: benefitIds
-      };
-      
-      console.log("getData called from EventForm, returning:", data);
-      return data;
-    } catch (error) {
-      console.error("Error getting form data:", error);
-      // Return fallback data in case of error
-      return {
-        title: formData.title || "Default Title",
-        description: formData.description || "Default Description",
-        type: formData.type || "OPEN",
-        categoryIds: [STATIC_BENEFIT_IDS.sertifikat],
-        benefitIds: [STATIC_BENEFIT_IDS.sertifikat]
-      };
-    }
-  }
-}));
+  // Tambahkan fungsi error boundary di useImperativeHandle
+  useImperativeHandle(ref, () => ({
+    validate: () => {
+      try {
+        const errors = [];
+        if (!formData.title) errors.push("Judul event harus diisi");
+        if (!formData.description) errors.push("Deskripsi event harus diisi");
+        if (selectedCategories.length === 0)
+          errors.push("Minimal pilih satu kategori event");
+        if (selectedBenefits.length === 0)
+          errors.push("Minimal pilih satu manfaat event");
+
+        // Debug log
+        console.log("EventForm validation:", {
+          hasTitle: !!formData.title,
+          hasDescription: !!formData.description,
+          categoryCount: selectedCategories.length,
+          benefitCount: selectedBenefits.length,
+          errors,
+        });
+
+        return errors;
+      } catch (error) {
+        console.error("Error during validation:", error);
+        return ["Terjadi kesalahan pada validasi form"];
+      }
+    },
+    getData: () => {
+      try {
+        // CRITICAL: Pastikan benefitIds adalah array string dari ID benefit yang valid
+        const benefitIds = selectedBenefits.map(
+          (benefit) => benefit.id || STATIC_BENEFIT_IDS.sertifikat
+        );
+
+        const data = {
+          title: formData.title,
+          description: formData.description,
+          type: formData.type,
+          categoryIds: selectedCategories.map((cat) => cat.id),
+          benefitIds: benefitIds,
+        };
+
+        console.log("getData called from EventForm, returning:", data);
+        return data;
+      } catch (error) {
+        console.error("Error getting form data:", error);
+        // Return fallback data in case of error
+        return {
+          title: formData.title || "Default Title",
+          description: formData.description || "Default Description",
+          type: formData.type || "OPEN",
+          categoryIds: [STATIC_BENEFIT_IDS.sertifikat],
+          benefitIds: [STATIC_BENEFIT_IDS.sertifikat],
+        };
+      }
+    },
+  }));
 
   // Fetch categories and benefits on mount - HANYA SEKALI
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        setLoading(prev => ({ ...prev, categories: true }));
-        
+        setLoading((prev) => ({ ...prev, categories: true }));
+
         // HARDCODED CATEGORIES untuk fallback
         const hardcodedCategories = [
           { id: uuidv4(), name: "Pendidikan" },
@@ -206,17 +259,26 @@ useImperativeHandle(ref, () => ({
           { id: uuidv4(), name: "Sosial" },
           { id: uuidv4(), name: "Kesehatan" },
           { id: uuidv4(), name: "Teknologi" },
-          { id: uuidv4(), name: "Seni & Budaya" }
+          { id: uuidv4(), name: "Seni & Budaya" },
         ];
-        
+
         try {
           const response = await axios.get(`${API_URL}/categories?type=EVENT`);
-          
-          if (response.data && response.data.data && response.data.data.length > 0) {
+
+          if (
+            response.data &&
+            response.data.data &&
+            response.data.data.length > 0
+          ) {
             setCategories(response.data.data);
-            console.log("Categories loaded from API:", response.data.data.length);
+            console.log(
+              "Categories loaded from API:",
+              response.data.data.length
+            );
           } else {
-            console.warn("API categories tidak mengembalikan data yang valid, menggunakan hardcoded");
+            console.warn(
+              "API categories tidak mengembalikan data yang valid, menggunakan hardcoded"
+            );
             setCategories(hardcodedCategories);
           }
         } catch (apiError) {
@@ -225,50 +287,60 @@ useImperativeHandle(ref, () => ({
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
-        
+
         // Fallback kategori jika ada error
         const fallbackCategories = [
           { id: uuidv4(), name: "Pendidikan" },
           { id: uuidv4(), name: "Lingkungan" },
           { id: uuidv4(), name: "Sosial" },
           { id: uuidv4(), name: "Kesehatan" },
-          { id: uuidv4(), name: "Teknologi" }
+          { id: uuidv4(), name: "Teknologi" },
         ];
         setCategories(fallbackCategories);
       } finally {
-        setLoading(prev => ({ ...prev, categories: false }));
+        setLoading((prev) => ({ ...prev, categories: false }));
       }
     };
 
     const fetchBenefits = async () => {
       try {
-        setLoading(prev => ({ ...prev, benefits: true }));
-        
+        setLoading((prev) => ({ ...prev, benefits: true }));
+
         // HARDCODED BENEFITS dengan format konsisten dan UUID valid
         const hardcodedBenefits = [
           { id: uuidv4(), name: "Sertifikat", icon: "tabler:certificate" },
           { id: uuidv4(), name: "Uang Saku", icon: "tabler:wallet" },
           { id: uuidv4(), name: "Pengalaman", icon: "tabler:medal" },
-          { id: uuidv4(), name: "Networking", icon: "ic:round-connect-without-contact" },
+          {
+            id: uuidv4(),
+            name: "Networking",
+            icon: "ic:round-connect-without-contact",
+          },
           { id: uuidv4(), name: "Makanan", icon: "fluent-mdl2:eat-drink" },
-          { id: uuidv4(), name: "Kaos/Baju", icon: "mdi:tshirt-crew" }
+          { id: uuidv4(), name: "Kaos/Baju", icon: "mdi:tshirt-crew" },
         ];
-        
+
         try {
           const response = await axios.get(`${API_URL}/benefits`);
-          
-          if (response.data && response.data.data && response.data.data.length > 0) {
+
+          if (
+            response.data &&
+            response.data.data &&
+            response.data.data.length > 0
+          ) {
             // Gunakan sistem icon yang sama dengan EventPage
-            const formattedBenefits = response.data.data.map(benefit => ({
+            const formattedBenefits = response.data.data.map((benefit) => ({
               id: benefit.id,
               name: benefit.name || "Manfaat Tanpa Nama",
-              icon: benefit.icon || getBenefitIcon(benefit.name)
+              icon: benefit.icon || getBenefitIcon(benefit.name),
             }));
-            
+
             setBenefits(formattedBenefits);
             console.log("Benefits loaded from API:", formattedBenefits.length);
           } else {
-            console.warn("API benefits tidak mengembalikan data yang valid, menggunakan hardcoded");
+            console.warn(
+              "API benefits tidak mengembalikan data yang valid, menggunakan hardcoded"
+            );
             setBenefits(hardcodedBenefits);
           }
         } catch (apiError) {
@@ -277,18 +349,22 @@ useImperativeHandle(ref, () => ({
         }
       } catch (error) {
         console.error("Error fetching benefits:", error);
-        
+
         // Fallback benefits jika ada error
         const fallbackBenefits = [
           { id: uuidv4(), name: "Sertifikat", icon: "tabler:certificate" },
           { id: uuidv4(), name: "Uang Saku", icon: "tabler:wallet" },
           { id: uuidv4(), name: "Pengalaman", icon: "tabler:medal" },
-          { id: uuidv4(), name: "Networking", icon: "ic:round-connect-without-contact" },
-          { id: uuidv4(), name: "Makanan", icon: "fluent-mdl2:eat-drink" }
+          {
+            id: uuidv4(),
+            name: "Networking",
+            icon: "ic:round-connect-without-contact",
+          },
+          { id: uuidv4(), name: "Makanan", icon: "fluent-mdl2:eat-drink" },
         ];
         setBenefits(fallbackBenefits);
       } finally {
-        setLoading(prev => ({ ...prev, benefits: false }));
+        setLoading((prev) => ({ ...prev, benefits: false }));
       }
     };
 
@@ -299,48 +375,47 @@ useImperativeHandle(ref, () => ({
   // Update parent component when form data or selections change dengan debounce
   useEffect(() => {
     // Persiapkan data untuk parent
-    const benefitIds = selectedBenefits.map(benefit => benefit.id);
-    
+    const benefitIds = selectedBenefits.map((benefit) => benefit.id);
+
     const data = {
       title: formData.title,
       description: formData.description,
       type: formData.type,
-      categoryIds: selectedCategories.map(cat => cat.id),
-      benefitIds: benefitIds
+      categoryIds: selectedCategories.map((cat) => cat.id),
+      benefitIds: benefitIds,
     };
-    
+
     // Gunakan fungsi debounce yang disimpan di ref
     updateParentRef.current(data);
-    
   }, [formData, selectedCategories, selectedBenefits]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name === 'title') {
+
+    if (name === "title") {
       // Generate slug from title
       const slug = value
         .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')
-        .replace(/\s+/g, '_');
-      
-      setFormData(prev => ({
+        .replace(/[^a-z0-9\s]/g, "")
+        .replace(/\s+/g, "_");
+
+      setFormData((prev) => ({
         ...prev,
         [name]: value,
-        slug
+        slug,
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
   const toggleCategory = (category) => {
-    setSelectedCategories(prev => {
-      if (prev.some(c => c.id === category.id)) {
-        return prev.filter(c => c.id !== category.id);
+    setSelectedCategories((prev) => {
+      if (prev.some((c) => c.id === category.id)) {
+        return prev.filter((c) => c.id !== category.id);
       } else {
         return [...prev, category];
       }
@@ -349,11 +424,11 @@ useImperativeHandle(ref, () => ({
 
   // Fungsi untuk toggle benefit (versi baru)
   const toggleBenefit = (benefit) => {
-    setSelectedBenefits(prev => {
-      const isSelected = prev.some(b => b.id === benefit.id);
-      
+    setSelectedBenefits((prev) => {
+      const isSelected = prev.some((b) => b.id === benefit.id);
+
       if (isSelected) {
-        return prev.filter(b => b.id !== benefit.id);
+        return prev.filter((b) => b.id !== benefit.id);
       } else {
         if (prev.length < 4) {
           return [...prev, benefit];
@@ -377,33 +452,39 @@ useImperativeHandle(ref, () => ({
         const newBenefit = {
           id: uuidv4(), // Generate UUID valid
           name: customBenefit,
-          icon: selectedIcon
+          icon: selectedIcon,
         };
-        
+
         // Tambahkan ke state selectedBenefits
-        setSelectedBenefits(prev => [...prev, newBenefit]);
-        
+        setSelectedBenefits((prev) => [...prev, newBenefit]);
+
         // Tambahkan juga ke daftar benefits
-        setBenefits(prev => [...prev, newBenefit]);
-        
+        setBenefits((prev) => [...prev, newBenefit]);
+
         // Reset form
         setCustomBenefit("");
         setSelectedIcon(null);
         setSearchTerm("");
         setSearchResults([]);
         setNotification("");
-        
+
         // Opsional: Coba tambahkan benefit ke API (jika tersedia)
         try {
           // Kode ini akan mencoba POST benefit baru ke API
           // Namun tetap menggunakan benefit baru meski API gagal
           const response = await axios.post(`${API_URL}/benefits`, {
             name: customBenefit,
-            icon: selectedIcon
+            icon: selectedIcon,
           });
-          console.log("Benefit baru berhasil ditambahkan ke API:", response.data);
+          console.log(
+            "Benefit baru berhasil ditambahkan ke API:",
+            response.data
+          );
         } catch (error) {
-          console.log("Benefit baru hanya ditambahkan secara lokal:", newBenefit);
+          console.log(
+            "Benefit baru hanya ditambahkan secara lokal:",
+            newBenefit
+          );
         }
       } else {
         setNotification("Anda hanya dapat membuat maksimal 4 manfaat.");
@@ -420,25 +501,27 @@ useImperativeHandle(ref, () => ({
       setSearchResults([]);
       return;
     }
-    
+
     try {
       // Mencari icon dari Iconify API
       const response = await fetch(
-        `https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=20`
+        `https://api.iconify.design/search?query=${encodeURIComponent(
+          query
+        )}&limit=20`
       );
       const data = await response.json();
       setSearchResults(data.icons || []);
     } catch (error) {
       console.error("Error fetching icons:", error);
-      
+
       // Fallback icons jika API Iconify gagal
       setSearchResults([
-        "mdi:certificate", 
-        "mdi:cash", 
-        "mdi:star", 
+        "mdi:certificate",
+        "mdi:cash",
+        "mdi:star",
         "mdi:account-group",
-        "mdi:food", 
-        "mdi:tshirt-crew"
+        "mdi:food",
+        "mdi:tshirt-crew",
       ]);
     }
   };
@@ -446,12 +529,12 @@ useImperativeHandle(ref, () => ({
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-    
+
     // Menggunakan debounce untuk mencegah terlalu banyak request
     const delaySearch = setTimeout(() => {
       searchIcons(term);
     }, 300);
-    
+
     return () => clearTimeout(delaySearch);
   };
 
@@ -479,10 +562,7 @@ useImperativeHandle(ref, () => ({
           <div className="p-6 space-y-6">
             {/* Title field */}
             <div>
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium mb-2"
-              >
+              <label htmlFor="title" className="block text-sm font-medium mb-2">
                 Nama <span className="text-red-500">*</span>
               </label>
               <input
@@ -495,7 +575,9 @@ useImperativeHandle(ref, () => ({
                 className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
               />
               {!formData.title && (
-                <p className="text-xs text-red-500 mt-1">Judul event harus diisi</p>
+                <p className="text-xs text-red-500 mt-1">
+                  Judul event harus diisi
+                </p>
               )}
             </div>
 
@@ -525,11 +607,14 @@ useImperativeHandle(ref, () => ({
                     onChange={handleInputChange}
                     className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
                   />
-                  <span className="text-sm text-gray-700">Limited (Terbatas)</span>
+                  <span className="text-sm text-gray-700">
+                    Limited (Terbatas)
+                  </span>
                 </label>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Open: Siapa saja dapat mendaftar. Limited: Anda dapat mengatur pembatasan pendaftar.
+                Open: Siapa saja dapat mendaftar. Limited: Anda dapat mengatur
+                pembatasan pendaftar.
               </p>
             </div>
 
@@ -541,7 +626,7 @@ useImperativeHandle(ref, () => ({
               >
                 Kategori <span className="text-red-500">*</span>
               </label>
-              
+
               {loading.categories ? (
                 <div className="w-full px-4 py-2 rounded-lg border bg-gray-100 flex items-center">
                   <span className="text-gray-500">Memuat kategori...</span>
@@ -550,14 +635,16 @@ useImperativeHandle(ref, () => ({
               ) : (
                 <div className="flex flex-wrap gap-2 w-full p-2 border rounded-lg bg-white">
                   {categories.length === 0 ? (
-                    <p className="text-gray-500 p-2">Tidak ada kategori tersedia</p>
+                    <p className="text-gray-500 p-2">
+                      Tidak ada kategori tersedia
+                    </p>
                   ) : (
                     categories.map((category) => (
                       <div
                         key={category.id}
                         onClick={() => toggleCategory(category)}
                         className={`px-3 py-1 rounded-full cursor-pointer text-sm ${
-                          selectedCategories.some(c => c.id === category.id)
+                          selectedCategories.some((c) => c.id === category.id)
                             ? "bg-blue-500 text-white"
                             : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                         }`}
@@ -569,7 +656,9 @@ useImperativeHandle(ref, () => ({
                 </div>
               )}
               {selectedCategories.length === 0 && !loading.categories && (
-                <p className="text-xs text-red-500 mt-1">Pilih minimal satu kategori</p>
+                <p className="text-xs text-red-500 mt-1">
+                  Pilih minimal satu kategori
+                </p>
               )}
             </div>
 
@@ -582,7 +671,7 @@ useImperativeHandle(ref, () => ({
                 Manfaat <span className="text-red-500">*</span>
                 <span className="text-gray-500 text-xs ml-2">(max 4)</span>
               </label>
-              
+
               {loading.benefits ? (
                 <div className="w-full px-4 py-2 rounded-lg border bg-gray-100 flex items-center">
                   <span className="text-gray-500">Memuat manfaat...</span>
@@ -597,7 +686,10 @@ useImperativeHandle(ref, () => ({
                           key={benefit.id}
                           className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full flex items-center gap-1 text-sm"
                         >
-                          <Icon icon={benefit.icon || getBenefitIcon(benefit.name)} className="text-lg" />
+                          <Icon
+                            icon={benefit.icon || getBenefitIcon(benefit.name)}
+                            className="text-lg"
+                          />
                           {benefit.name}
                           <button
                             type="button"
@@ -621,15 +713,17 @@ useImperativeHandle(ref, () => ({
                   </button>
                 </div>
               )}
-              
+
               {selectedBenefits.length === 0 && !loading.benefits && (
-                <p className="text-xs text-red-500 mt-1">Pilih minimal satu manfaat</p>
+                <p className="text-xs text-red-500 mt-1">
+                  Pilih minimal satu manfaat
+                </p>
               )}
-              
+
               {notification && (
                 <p className="text-red-500 text-sm mt-2">{notification}</p>
               )}
-              
+
               <div className="mt-2 text-xs text-gray-500">
                 Manfaat yang dipilih: {selectedBenefits.length}/4
               </div>
@@ -653,7 +747,9 @@ useImperativeHandle(ref, () => ({
                 className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
               ></textarea>
               {!formData.description && (
-                <p className="text-xs text-red-500 mt-1">Deskripsi event harus diisi</p>
+                <p className="text-xs text-red-500 mt-1">
+                  Deskripsi event harus diisi
+                </p>
               )}
             </div>
 
@@ -680,7 +776,8 @@ useImperativeHandle(ref, () => ({
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                URL akan otomatis dibuat dari judul event, namun dapat diubah secara manual
+                URL akan otomatis dibuat dari judul event, namun dapat diubah
+                secara manual
               </p>
             </div>
           </div>
@@ -702,14 +799,17 @@ useImperativeHandle(ref, () => ({
                 >
                   <input
                     type="checkbox"
-                    checked={selectedBenefits.some(b => b.id === benefit.id)}
+                    checked={selectedBenefits.some((b) => b.id === benefit.id)}
                     onChange={() => toggleBenefit(benefit)}
-                    disabled={selectedBenefits.length >= 4 && !selectedBenefits.some(b => b.id === benefit.id)}
+                    disabled={
+                      selectedBenefits.length >= 4 &&
+                      !selectedBenefits.some((b) => b.id === benefit.id)
+                    }
                     className="accent-blue-500"
                   />
-                  <Icon 
-                    icon={benefit.icon || getBenefitIcon(benefit.name)} 
-                    className="text-xl text-blue-500" 
+                  <Icon
+                    icon={benefit.icon || getBenefitIcon(benefit.name)}
+                    className="text-xl text-blue-500"
                   />
                   <span className="text-gray-700">{benefit.name}</span>
                 </label>
@@ -741,7 +841,9 @@ useImperativeHandle(ref, () => ({
                       <div
                         key={index}
                         className={`p-2 rounded-lg text-center cursor-pointer hover:bg-gray-200 ${
-                          selectedIcon === icon ? "bg-blue-100 border-2 border-blue-500" : "bg-gray-100"
+                          selectedIcon === icon
+                            ? "bg-blue-100 border-2 border-blue-500"
+                            : "bg-gray-100"
                         }`}
                         onClick={() => setSelectedIcon(icon)}
                       >
@@ -754,7 +856,11 @@ useImperativeHandle(ref, () => ({
               <button
                 type="button"
                 onClick={handleCreateBenefit}
-                disabled={!customBenefit || !selectedIcon || selectedBenefits.length >= 4}
+                disabled={
+                  !customBenefit ||
+                  !selectedIcon ||
+                  selectedBenefits.length >= 4
+                }
                 className={`mt-2 w-full text-white py-2 rounded-lg transition-colors duration-300 ${
                   customBenefit && selectedIcon && selectedBenefits.length < 4
                     ? "bg-green-500 hover:bg-green-600"
