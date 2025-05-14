@@ -185,16 +185,7 @@ const ListVolunteer = () => {
                             height="20"
                             className="mr-1"
                           />
-                          Lihat Formulir
-                        </button>
-                        <button className="inline-flex items-center px-2 py-1 text-[#0A3E54]">
-                          <Icon
-                            icon="mdi:pencil"
-                            width="20"
-                            height="20"
-                            className="mr-1"
-                          />
-                          Ubah Formulir
+                          Review Formulir
                         </button>
                       </div>
                     </td>
