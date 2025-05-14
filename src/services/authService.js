@@ -26,6 +26,7 @@ const handleApiError = (error, defaultMessage) => {
  */
 const storeUserData = (token, user) => {
   localStorage.setItem('token', token);
+  localStorage.setItem('authToken', token); // Store in both places for compatibility
   if (user) {
     localStorage.setItem('user', JSON.stringify(user));
   }
@@ -58,10 +59,15 @@ export const authService = {
    */
   login: async (email, password) => {
     try {
+      console.log("Logging in with email:", email);
       const response = await httpClient.post(`${API_URL}/auth/login`, {
         email,
         password,
       });
+      
+      if (!response.data || !response.data.data) {
+        throw new Error("Invalid response format from server");
+      }
       
       const { token, user } = response.data.data;
       
@@ -70,7 +76,8 @@ export const authService = {
       
       return storeUserData(token, user);
     } catch (error) {
-      handleApiError(error, 'An error occurred during login');
+      console.error("Login error:", error);
+      handleApiError(error, 'An error occurred during login. Please check your credentials.');
     }
   },
 
@@ -90,12 +97,16 @@ export const authService = {
       
       const { token, user } = response.data.data;
       
+      // Store token in both locations
+      localStorage.setItem('token', token);
+      localStorage.setItem('authToken', token);
+      
       // Store login response in sessionStorage for fallback access
       sessionStorage.setItem('loginResponse', JSON.stringify(response.data));
       
       return storeUserData(token, user);
     } catch (error) {
-      handleApiError(error, 'An error occurred during login');
+      handleApiError(error, 'An error occurred during login. Please check your credentials.');
     }
   },
 
@@ -129,7 +140,10 @@ export const authService = {
    */
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('working_endpoint');
+    localStorage.removeItem('api_base_path');
     sessionStorage.removeItem('loginResponse');
   },
 
@@ -140,13 +154,43 @@ export const authService = {
    */
   getUserProfile: async () => {
     try {
-      const response = await httpClient.get(`${API_URL}/auth/profile`);
-      if (response.data?.data?.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      // First try with authToken
+      const authToken = localStorage.getItem('authToken');
+      const token = localStorage.getItem('token');
+      
+      const headers = {};
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      } else if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        // Also save it to authToken for consistency
+        localStorage.setItem('authToken', token);
       }
-      return response.data;
+      
+      // Try calling the profile endpoint
+      console.log("Fetching user profile with token");
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch profile: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.data?.user) {
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+      }
+      
+      return data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while fetching profile data');
+      console.error("Error fetching profile:", error);
+      throw { message: error.message || 'An error occurred while fetching profile data' };
     }
   },
 
@@ -224,7 +268,33 @@ export const authService = {
    * @returns {boolean} True if authenticated, false otherwise
    */
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    // Check both token locations for compatibility
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    
+    if (!token) {
+      return false;
+    }
+    
+    try {
+      // Decode token to check expiry
+      const decoded = authService.decodeToken(token);
+      if (!decoded || !decoded.exp) {
+        return false;
+      }
+      
+      // Check if token is expired
+      const now = Math.floor(Date.now() / 1000);
+      if (decoded.exp < now) {
+        console.warn("Token has expired");
+        // Don't auto-logout here, just return false
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      console.error("Error checking token validity:", e);
+      return false;
+    }
   },
 
   /**
@@ -286,13 +356,73 @@ export const authService = {
    */
   refreshToken: async () => {
     try {
-      const response = await httpClient.post(`${API_URL}/auth/refresh-token`);
-      const { token } = response.data.data;
-      localStorage.setItem('token', token);
-      return token;
+      // Try several possible refresh token endpoints
+      const refreshEndpoints = [
+        '/auth/refresh-token',
+        '/auth/refresh',
+        '/auth/token',
+        '/auth/token/refresh',
+        '/refresh-token'
+      ];
+      
+      let lastError = null;
+      
+      // Try each endpoint until one works
+      for (const endpoint of refreshEndpoints) {
+        try {
+          console.log(`Trying to refresh token with endpoint: ${API_URL}${endpoint}`);
+          
+          // Use direct fetch to avoid axios interceptors
+          const response = await fetch(`${API_URL}${endpoint}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('authToken')}`
+            }
+          });
+          
+          if (!response.ok) {
+            console.warn(`Refresh token endpoint ${endpoint} failed with status ${response.status}`);
+            continue;
+          }
+          
+          const data = await response.json();
+          
+          // Check different response formats
+          let token = null;
+          
+          if (data.data && data.data.token) {
+            token = data.data.token;
+          } else if (data.token) {
+            token = data.token;
+          } else if (data.data && data.data.accessToken) {
+            token = data.data.accessToken;
+          } else if (data.accessToken) {
+            token = data.accessToken;
+          }
+          
+          if (token) {
+            // Store in both locations for compatibility
+            localStorage.setItem('token', token);
+            localStorage.setItem('authToken', token);
+            
+            console.log("Token refreshed successfully via", endpoint);
+            return token;
+          } else {
+            console.warn(`Token not found in response from ${endpoint}`, data);
+          }
+        } catch (endpointError) {
+          console.warn(`Refresh token failed with endpoint ${endpoint}:`, endpointError.message);
+          lastError = endpointError;
+        }
+      }
+      
+      // If all endpoints failed
+      console.error("All refresh token endpoints failed");
+      throw lastError || new Error("Failed to refresh token");
     } catch (error) {
-      authService.logout();
-      handleApiError(error, 'Session expired. Please login again.');
+      console.error("Error refreshing token:", error);
+      throw { message: "Session expired. Please login again." };
     }
   },
 
@@ -304,7 +434,7 @@ export const authService = {
   decodeToken: (token = null) => {
     try {
       if (!token) {
-        token = localStorage.getItem('token');
+        token = localStorage.getItem('token') || localStorage.getItem('authToken');
       }
       
       if (!token) return null;

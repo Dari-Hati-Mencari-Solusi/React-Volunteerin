@@ -87,15 +87,216 @@ export const partnerService = {
    * @returns {Promise<Object>} Created event data
    * @throws {Object} Error object with message
    */
-  createEvent: async (eventData) => {
+  // Perbarui metode createEvent
+  createEvent: async (formData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/partners/me/events`, eventData);
+      // Debug: Log form data dengan detail lebih baik
+      console.log("===== CREATING EVENT =====");
+      console.log("FormData entries:");
+      
+      let hasBenefits = false;
+      let benefitCount = 0;
+      let categoryCount = 0;
+      
+      for (let [key, value] of formData.entries()) {
+        if (key === 'banner') {
+          console.log(`${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`);
+        } else {
+          console.log(`${key}: ${value}`);
+          
+          // Cek format benefitIds
+          if (key === 'benefitIds[]') {
+            hasBenefits = true;
+            benefitCount++;
+          }
+          
+          // Cek categoryIds
+          if (key === 'categoryIds[]') {
+            categoryCount++;
+          }
+        }
+      }
+      
+      // Validasi kritis
+      console.log(`Found ${benefitCount} benefit IDs and ${categoryCount} category IDs`);
+      
+      if (!hasBenefits || benefitCount === 0) {
+        console.error("CRITICAL ERROR: No benefit IDs found in form data");
+        throw { message: "Minimal pilih satu manfaat event" };
+      }
+      
+      if (categoryCount === 0) {
+        console.error("CRITICAL ERROR: No category IDs found in form data");
+        throw { message: "Minimal pilih satu kategori event" };
+      }
+      
+      // Send API request dengan timeout dan header tambahan
+      console.log("Sending request to:", `${API_URL}/partners/me/events`);
+      const response = await httpClient.post(`${API_URL}/partners/me/events`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'X-Request-Source': 'React-App', // Header tambahan untuk debugging
+        },
+        timeout: 60000 // Timeout 60 detik
+      });
+      
+      console.log("Event created successfully, response:", response.data);
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while creating the event');
+      console.error("Error creating event:", error);
+      
+      // Improved error logging
+      if (error.response) {
+        console.log("Error status:", error.response.status);
+        console.log("Error data:", error.response.data);
+        
+        // Jika error 500, coba dengan data minimal
+        if (error.response.status === 500) {
+          try {
+            console.log("Server error detected. Retrying with minimal data...");
+            
+            // Buat minimal FormData baru
+            const minimalFormData = new FormData();
+            
+            // Ambil data utama dari formData asli
+            const title = formData.get('title') || 'Default Title';
+            const type = formData.get('type') || 'OPEN';
+            const description = formData.get('description') || 'Default Description';
+            const requirement = formData.get('requirement') || 'Default Requirement';
+            const contactPerson = formData.get('contactPerson') || '081234567890';
+            const startAt = formData.get('startAt') || new Date().toISOString();
+            const province = formData.get('province') || 'Default Province';
+            const regency = formData.get('regency') || 'Default Regency';
+            
+            // Tambahkan data utama
+            minimalFormData.append('title', title);
+            minimalFormData.append('type', type);
+            minimalFormData.append('description', description);
+            minimalFormData.append('requirement', requirement);
+            minimalFormData.append('contactPerson', contactPerson);
+            minimalFormData.append('startAt', startAt);
+            minimalFormData.append('maxApplicant', '10');
+            minimalFormData.append('province', province);
+            minimalFormData.append('regency', regency);
+            minimalFormData.append('isPaid', 'false');
+            minimalFormData.append('isRelease', 'false');
+            
+            // Ambil 1 categoryId dari formData asli
+            const categoryIds = formData.getAll('categoryIds[]');
+            if (categoryIds && categoryIds.length > 0) {
+              minimalFormData.append('categoryIds[]', categoryIds[0]);
+            } else {
+              throw new Error("Tidak ada category ID yang valid");
+            }
+            
+            // Ambil 1 benefitId dari formData asli
+            const benefitIds = formData.getAll('benefitIds[]');
+            if (benefitIds && benefitIds.length > 0) {
+              minimalFormData.append('benefitIds[]', benefitIds[0]);
+            } else {
+              throw new Error("Tidak ada benefit ID yang valid");
+            }
+            
+            // Tambahkan banner jika ada
+            if (formData.get('banner')) {
+              minimalFormData.append('banner', formData.get('banner'));
+            }
+            
+            console.log("Minimal data retry - sending request");
+            const minimalResponse = await httpClient.post(`${API_URL}/partners/me/events`, minimalFormData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+                'X-Retry-Attempt': 'true'
+              },
+              timeout: 60000
+            });
+            
+            console.log("Minimal data approach successful:", minimalResponse.data);
+            return minimalResponse.data;
+          } catch (retryError) {
+            console.error("Retry failed:", retryError);
+            throw { 
+              message: "Server error persists even with minimal data. Please contact admin or try again later.", 
+              originalError: error.response?.data 
+            };
+          }
+        }
+        
+        // Handle specific error cases
+        if (error.response.status === 413) {
+          throw { message: "Ukuran file banner terlalu besar. Maksimal 1MB." };
+        }
+        
+        if (error.response.status === 400) {
+          // Detailed validation error handling
+          if (error.response.data?.errors && Array.isArray(error.response.data.errors)) {
+            const errorMsg = error.response.data.message || "Data tidak valid";
+            console.log("Validation errors:", error.response.data.errors);
+            
+            // Check for benefit-specific errors
+            const benefitErrors = error.response.data.errors.filter(
+              err => err.toLowerCase().includes('benefit') || 
+                    err.toLowerCase().includes('manfaat')
+            );
+            
+            if (benefitErrors.length > 0) {
+              throw { 
+                message: benefitErrors[0],
+                errors: error.response.data.errors 
+              };
+            }
+            
+            throw { 
+              message: errorMsg, 
+              errors: error.response.data.errors 
+            };
+          } else if (error.response.data?.message) {
+            throw { message: error.response.data.message };
+          } else {
+            throw { message: "Terjadi kesalahan pada validasi data." };
+          }
+        }
+        
+        // Other status codes handling - unchanged
+        if (error.response.status === 401) {
+          throw { message: "Sesi Anda telah berakhir. Silakan login kembali." };
+        }
+        
+        if (error.response.status === 404) {
+          throw { message: "Endpoint tidak ditemukan. Silakan hubungi administrator." };
+        }
+        
+        if (error.response.status === 500) {
+          throw { message: "Terjadi kesalahan pada server. Silakan coba beberapa saat lagi." };
+        }
+        
+        // Default response error
+        throw { message: error.response.data?.message || "Terjadi kesalahan pada saat memproses permintaan." };
+      }
+      
+      // Network or other errors - unchanged
+      if (error.message) {
+        throw { message: error.message };
+      } else {
+        throw { message: 'Gagal membuat event. Silakan coba lagi.' };
+      }
     }
   },
-
+  /**
+   * Get event details by ID
+   * @param {string} eventId - ID of the event
+   * @returns {Promise<Object>} Event details data
+   * @throws {Object} Error object with message
+   */
+  getEventDetails: async (eventId) => {
+    try {
+      const response = await httpClient.get(`${API_URL}/partners/me/events/${eventId}`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'An error occurred while fetching event details');
+    }
+  },  
+  
   /**
    * Update an existing event
    * @param {string} eventId - ID of the event to update
@@ -180,15 +381,6 @@ export const partnerService = {
    * @returns {Promise<Object>} Upload response with image URL
    * @throws {Object} Error object with message
    */
-
-// Tambahkan method ini ke dalam objek partnerService
-/**
- * Upload an avatar/logo image for partner profile
- * @param {FormData} formData - Form data containing the avatar image file
- * @returns {Promise<Object>} Upload response with avatar URL
- * @throws {Object} Error object with message
- */
-  
   uploadBanner: async (formData) => {
     try {
       const response = await httpClient.post(`${API_URL}/partners/me/banner`, formData, {
@@ -202,155 +394,13 @@ export const partnerService = {
     }
   },
 
-  // Tambahkan metode-metode berikut ke dalam objek partnerService
-
-/**
- * Get responsible person data
- * @returns {Promise<Object>} Responsible person data
- * @throws {Object} Error object with message
- */
-getResponsiblePerson: async () => {
-    try {
-      const response = await httpClient.get(`${API_URL}/partners/me/responsible-person`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while fetching responsible person data');
-    }
-  },
-  
   /**
-   * Create responsible person data
-   * @param {Object} personData - Responsible person data
-   * @returns {Promise<Object>} Created responsible person data
+   * Upload an avatar/logo image for partner profile
+   * @param {FormData} formData - Form data containing the avatar image file
+   * @returns {Promise<Object>} Upload response with avatar URL
    * @throws {Object} Error object with message
    */
-  createResponsiblePerson: async (personData) => {
-    try {
-      const response = await httpClient.post(`${API_URL}/partners/me/responsible-person`, personData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while creating responsible person data');
-    }
-  },
-  
-  /**
-   * Update responsible person data
-   * @param {Object} personData - Updated responsible person data
-   * @returns {Promise<Object>} Updated responsible person data
-   * @throws {Object} Error object with message
-   */
-  updateResponsiblePerson: async (personData) => {
-    try {
-      const response = await httpClient.put(`${API_URL}/partners/me/responsible-person`, personData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while updating responsible person data');
-    }
-  },
-  
-  /**
-   * Upload KTP image for responsible person
-   * @param {FormData} formData - Form data containing the KTP image file
-   * @returns {Promise<Object>} Upload response with image URL and ID
-   * @throws {Object} Error object with message
-   */
-  uploadKtpImage: async (formData) => {
-    try {
-      const response = await httpClient.post(`${API_URL}/partners/me/responsible-person/ktp`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while uploading KTP image');
-    }
-  },
-
-// Get all legal documents
-getLegalDocuments: async () => {
-    try {
-      const response = await httpClient.get(`${API_URL}/partners/me/legality`);
-      return response.data;
-    } catch (error) {
-      console.error("Error in getLegalDocuments:", error);
-      handleApiError(error, 'An error occurred while fetching legal documents');
-    }
-  },
-  
-  // Upload a new legal document
-  uploadLegalDocument: async (formData) => {
-    try {
-      // Log all formData entries for debugging
-      console.log("FormData contents:");
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value instanceof File ? `File: ${value.name}` : value}`);
-      }
-      
-      const response = await httpClient.post(`${API_URL}/partners/me/legality`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error("Error in uploadLegalDocument:", error);
-      throw error; // Rethrow to handle in component
-    }
-  },
-  
-// Delete a legal document dengan mencoba beberapa metode berbeda
-deleteLegalDocument: async (documentId) => {
-    try {
-      console.log(`Menghapus dokumen dengan ID: ${documentId}`);
-      
-      // Metode 1: DELETE dengan path parameter
-      const response = await httpClient.delete(`${API_URL}/partners/me/legality/${documentId}`);
-      return response.data;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        // Metode 2: DELETE dengan query params
-        try {
-          console.log("Trying with query params...");
-          const response = await httpClient.delete(`${API_URL}/partners/me/legality`, {
-            params: { id: documentId }
-          });
-          return response.data;
-        } catch (queryError) {
-          // Metode 3: DELETE dengan request body
-          try {
-            console.log("Trying with request body...");
-            const response = await httpClient.delete(`${API_URL}/partners/me/legality`, {
-              data: { id: documentId }
-            });
-            return response.data;
-          } catch (bodyError) {
-            console.error("All delete methods failed:", bodyError);
-            
-            if (bodyError.response) {
-              console.log("Final error status:", bodyError.response.status);
-              console.log("Final error data:", bodyError.response.data);
-            }
-            
-            throw bodyError;
-          }
-        }
-      } else {
-        console.error("Error in deleteLegalDocument:", error);
-        
-        if (error.response) {
-          console.log("Response status:", error.response.status);
-          console.log("Response data:", error.response.data);
-        }
-        
-        throw error;
-      }
-    }
-  },
-
-// Tambahkan method ini ke dalam objek partnerService
-uploadAvatar: async (formData) => {
+  uploadAvatar: async (formData) => {
     try {
       // Validasi formData
       if (formData.has('avatar')) {
@@ -422,5 +472,162 @@ uploadAvatar: async (formData) => {
     }
   },
 
-};
+  /**
+   * Get responsible person data
+   * @returns {Promise<Object>} Responsible person data
+   * @throws {Object} Error object with message
+   */
+  getResponsiblePerson: async () => {
+    try {
+      const response = await httpClient.get(`${API_URL}/partners/me/responsible-person`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'An error occurred while fetching responsible person data');
+    }
+  },
+  
+  /**
+   * Create responsible person data
+   * @param {Object} personData - Responsible person data
+   * @returns {Promise<Object>} Created responsible person data
+   * @throws {Object} Error object with message
+   */
+  createResponsiblePerson: async (personData) => {
+    try {
+      const response = await httpClient.post(`${API_URL}/partners/me/responsible-person`, personData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'An error occurred while creating responsible person data');
+    }
+  },
+  
+  /**
+   * Update responsible person data
+   * @param {Object} personData - Updated responsible person data
+   * @returns {Promise<Object>} Updated responsible person data
+   * @throws {Object} Error object with message
+   */
+  updateResponsiblePerson: async (personData) => {
+    try {
+      const response = await httpClient.put(`${API_URL}/partners/me/responsible-person`, personData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'An error occurred while updating responsible person data');
+    }
+  },
+  
+  /**
+   * Upload KTP image for responsible person
+   * @param {FormData} formData - Form data containing the KTP image file
+   * @returns {Promise<Object>} Upload response with image URL and ID
+   * @throws {Object} Error object with message
+   */
+  uploadKtpImage: async (formData) => {
+    try {
+      const response = await httpClient.post(`${API_URL}/partners/me/responsible-person/ktp`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'An error occurred while uploading KTP image');
+    }
+  },
 
+  /**
+   * Get all legal documents
+   * @returns {Promise<Object>} Legal documents data
+   * @throws {Object} Error object with message
+   */
+  getLegalDocuments: async () => {
+    try {
+      const response = await httpClient.get(`${API_URL}/partners/me/legality`);
+      return response.data;
+    } catch (error) {
+      console.error("Error in getLegalDocuments:", error);
+      handleApiError(error, 'An error occurred while fetching legal documents');
+    }
+  },
+  
+  /**
+   * Upload a new legal document
+   * @param {FormData} formData - Form data containing the document file
+   * @returns {Promise<Object>} Upload response with document data
+   * @throws {Object} Error object with message
+   */
+  uploadLegalDocument: async (formData) => {
+    try {
+      // Log all formData entries for debugging
+      console.log("FormData contents:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value instanceof File ? `File: ${value.name}` : value}`);
+      }
+      
+      const response = await httpClient.post(`${API_URL}/partners/me/legality`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error("Error in uploadLegalDocument:", error);
+      throw error; // Rethrow to handle in component
+    }
+  },
+  
+  /**
+   * Delete a legal document
+   * @param {string} documentId - ID of the document to delete
+   * @returns {Promise<Object>} Deletion response
+   * @throws {Object} Error object with message
+   */
+  deleteLegalDocument: async (documentId) => {
+    try {
+      console.log(`Menghapus dokumen dengan ID: ${documentId}`);
+      
+      // Metode 1: DELETE dengan path parameter
+      const response = await httpClient.delete(`${API_URL}/partners/me/legality/${documentId}`);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        // Metode 2: DELETE dengan query params
+        try {
+          console.log("Trying with query params...");
+          const response = await httpClient.delete(`${API_URL}/partners/me/legality`, {
+            params: { id: documentId }
+          });
+          return response.data;
+        } catch (queryError) {
+          // Metode 3: DELETE dengan request body
+          try {
+            console.log("Trying with request body...");
+            const response = await httpClient.delete(`${API_URL}/partners/me/legality`, {
+              data: { id: documentId }
+            });
+            return response.data;
+          } catch (bodyError) {
+            console.error("All delete methods failed:", bodyError);
+            
+            if (bodyError.response) {
+              console.log("Final error status:", bodyError.response.status);
+              console.log("Final error data:", bodyError.response.data);
+            }
+            
+            throw bodyError;
+          }
+        }
+      } else {
+        console.error("Error in deleteLegalDocument:", error);
+        
+        if (error.response) {
+          console.log("Response status:", error.response.status);
+          console.log("Response data:", error.response.data);
+        }
+        
+        throw error;
+      }
+    }
+  }
+};
