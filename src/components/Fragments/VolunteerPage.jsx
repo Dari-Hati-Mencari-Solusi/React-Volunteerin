@@ -16,7 +16,7 @@ const VolunteerPage = () => {
           </div>
           <div className="card-body">
             <p className="md:text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#0A3E54] transition-colors">
-              35 Orang
+              0 Orang
             </p>
             <span className="md:text-[14px] lg:text-md text-md flex w-fit items-center gap-x-2 py-1 font-medium text-[#1BD113]">
               Pendaftar Sementara
@@ -33,7 +33,7 @@ const VolunteerPage = () => {
           </div>
           <div className="card-body">
             <p className="md:text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#0A3E54] transition-colors">
-              Rp.160.000,00
+              Rp.0.000,00
             </p>
             <span className="md:text-[14px] lg:text-md text-md flex w-fit items-center gap-x-2 py-1 font-medium text-[#1BD113]">
               Pendapatan hari ini
@@ -54,7 +54,7 @@ const VolunteerPage = () => {
           </div>
           <div className="card-body">
             <p className="md:text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#0A3E54] transition-colors">
-              10 Orang
+              0 Orang
             </p>
             <span className="md:text-[14px] lg:text-md text-md flex w-fit items-center gap-x-2 py-1 font-medium text-red-500">
               Direview/ditolak/lolos

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/navbar/Navbar";
 import Footer from "../../components/footer/Footer";
-import BannerEvent from "../../assets/images/banner1.jpg"; 
+import BannerEvent from "../../assets/images/banner1.jpg";
 import { Icon } from "@iconify/react";
 import BtnDaftarVolunteer from "../../components/Elements/buttons/BtnDaftarVolunteer";
 import Marketing from "../../components/Fragments/Marketing";
@@ -18,34 +18,26 @@ const EventPage = () => {
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
 
-  // Check authentication status dan fetch data event
   useEffect(() => {
-    // Jika belum login, redirect ke halaman login
     if (!isAuthenticated) {
-      // Simpan URL tujuan agar setelah login bisa kembali ke halaman ini
       const returnUrl = `/event/${id}`;
-      
-      // Gunakan localStorage untuk menyimpan URL tempat user ingin pergi
+
       localStorage.setItem("returnUrl", returnUrl);
-      
-      // Redirect ke halaman login dengan pesan
-      navigate("/login", { 
-        state: { 
+
+      navigate("/login", {
+        state: {
           message: "Silakan login untuk melihat detail event",
-          returnUrl: returnUrl 
-        } 
+          returnUrl: returnUrl,
+        },
       });
     } else {
-      // User sudah login, fetch data event dari API
       const getEventData = async () => {
         try {
           setIsLoading(true);
-          // Ambil token dari localStorage
           const token = localStorage.getItem("token");
-          
-          // Panggil fungsi dari eventService
+
           const eventData = await fetchEventById(id, token);
-          
+
           if (eventData && eventData.data) {
             setEvent(eventData.data);
           } else {
@@ -53,12 +45,14 @@ const EventPage = () => {
           }
         } catch (err) {
           console.error("Error fetching event:", err);
-          setError(err.message || "Terjadi kesalahan saat mengambil data event");
+          setError(
+            err.message || "Terjadi kesalahan saat mengambil data event"
+          );
         } finally {
           setIsLoading(false);
         }
       };
-      
+
       getEventData();
     }
   }, [isAuthenticated, id, navigate]);
@@ -67,7 +61,6 @@ const EventPage = () => {
     setShowFullDescription(!showFullDescription);
   };
 
-  // Tampilkan loading spinner saat memuat data
   if (isLoading) {
     return (
       <section className="min-h-screen flex flex-col">
@@ -80,7 +73,6 @@ const EventPage = () => {
     );
   }
 
-  // Tampilkan error jika ada
   if (error) {
     return (
       <section className="min-h-screen flex flex-col">
@@ -89,7 +81,7 @@ const EventPage = () => {
           <div className="max-w-md w-full bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
             <h2 className="font-bold text-lg mb-2">Error</h2>
             <p>{error}</p>
-            <button 
+            <button
               onClick={() => navigate("/events")}
               className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
             >
@@ -102,7 +94,6 @@ const EventPage = () => {
     );
   }
 
-  // Tampilkan pesan jika tidak ada data event
   if (!event) {
     return (
       <section className="min-h-screen flex flex-col">
@@ -110,7 +101,7 @@ const EventPage = () => {
         <div className="flex-grow flex justify-center items-center">
           <div className="text-center">
             <p className="text-gray-600 mb-4">Data event tidak tersedia</p>
-            <button 
+            <button
               onClick={() => navigate("/events")}
               className="bg-[#0A3E54] text-white px-4 py-2 rounded-lg hover:bg-[#0A3E54]/90 transition"
             >
@@ -123,21 +114,30 @@ const EventPage = () => {
     );
   }
 
-  // Format tanggal dan waktu
   const formatDate = (dateString) => {
-    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    return new Date(dateString).toLocaleDateString('id-ID', options);
+    const options = {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    };
+    return new Date(dateString).toLocaleDateString("id-ID", options);
   };
 
   const formatTime = (dateString) => {
-    const options = { hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleTimeString('id-ID', options);
+    const options = { hour: "2-digit", minute: "2-digit" };
+    return new Date(dateString).toLocaleTimeString("id-ID", options);
   };
 
   const eventDetails = {
     title: event.title,
-    date: `${formatDate(event.startAt)} - ${formatDate(event.endAt)} • ${formatTime(event.startAt)} - ${formatTime(event.endAt)} WIB`,
-    category: event.categories && event.categories.length > 0 ? event.categories[0].name : "Event",
+    date: `${formatDate(event.startAt)} - ${formatDate(
+      event.endAt
+    )} • ${formatTime(event.startAt)} - ${formatTime(event.endAt)} WIB`,
+    category:
+      event.categories && event.categories.length > 0
+        ? event.categories[0].name
+        : "Event",
     location: event.address,
     organizer: {
       name: event.user?.name || "Penyelenggara Event",
@@ -150,11 +150,12 @@ const EventPage = () => {
 
   // Parse requirements dari respons API
   const activities = event.requirement
-    ? event.requirement.split('\n')
-        .filter(req => req.trim() !== '')
+    ? event.requirement
+        .split("\n")
+        .filter((req) => req.trim() !== "")
         .map((req, index) => ({
           id: index + 1,
-          description: req.replace(/^\d+\.\s*/, '').trim() || req // Hapus nomor jika ada
+          description: req.replace(/^\d+\.\s*/, "").trim() || req, // Hapus nomor jika ada
         }))
     : [
         {
@@ -164,18 +165,19 @@ const EventPage = () => {
       ];
 
   // Ubah benefits dari API ke format yang sesuai dengan UI
-  const benefits = event.benefits && event.benefits.length > 0
-    ? event.benefits.map((benefit, index) => ({
-        id: index + 1,
-        title: benefit.name,
-        icon: getBenefitIcon(benefit.icon || benefit.name)
-      }))
-    : [
-        { id: 1, title: "Uang Saku", icon: "tabler:wallet" },
-        { id: 2, title: "Sertifikat", icon: "tabler:certificate" },
-        { id: 3, title: "Snack", icon: "fluent-mdl2:eat-drink" },
-        { id: 4, title: "Koneksi", icon: "ic:round-connect-without-contact" },
-      ];
+  const benefits =
+    event.benefits && event.benefits.length > 0
+      ? event.benefits.map((benefit, index) => ({
+          id: index + 1,
+          title: benefit.name,
+          icon: getBenefitIcon(benefit.icon || benefit.name),
+        }))
+      : [
+          { id: 1, title: "Uang Saku", icon: "tabler:wallet" },
+          { id: 2, title: "Sertifikat", icon: "tabler:certificate" },
+          { id: 3, title: "Snack", icon: "fluent-mdl2:eat-drink" },
+          { id: 4, title: "Koneksi", icon: "ic:round-connect-without-contact" },
+        ];
 
   return (
     <section className="min-h-screen flex flex-col">
@@ -204,18 +206,23 @@ const EventPage = () => {
                         {eventDetails.quota}
                       </span>
                     </div>
-                    <button onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: event.title,
-                          text: event.description?.substring(0, 100) + '...',
-                          url: window.location.href
-                        }).catch(err => console.log('Error sharing:', err));
-                      } else {
-                        navigator.clipboard.writeText(window.location.href);
-                        alert('URL copied to clipboard!');
-                      }
-                    }}>
+                    <button
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator
+                            .share({
+                              title: event.title,
+                              text:
+                                event.description?.substring(0, 100) + "...",
+                              url: window.location.href,
+                            })
+                            .catch((err) => console.log("Error sharing:", err));
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                          alert("URL copied to clipboard!");
+                        }
+                      }}
+                    >
                       <Icon
                         icon="meteor-icons:share"
                         className="w-6 h-6 text-[#0A3E54]"
@@ -231,13 +238,17 @@ const EventPage = () => {
                 </div>
 
                 <div className="mb-4 flex flex-wrap gap-2">
-                  {event.categories && event.categories.map(category => (
-                    <span key={category.id} className="font-medium bg-[#22D0EE] text-[#0A3E54] px-4 sm:px-7 py-[6px] rounded-full text-sm sm:text-md">
-                      {category.name}
-                    </span>
-                  ))}
+                  {event.categories &&
+                    event.categories.map((category) => (
+                      <span
+                        key={category.id}
+                        className="font-medium bg-[#22D0EE] text-[#0A3E54] px-4 sm:px-7 py-[6px] rounded-full text-sm sm:text-md"
+                      >
+                        {category.name}
+                      </span>
+                    ))}
                 </div>
-                
+
                 <div className="flex items-start sm:items-center gap-2 mb-6 text-[#343E46]">
                   <Icon
                     icon="weui:location-filled"
@@ -377,12 +388,12 @@ const EventPage = () => {
                   </div>
                 </div>
               </div>
-              
+
               <BtnDaftarVolunteer eventId={id} />
             </div>
           </div>
         </div>
-       <Marketing />
+        <Marketing />
       </section>
       <Footer />
     </section>
@@ -393,34 +404,34 @@ const EventPage = () => {
 function getBenefitIcon(benefitName) {
   // Define mapping of keyword patterns to icon names
   const BENEFIT_ICON_MAP = {
-    'akomodasi': 'mdi:hotel',
-    'hotel': 'mdi:hotel',
-    'penghargaan': 'mdi:trophy-award',
-    'award': 'mdi:trophy-award',
-    'sertifikat': 'tabler:certificate',
-    'uang': 'tabler:wallet',
-    'saku': 'tabler:wallet',
-    'makan': 'fluent-mdl2:eat-drink',
-    'snack': 'fluent-mdl2:eat-drink',
-    'koneksi': 'ic:round-connect-without-contact',
-    'network': 'ic:round-connect-without-contact',
-    'kaos': 'mdi:tshirt-crew',
-    'baju': 'mdi:tshirt-crew',
-    'pengalaman': 'tabler:medal'
+    akomodasi: "mdi:hotel",
+    hotel: "mdi:hotel",
+    penghargaan: "mdi:trophy-award",
+    award: "mdi:trophy-award",
+    sertifikat: "tabler:certificate",
+    uang: "tabler:wallet",
+    saku: "tabler:wallet",
+    makan: "fluent-mdl2:eat-drink",
+    snack: "fluent-mdl2:eat-drink",
+    koneksi: "ic:round-connect-without-contact",
+    network: "ic:round-connect-without-contact",
+    kaos: "mdi:tshirt-crew",
+    baju: "mdi:tshirt-crew",
+    pengalaman: "tabler:medal",
   };
-  
+
   // Default icon if no match found
-  const DEFAULT_ICON = 'mdi:gift-outline';
-  
+  const DEFAULT_ICON = "mdi:gift-outline";
+
   if (!benefitName) return DEFAULT_ICON;
-  
+
   const name = benefitName.toLowerCase();
-  
+
   // Find the first keyword that matches in the benefit name
-  const matchedKeyword = Object.keys(BENEFIT_ICON_MAP).find(keyword => 
+  const matchedKeyword = Object.keys(BENEFIT_ICON_MAP).find((keyword) =>
     name.includes(keyword)
   );
-  
+
   // Return matched icon or default
   return matchedKeyword ? BENEFIT_ICON_MAP[matchedKeyword] : DEFAULT_ICON;
 }
