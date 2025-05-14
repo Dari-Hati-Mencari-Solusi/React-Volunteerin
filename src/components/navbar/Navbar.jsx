@@ -60,6 +60,9 @@ const Navbar = () => {
     }
   };
 
+  const csWhatsAppLink = "https://wa.me/6285343037191";
+  const csPartnerWhatsAppLink = "https://wa.me/6285343037191"; 
+
   return (
     <nav className="bg-white fixed w-full z-50 border-b border-gray-200">
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
@@ -107,25 +110,25 @@ const Navbar = () => {
                     {openDropdown === "event" && (
                       <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
                         <Link
-                          to="/event"
+                          to="/"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Semua Event
                         </Link>
                         <Link
-                          to="#"
+                          to="/"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Lingkungan
                         </Link>
                         <Link
-                          to="#"
+                          to="/"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Sosial
                         </Link>
                         <Link
-                          to="#"
+                          to="/"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           Pendidikan
@@ -165,21 +168,27 @@ const Navbar = () => {
                       </svg>
                     </button>
                     {openDropdown === "hubungiKami" && (
-                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                        <Link
-                          to="#"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    <div className="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                      <div className="py-1">
+                        <a 
+                          href={csWhatsAppLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          Cs
-                        </Link>
-                        <Link
-                          to="#"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          CS
+                        </a>
+                        <a 
+                          href={csPartnerWhatsAppLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          Cs Partner
-                        </Link>
+                          CS Partner
+                        </a>
                       </div>
-                    )}
+                    </div>
+                  )}
                   </div>
                 </li>
               </ul>
@@ -227,6 +236,13 @@ const Navbar = () => {
                           >
                             <Icon icon="mdi:cog" className="w-6 h-6" />
                             <span className="font-medium">Pengaturan Akun</span>
+                          </Link>
+                           <Link
+                            to= "/misi-kamu"
+                            className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
+                          >
+                            <Icon icon="mingcute:target-line" className="w-6 h-6" />
+                            <span className="font-medium">Misi Kamu</span>
                           </Link>
                           <button
                             onClick={handleLogout}
@@ -332,25 +348,25 @@ const Navbar = () => {
                   {openDropdown === "event" && (
                     <div className="mt-2 bg-white rounded-lg py-2 z-50 text-md md:text-xl">
                       <Link
-                        to="/event"
+                        to="/"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Semua Event
                       </Link>
                       <Link
-                        to="#"
+                        to="/"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Lingkungan
                       </Link>
                       <Link
-                        to="#"
+                        to="/"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Sosial
                       </Link>
                       <Link
-                        to="#"
+                        to="/"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Pendidikan
@@ -464,6 +480,13 @@ const Navbar = () => {
                                 Pengaturan Akun
                               </span>
                             </Link>
+                              <Link
+                            to= "/misi-kamu"
+                            className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
+                          >
+                            <Icon icon="mingcute:target-line" className="w-6 h-6" />
+                            <span className="font-medium">Misi Kamu</span>
+                          </Link>
                             <button
                               onClick={handleLogout}
                               className="flex items-center gap-2 px-6 py-3 text-red-600 hover:bg-gray-50 transition duration-150 w-full text-left border-t border-gray-100"
