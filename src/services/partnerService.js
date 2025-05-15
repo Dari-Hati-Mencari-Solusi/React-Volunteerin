@@ -1,6 +1,7 @@
 import httpClient from '../utils/httpClient';
 
-const API_URL = import.meta.env.VITE_BE_BASE_URL;
+// HAPUS variabel API_URL karena sudah didefinisikan dalam httpClient
+// const API_URL = import.meta.env.VITE_BE_BASE_URL;
 
 /**
  * Handle API errors consistently across service
@@ -22,19 +23,54 @@ const handleApiError = (error, defaultMessage) => {
  * Partner service containing methods for partner-specific operations
  */
 export const partnerService = {
-  /**
-   * Get authenticated partner's profile
-   * @returns {Promise<Object>} Partner profile data
-   * @throws {Object} Error object with message
-   */
-  getPartnerProfile: async () => {
-    try {
-      const response = await httpClient.get(`${API_URL}/partners/me/profile`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while fetching partner profile');
+/**
+ * Get authenticated partner's profile
+ * @returns {Promise<Object>} Partner profile data
+ * @throws {Object} Error object with message
+ */
+getPartnerProfile: async () => {
+  try {
+    // Tambahkan logging untuk debug
+    console.log("Fetching partner profile from:", `/partners/me/profile`);
+    
+    // PERBAIKAN: Hapus kata "profile" di akhir baris ini
+    const response = await httpClient.get(`/partners/me/profile`);
+    
+    // Log respons untuk debugging
+    console.log("Partner profile raw response:", response);
+    console.log("Partner profile data:", response.data);
+    
+    // Validasi struktur respons dengan lebih baik
+    if (!response.data) {
+      console.warn("Respons kosong:", response);
+      throw new Error("Format data profil partner tidak valid");
     }
-  },
+    
+    // Deteksi jika respons adalah HTML alih-alih JSON
+    if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
+      console.warn("API mengembalikan HTML, bukan JSON");
+      throw new Error("API mengembalikan halaman HTML, bukan data JSON");
+    }
+    
+    // Validasi struktur respons yang diharapkan
+    if (!response.data.data) {
+      console.warn("Struktur data tidak valid:", response.data);
+      throw new Error("Struktur data profil partner tidak sesuai format");
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error in getPartnerProfile:", error);
+    
+    // Log detail error untuk debugging
+    if (error.response) {
+      console.log("Response status:", error.response.status);
+      console.log("Response data:", error.response.data);
+    }
+    
+    handleApiError(error, 'Gagal mengambil data profil partner');
+  }
+},
 
   /**
    * Update partner profile information
@@ -44,22 +80,31 @@ export const partnerService = {
    */
   updatePartnerProfile: async (profileData) => {
     try {
-      const response = await httpClient.put(`${API_URL}/partners/me/profile`, profileData);
+      console.log("Updating partner profile with data:", profileData);
+      const response = await httpClient.put(`/partners/me/profile`, profileData);
+      console.log("Update response:", response.data);
       return response.data;
     } catch (error) {
+      console.error("Error updating partner profile:", error);
+      
+      if (error.response) {
+        console.log("Response status:", error.response.status);
+        console.log("Response data:", error.response.data);
+      }
+      
       handleApiError(error, 'An error occurred while updating partner profile');
     }
   },
 
   /**
    * Create new partner profile
-   * @param {Object} profileData - New partner profile data
+   * @param {Object}  - New partner profile data
    * @returns {Promise<Object>} Created partner data
    * @throws {Object} Error object with message
    */
   createPartnerProfile: async (profileData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/partners/me/profile`, profileData);
+      const response = await httpClient.post(`/partners/me/profile`, profileData);
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while creating partner profile');
@@ -74,7 +119,7 @@ export const partnerService = {
    */
   getPartnerEvents: async (params = {}) => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/events`, { params });
+      const response = await httpClient.get(`/partners/me/events`, { params });
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while fetching partner events');
@@ -131,8 +176,8 @@ export const partnerService = {
       }
       
       // Send API request dengan timeout dan header tambahan
-      console.log("Sending request to:", `${API_URL}/partners/me/events`);
-      const response = await httpClient.post(`${API_URL}/partners/me/events`, formData, {
+      console.log("Sending request to:", `/partners/me/events`);
+      const response = await httpClient.post(`/partners/me/events`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'X-Request-Source': 'React-App', // Header tambahan untuk debugging
@@ -203,7 +248,7 @@ export const partnerService = {
             }
             
             console.log("Minimal data retry - sending request");
-            const minimalResponse = await httpClient.post(`${API_URL}/partners/me/events`, minimalFormData, {
+            const minimalResponse = await httpClient.post(`/partners/me/events`, minimalFormData, {
               headers: {
                 'Content-Type': 'multipart/form-data',
                 'X-Retry-Attempt': 'true'
@@ -290,7 +335,7 @@ export const partnerService = {
    */
   getEventDetails: async (eventId) => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/events/${eventId}`);
+      const response = await httpClient.get(`/partners/me/events/${eventId}`);
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while fetching event details');
@@ -306,7 +351,7 @@ export const partnerService = {
    */
   updateEvent: async (eventId, eventData) => {
     try {
-      const response = await httpClient.put(`${API_URL}/partners/me/events/${eventId}`, eventData);
+      const response = await httpClient.put(`/partners/me/events/${eventId}`, eventData);
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while updating the event');
@@ -321,7 +366,7 @@ export const partnerService = {
    */
   deleteEvent: async (eventId) => {
     try {
-      const response = await httpClient.delete(`${API_URL}/partners/me/events/${eventId}`);
+      const response = await httpClient.delete(`/partners/me/events/${eventId}`);
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while deleting the event');
@@ -337,7 +382,7 @@ export const partnerService = {
    */
   getEventApplications: async (eventId, params = {}) => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/events/${eventId}/applications`, { params });
+      const response = await httpClient.get(`/partners/me/events/${eventId}/applications`, { params });
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while fetching event applications');
@@ -354,7 +399,7 @@ export const partnerService = {
    */
   updateApplicationStatus: async (eventId, applicationId, status) => {
     try {
-      const response = await httpClient.put(`${API_URL}/partners/me/events/${eventId}/applications/${applicationId}`, { status });
+      const response = await httpClient.put(`/partners/me/events/${eventId}/applications/${applicationId}`, { status });
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while updating application status');
@@ -368,7 +413,7 @@ export const partnerService = {
    */
   getDashboardStats: async () => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/dashboard`);
+      const response = await httpClient.get(`/partners/me/dashboard`);
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while fetching dashboard statistics');
@@ -383,7 +428,7 @@ export const partnerService = {
    */
   uploadBanner: async (formData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/partners/me/banner`, formData, {
+      const response = await httpClient.post(`/partners/me/banner`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -412,7 +457,7 @@ export const partnerService = {
       }
       
       // Ganti endpoint sesuai dengan API yang tersedia
-      const response = await httpClient.post(`${API_URL}/users/avatar`, formData, {
+      const response = await httpClient.post(`/users/avatar`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -454,7 +499,7 @@ export const partnerService = {
   // Method tambahan untuk menghapus avatar (opsional)
   removeAvatar: async () => {
     try {
-      const response = await httpClient.delete(`${API_URL}/users/avatar`);
+      const response = await httpClient.delete(`/users/avatar`);
       return response.data;
     } catch (error) {
       console.error("Error removing avatar:", error);
@@ -464,7 +509,7 @@ export const partnerService = {
 
   fetchAvatar: async () => {
     try {
-      const response = await httpClient.get(`${API_URL}/users/avatar`);
+      const response = await httpClient.get(`/users/avatar`);
       return response.data;
     } catch (error) {
       console.error("Error fetching avatar:", error);
@@ -479,7 +524,7 @@ export const partnerService = {
    */
   getResponsiblePerson: async () => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/responsible-person`);
+      const response = await httpClient.get(`/partners/me/responsible-person`);
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while fetching responsible person data');
@@ -494,7 +539,7 @@ export const partnerService = {
    */
   createResponsiblePerson: async (personData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/partners/me/responsible-person`, personData);
+      const response = await httpClient.post(`/partners/me/responsible-person`, personData);
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while creating responsible person data');
@@ -509,7 +554,7 @@ export const partnerService = {
    */
   updateResponsiblePerson: async (personData) => {
     try {
-      const response = await httpClient.put(`${API_URL}/partners/me/responsible-person`, personData);
+      const response = await httpClient.put(`/partners/me/responsible-person`, personData);
       return response.data;
     } catch (error) {
       handleApiError(error, 'An error occurred while updating responsible person data');
@@ -524,7 +569,7 @@ export const partnerService = {
    */
   uploadKtpImage: async (formData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/partners/me/responsible-person/ktp`, formData, {
+      const response = await httpClient.post(`/partners/me/responsible-person/ktp`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -542,7 +587,7 @@ export const partnerService = {
    */
   getLegalDocuments: async () => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/legality`);
+      const response = await httpClient.get(`/partners/me/legality`);
       return response.data;
     } catch (error) {
       console.error("Error in getLegalDocuments:", error);
@@ -564,7 +609,7 @@ export const partnerService = {
         console.log(`${key}: ${value instanceof File ? `File: ${value.name}` : value}`);
       }
       
-      const response = await httpClient.post(`${API_URL}/partners/me/legality`, formData, {
+      const response = await httpClient.post(`/partners/me/legality`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -588,14 +633,14 @@ export const partnerService = {
       console.log(`Menghapus dokumen dengan ID: ${documentId}`);
       
       // Metode 1: DELETE dengan path parameter
-      const response = await httpClient.delete(`${API_URL}/partners/me/legality/${documentId}`);
+      const response = await httpClient.delete(`/partners/me/legality/${documentId}`);
       return response.data;
     } catch (error) {
       if (error.response && error.response.status === 404) {
         // Metode 2: DELETE dengan query params
         try {
           console.log("Trying with query params...");
-          const response = await httpClient.delete(`${API_URL}/partners/me/legality`, {
+          const response = await httpClient.delete(`/partners/me/legality`, {
             params: { id: documentId }
           });
           return response.data;
@@ -603,7 +648,7 @@ export const partnerService = {
           // Metode 3: DELETE dengan request body
           try {
             console.log("Trying with request body...");
-            const response = await httpClient.delete(`${API_URL}/partners/me/legality`, {
+            const response = await httpClient.delete(`/partners/me/legality`, {
               data: { id: documentId }
             });
             return response.data;

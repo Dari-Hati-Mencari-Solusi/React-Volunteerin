@@ -27,7 +27,9 @@ const ProfilePartnerPage = () => {
     'COMPANY': 'perusahaan',
     'EDUCATION': 'pemerintah',
     'INDIVIDUAL': 'individu',
-    'OTHER': 'individu'
+    'OTHER': 'individu',
+    'GOVERNMENT': 'pemerintah',
+    'CORPORATE': 'perusahaan'
   };
 
   // Map frontend dropdown values to backend organization types
@@ -38,26 +40,75 @@ const ProfilePartnerPage = () => {
     'individu': 'INDIVIDUAL'
   };
 
+  // Fungsi helper untuk ekstraksi data dengan konsisten
+  const extractPartnerData = (response) => {
+    if (!response || !response.data) return null;
+    
+    // Cek apakah data ada di response.data.data
+    if (response.data.data) {
+      const data = response.data.data;
+      
+      // Log struktur data untuk debugging
+      console.log("Data structure from API:", {
+        hasPartnerProfile: !!data.partnerProfile,
+        hasAvatar: !!data.avatarUrl,
+        topLevelKeys: Object.keys(data),
+        partnerProfileKeys: data.partnerProfile ? Object.keys(data.partnerProfile) : 'No partnerProfile'
+      });
+      
+      // Cek sumber data yang benar
+      let finalData = {
+        avatarUrl: data.avatarUrl || null,
+        organizationType: '',
+        instagram: '',
+        organizationAddress: ''
+      };
+      
+      // Coba ambil dari partnerProfile terlebih dahulu
+      if (data.partnerProfile) {
+        finalData.organizationType = data.partnerProfile.organizationType || '';
+        finalData.instagram = data.partnerProfile.instagram || '';
+        finalData.organizationAddress = data.partnerProfile.organizationAddress || '';
+      }
+      
+      // Fallback ke properti top-level jika tidak ada di partnerProfile
+      finalData.organizationType = finalData.organizationType || data.organizationType || '';
+      finalData.instagram = finalData.instagram || data.instagram || '';
+      finalData.organizationAddress = finalData.organizationAddress || data.organizationAddress || '';
+      
+      console.log("Extracted partner data:", finalData);
+      return finalData;
+    }
+    
+    // Fallback jika struktur data berbeda
+    console.log("Using fallback data extraction method");
+    return {
+      avatarUrl: response.data.avatarUrl || null,
+      organizationType: response.data.organizationType || '',
+      instagram: response.data.instagram || '',
+      organizationAddress: response.data.organizationAddress || ''
+    };
+  };
+
+  // Di dalam useEffect
   useEffect(() => {
     const fetchPartnerProfile = async () => {
       try {
         setLoading(true);
         setUpdateSuccess(false);
         
-        // 1. Check if user is authenticated
+        // 1. Periksa autentikasi
         if (!authService.isAuthenticated()) {
           toast.error("Silakan login terlebih dahulu");
           window.location.href = "/login";
           return;
         }
         
-        // 2. Try to get user data
-        let user = null;
+        // 2. Ambil data user dasar
+        let user = authService.getStoredUser();
         
-        // First attempt: from localStorage (fastest)
-        user = authService.getStoredUser();
         if (user && user.name) {
-          console.log("Using stored user data:", user);
+          console.log("User data retrieved from localStorage:", user);
           setUserData(user);
           setFormData(prevData => ({
             ...prevData,
@@ -65,17 +116,16 @@ const ProfilePartnerPage = () => {
             email: user.email || "",
             phoneNumber: user.phoneNumber || "",
           }));
-        }
-        
-        // Second attempt: from auth service API
-        if (!user || !user.name) {
+        } else {
           try {
             console.log("Fetching user profile from authService...");
             const profile = await authService.getUserProfile();
             
+            console.log("Profile response:", profile);
+            
             if (profile && profile.data && profile.data.user) {
               user = profile.data.user;
-              console.log("Got user profile data:", user);
+              console.log("User profile data:", user);
               
               setUserData(user);
               setFormData(prevData => ({
@@ -86,67 +136,82 @@ const ProfilePartnerPage = () => {
               }));
             }
           } catch (profileError) {
-            console.log("Could not get user profile, continuing:", profileError.message);
+            console.error("Error getting user profile:", profileError);
+            toast.error("Gagal mendapatkan profil. Silakan segarkan halaman.");
           }
         }
         
-        // 3. Get partner profile data using partnerService
+        // 3. Ambil data partner
         try {
           console.log("Fetching partner profile...");
-          const partnerProfile = await partnerService.getPartnerProfile();
+          const partnerResponse = await partnerService.getPartnerProfile();
           
-          console.log("Partner profile response:", partnerProfile);
+          console.log("Partner profile API response:", partnerResponse);
           
-          if (partnerProfile && partnerProfile.data) {
-            const partnerData = partnerProfile.data;
+          // Gunakan helper function untuk mengekstrak data
+          const extractedData = extractPartnerData(partnerResponse);
+          
+          if (extractedData) {
+            console.log("Successfully extracted partner data:", extractedData);
             
-            // Set avatarUrl jika ada
-            if (partnerData.avatarUrl) {
-              setAvatarUrl(partnerData.avatarUrl);
+            // Set avatar URL jika tersedia
+            if (extractedData.avatarUrl) {
+              setAvatarUrl(extractedData.avatarUrl);
             }
             
-            // Update formData with partner data
-            setFormData(prevData => ({
-              ...prevData,
-              jenisPenyelenggara: organizationTypeMap[partnerData.organizationType] || "",
-              usernameInstagram: partnerData.instagram || "",
-              organizationAddress: partnerData.organizationAddress || "",
-            }));
+            // Mapping jenis penyelenggara
+            const mappedOrgType = organizationTypeMap[extractedData.organizationType] || "";
+            console.log("Mapped organization type:", mappedOrgType);
+            
+            // Update state formData
+            setFormData(prevData => {
+              const newData = {
+                ...prevData,
+                jenisPenyelenggara: mappedOrgType,
+                usernameInstagram: extractedData.instagram, 
+                organizationAddress: extractedData.organizationAddress
+              };
+              
+              console.log("New form data:", newData);
+              return newData;
+            });
+          } else {
+            console.warn("Could not extract partner data from response");
           }
         } catch (partnerError) {
           console.error("Error fetching partner profile:", partnerError);
-          toast.error("Gagal memuat data profil partner");
+          toast.error("Gagal mendapatkan data profil partner");
           
-          // If we're in development, provide fallback data
-          if (process.env.NODE_ENV === 'development' && (!user || !userData)) {
-            console.log("Using fallback hardcoded data for development");
+          // Coba ambil data dari endpoint alternatif
+          try {
+            console.log("Trying alternative endpoint for partner data...");
+            const userProfileResponse = await authService.getUserProfile();
+            console.log("User profile response:", userProfileResponse);
             
-            const hardcodedUser = {
-              id: "30d083b8-ed2f-4e90-9838-76e2fb6414fe",
-              name: "PD Kusmawati",
-              email: "Ghaliyati.Uwais73@gmail.com",
-              phoneNumber: "6281234561001",
-              role: "PARTNER"
-            };
-            
-            setUserData(hardcodedUser);
-            setFormData(prevData => ({
-              ...prevData,
-              name: hardcodedUser.name,
-              email: hardcodedUser.email,
-              phoneNumber: hardcodedUser.phoneNumber,
-              jenisPenyelenggara: "komunitas",
-              usernameInstagram: "pdkusmawati_official",
-              organizationAddress: "Gg. Nashiruddin no 32, Gianyar, Jawa Barat",
-            }));
-            
-            console.log("Set hardcoded data for development", hardcodedUser);
+            if (userProfileResponse && userProfileResponse.data && userProfileResponse.data.user && 
+                userProfileResponse.data.user.partner) {
+              const partnerData = userProfileResponse.data.user.partner;
+              console.log("Partner data from user profile:", partnerData);
+              
+              // Mapping jenis penyelenggara
+              const mappedOrgType = organizationTypeMap[partnerData.organizationType] || "";
+              
+              // Update state formData
+              setFormData(prevData => ({
+                ...prevData,
+                jenisPenyelenggara: mappedOrgType,
+                usernameInstagram: partnerData.instagram || '',
+                organizationAddress: partnerData.organizationAddress || ''
+              }));
+            }
+          } catch (alternativeError) {
+            console.error("Alternative endpoint failed:", alternativeError);
           }
         }
         
       } catch (error) {
-        console.error("Failed to fetch partner profile:", error);
-        toast.error("Gagal memuat profil");
+        console.error("Failed to fetch profiles:", error);
+        toast.error("Terjadi kesalahan saat memuat profil");
       } finally {
         setLoading(false);
       }
@@ -154,6 +219,11 @@ const ProfilePartnerPage = () => {
 
     fetchPartnerProfile();
   }, []);
+
+  // Tambahkan useEffect untuk logging setiap perubahan formData
+  useEffect(() => {
+    console.log("Current formData:", formData);
+  }, [formData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -215,20 +285,27 @@ const ProfilePartnerPage = () => {
       // Refresh partner profile data to reflect changes
       try {
         const refreshedProfile = await partnerService.getPartnerProfile();
-        if (refreshedProfile && refreshedProfile.data) {
-          console.log("Refreshed profile data:", refreshedProfile.data);
+        console.log("Refreshed profile data:", refreshedProfile);
+        
+        if (refreshedProfile) {
+          // Gunakan helper function untuk mengekstrak data
+          const extractedData = extractPartnerData(refreshedProfile);
           
-          // Update formData with the latest data
-          setFormData(prevData => ({
-            ...prevData,
-            jenisPenyelenggara: organizationTypeMap[refreshedProfile.data.organizationType] || "",
-            usernameInstagram: refreshedProfile.data.instagram || "",
-            organizationAddress: refreshedProfile.data.organizationAddress || "",
-          }));
-          
-          // Update avatar URL if available
-          if (refreshedProfile.data.avatarUrl) {
-            setAvatarUrl(refreshedProfile.data.avatarUrl);
+          if (extractedData) {
+            console.log("Refreshed extracted data:", extractedData);
+            
+            // Update formData with the latest data
+            setFormData(prevData => ({
+              ...prevData,
+              jenisPenyelenggara: organizationTypeMap[extractedData.organizationType] || "",
+              usernameInstagram: extractedData.instagram,
+              organizationAddress: extractedData.organizationAddress,
+            }));
+            
+            // Update avatar URL if available
+            if (extractedData.avatarUrl) {
+              setAvatarUrl(extractedData.avatarUrl);
+            }
           }
         }
       } catch (refreshError) {
@@ -248,56 +325,56 @@ const ProfilePartnerPage = () => {
     }
   };
   
-// Update fungsi handleAvatarUpload untuk menyesuaikan dengan struktur response
-const handleAvatarUpload = (file, url) => {
-  if (file && url) {
-    console.log("Avatar uploaded successfully:", url);
-    
-    // Update state avatarUrl
-    setAvatarUrl(url);
-    
-    // Update user data jika perlu
-    if (userData) {
-      setUserData(prevUserData => ({
-        ...prevUserData,
-        avatarUrl: url
-      }));
-    }
-    
-    // Update locally stored user data jika menggunakan localStorage
-    try {
-      const storedUser = authService.getStoredUser();
-      if (storedUser) {
-        storedUser.avatarUrl = url;
-        localStorage.setItem('user', JSON.stringify(storedUser));
+  // Update fungsi handleAvatarUpload untuk menyesuaikan dengan struktur response
+  const handleAvatarUpload = (file, url) => {
+    if (file && url) {
+      console.log("Avatar uploaded successfully:", url);
+      
+      // Update state avatarUrl
+      setAvatarUrl(url);
+      
+      // Update user data jika perlu
+      if (userData) {
+        setUserData(prevUserData => ({
+          ...prevUserData,
+          avatarUrl: url
+        }));
       }
-    } catch (error) {
-      console.error("Error updating stored user:", error);
-    }
-  } else {
-    console.log("Avatar removed");
-    setAvatarUrl(null);
-    
-    // Update user data jika perlu
-    if (userData) {
-      setUserData(prevUserData => ({
-        ...prevUserData,
-        avatarUrl: null
-      }));
-    }
-    
-    // Update locally stored user data
-    try {
-      const storedUser = authService.getStoredUser();
-      if (storedUser) {
-        storedUser.avatarUrl = null;
-        localStorage.setItem('user', JSON.stringify(storedUser));
+      
+      // Update locally stored user data jika menggunakan localStorage
+      try {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          storedUser.avatarUrl = url;
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+      } catch (error) {
+        console.error("Error updating stored user:", error);
       }
-    } catch (error) {
-      console.error("Error updating stored user:", error);
+    } else {
+      console.log("Avatar removed");
+      setAvatarUrl(null);
+      
+      // Update user data jika perlu
+      if (userData) {
+        setUserData(prevUserData => ({
+          ...prevUserData,
+          avatarUrl: null
+        }));
+      }
+      
+      // Update locally stored user data
+      try {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          storedUser.avatarUrl = null;
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+      } catch (error) {
+        console.error("Error updating stored user:", error);
+      }
     }
-  }
-};
+  };
 
   if (loading) {
     return (

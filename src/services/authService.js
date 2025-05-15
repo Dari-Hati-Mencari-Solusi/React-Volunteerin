@@ -1,6 +1,10 @@
 import httpClient from '../utils/httpClient';
 
-const API_URL = import.meta.env.VITE_BE_BASE_URL;
+// Tetapkan nilai default untuk API_URL untuk menghindari undefined
+const API_URL = import.meta.env.VITE_BE_BASE_URL || 'http://localhost:3000';
+
+// Log untuk membantu debugging
+console.log("API URL configured as:", API_URL);
 
 /**
  * Handle API errors consistently across service
@@ -60,13 +64,20 @@ export const authService = {
   login: async (email, password) => {
     try {
       console.log("Logging in with email:", email);
+      console.log("Login URL:", `${API_URL}/auth/login`);
+      
+      // Validasi API_URL untuk mencegah errors
+      if (!API_URL || API_URL === 'undefined') {
+        throw new Error("API URL tidak terdefinisi. Periksa konfigurasi aplikasi.");
+      }
+      
       const response = await httpClient.post(`${API_URL}/auth/login`, {
         email,
         password,
       });
       
       if (!response.data || !response.data.data) {
-        throw new Error("Invalid response format from server");
+        throw new Error("Format respons dari server tidak valid");
       }
       
       const { token, user } = response.data.data;
@@ -76,8 +87,19 @@ export const authService = {
       
       return storeUserData(token, user);
     } catch (error) {
-      console.error("Login error:", error);
-      handleApiError(error, 'An error occurred during login. Please check your credentials.');
+      console.error("Login error details:", error);
+      
+      // Handle network errors separately
+      if (error.message && (
+          error.message.includes('Network Error') || 
+          error.message.includes('Failed to fetch') ||
+          error.message.includes('connect'))) {
+        throw { 
+          message: 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda atau server mungkin sedang down.' 
+        };
+      }
+      
+      handleApiError(error, 'Gagal login. Periksa email dan password Anda.');
     }
   },
 
@@ -90,23 +112,10 @@ export const authService = {
    */
   loginPartner: async (email, password) => {
     try {
-      const response = await httpClient.post(`${API_URL}/auth/login`, {
-        email,
-        password,
-      });
-      
-      const { token, user } = response.data.data;
-      
-      // Store token in both locations
-      localStorage.setItem('token', token);
-      localStorage.setItem('authToken', token);
-      
-      // Store login response in sessionStorage for fallback access
-      sessionStorage.setItem('loginResponse', JSON.stringify(response.data));
-      
-      return storeUserData(token, user);
+      // Sama dengan login biasa, karena backend akan mengenali role berdasarkan email
+      return authService.login(email, password);
     } catch (error) {
-      handleApiError(error, 'An error occurred during login. Please check your credentials.');
+      handleApiError(error, 'Gagal login partner. Periksa email dan password Anda.');
     }
   },
 
@@ -118,10 +127,11 @@ export const authService = {
    */
   register: async (userData) => {
     try {
+      console.log("Register URL:", `${API_URL}/auth/register`);
       const response = await httpClient.post(`${API_URL}/auth/register`, userData);
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred during registration');
+      handleApiError(error, 'Terjadi kesalahan saat pendaftaran');
     }
   },
 
@@ -132,6 +142,7 @@ export const authService = {
    * @throws {Object} Error object with message
    */
   registerPartner: async (userData) => {
+    // Gunakan endpoint register yang sama karena backend akan menentukan rolenya
     return authService.register(userData);
   },
 
@@ -169,6 +180,8 @@ export const authService = {
       
       // Try calling the profile endpoint
       console.log("Fetching user profile with token");
+      console.log("Profile URL:", `${API_URL}/auth/profile`);
+      
       const response = await fetch(`${API_URL}/auth/profile`, {
         method: 'GET',
         headers: {
@@ -190,7 +203,7 @@ export const authService = {
       return data;
     } catch (error) {
       console.error("Error fetching profile:", error);
-      throw { message: error.message || 'An error occurred while fetching profile data' };
+      throw { message: error.message || 'Terjadi kesalahan saat mengambil data profil' };
     }
   },
 
@@ -202,6 +215,7 @@ export const authService = {
    */
   updateUserProfile: async (profileData) => {
     try {
+      console.log("Update profile URL:", `${API_URL}/auth/profile`);
       const response = await httpClient.put(`${API_URL}/auth/profile`, profileData);
       if (response.data?.data?.user) {
         const updatedUser = response.data.data.user;
@@ -209,7 +223,7 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while updating profile data');
+      handleApiError(error, 'Terjadi kesalahan saat memperbarui profil');
     }
   },
 
@@ -222,13 +236,14 @@ export const authService = {
    */
   changePassword: async (oldPassword, newPassword) => {
     try {
+      console.log("Change password URL:", `${API_URL}/auth/change-password`);
       const response = await httpClient.put(`${API_URL}/auth/change-password`, { 
         oldPassword, 
         newPassword 
       });
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while changing password');
+      handleApiError(error, 'Terjadi kesalahan saat mengganti password');
     }
   },
 
@@ -314,10 +329,11 @@ export const authService = {
    */
   forgotPassword: async (email) => {
     try {
+      console.log("Forgot password URL:", `${API_URL}/auth/forgot-password`);
       const response = await httpClient.post(`${API_URL}/auth/forgot-password`, { email });
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while requesting password reset');
+      handleApiError(error, 'Terjadi kesalahan saat meminta reset password');
     }
   },
 
@@ -339,13 +355,14 @@ export const authService = {
    */
   confirmPasswordReset: async (token, newPassword) => {
     try {
+      console.log("Reset password URL:", `${API_URL}/auth/reset-password`);
       const response = await httpClient.post(`${API_URL}/auth/reset-password`, {
         token,
         password: newPassword
       });
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Failed to confirm password reset');
+      handleApiError(error, 'Gagal mengkonfirmasi reset password');
     }
   },
 
@@ -422,7 +439,7 @@ export const authService = {
       throw lastError || new Error("Failed to refresh token");
     } catch (error) {
       console.error("Error refreshing token:", error);
-      throw { message: "Session expired. Please login again." };
+      throw { message: "Sesi habis. Silakan login kembali." };
     }
   },
 
