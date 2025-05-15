@@ -22,6 +22,7 @@ import Gamification from "./components/Fragments/Gamification";
 import LayoutAdmin from "./pages/admin/LayoutAdmin";
 import LoginPageAdmin from "./pages/admin/LoginPageAdmin";
 import FormPendaftaran from "./pages/users/FormRegisterUser";
+import VolunteerPage from "./components/Fragments/VolunteerPage";
 // import EventDashboard from "./pages/partners/CreateEvent";
 
 function App() {
@@ -35,7 +36,7 @@ function App() {
         <Route path="/login-admin" element={<LoginPageAdmin />} />
 
         {/* dashboard partner route */}
-        <Route path="/partner/dashboard" element={<LayoutPartner />} />
+        {/* <Route path="/partner/dashboard" element={<LayoutPartner />} /> */}
         <Route
           path="/partner/dashboard/analytics"
           element={<LayoutPartner />}
@@ -52,10 +53,16 @@ function App() {
           path="/partner/dashboard/create-formulir"
           element={<LayoutPartner />}
         />
-        <Route
+        {/* <Route
           path="/partner/dashboard/pendaftar"
           element={<LayoutPartner />}
-        />
+        /> */}
+          <Route path="/dashboard/*" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/*" element={<LayoutPartner />} />
+        
+        {/* Rute spesifik untuk pendaftar */}
+        <Route path="/dashboard/pendaftar" element={<LayoutPartner />} />
+        <Route path="/partner/dashboard/pendaftar" element={<LayoutPartner />} />
         <Route
           path="/partner/dashboard/pencairan-dana"
           element={<LayoutPartner />}
@@ -89,6 +96,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/event/:id" element={<EventPage />} />
         <Route path="/events/:eventId/register" element={<FormPendaftaran />} />
+        <Route path="/partners/events/:eventId/volunteers" element={<VolunteerPage />} />
+        {/* Tambahkan route fallback yang akan menangani jika eventId tidak ada */}
+        <Route path="/partners/events/volunteers" element={<VolunteerPage />} />
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />

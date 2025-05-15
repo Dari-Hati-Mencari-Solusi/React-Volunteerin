@@ -6,7 +6,7 @@ import { Header } from "../partners/layouts/Header";
 
 import { cn } from "../../utils/cn";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 import DashboardPartner from "./DashboardPartner";
 import Analytics from "../../components/Fragments/AnalyticPage";
@@ -23,6 +23,7 @@ const Layout = () => {
   const isDesktopDevice = useMediaQuery("(min-width: 768px)");
   const [collapsed, setCollapsed] = useState(!isDesktopDevice);
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const sidebarRef = useRef(null);
 
   useEffect(() => {
@@ -38,7 +39,20 @@ const Layout = () => {
   const renderContent = () => {
     // Extract the current path and use it to determine which content to display
     const path = location.pathname;
-    const contentKey = path.split("/").pop(); // Get the last segment of the path
+    
+    // Karena struktur path dapat bervariasi, pecah path dan gunakan segment terakhir untuk menentukan konten
+    const pathSegments = path.split("/");
+    const contentKey = pathSegments[pathSegments.length - 1];
+    
+    console.log("Current path:", path);
+    console.log("Content key:", contentKey);
+    
+    // Jika contentKey adalah 'pendaftar', pastikan eventId tersedia
+    if (contentKey === 'pendaftar') {
+      const eventId = searchParams.get('eventId');
+      console.log("Rendering pendaftar page with eventId:", eventId);
+      return <VolunteerPage />;
+    }
 
     switch (contentKey) {
       // partner
