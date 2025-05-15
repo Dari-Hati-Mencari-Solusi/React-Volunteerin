@@ -21,6 +21,7 @@ import FormRegisterUser from "./pages/users/FormRegisterUser";
 import Gamification from "./components/Fragments/Gamification";
 import LayoutAdmin from "./pages/admin/LayoutAdmin";
 import LoginPageAdmin from "./pages/admin/LoginPageAdmin";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 // import EventDashboard from "./pages/partners/CreateEvent";
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
         <Route path="/auth" element={<VolunteerinAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-pw" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/layanan" element={<Service />} />
         <Route path="/misi-kamu" element={<Gamification />} />
 
