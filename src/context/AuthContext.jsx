@@ -51,47 +51,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-
-// Tambahkan ini di AuthContext.jsx
-const refreshToken = async () => {
-  try {
-    // Jika ada token refresh
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    // Panggil endpoint refresh token
-    const response = await axios.post(`${import.meta.env.VITE_BE_BASE_URL}/auth/refresh`, {
-      refreshToken
-    });
-
-    if (response.data && response.data.data && response.data.data.accessToken) {
-      // Simpan token baru
-      const newToken = response.data.data.accessToken;
-      localStorage.setItem('authToken', newToken);
-      return newToken;
-    } else {
-      throw new Error('Invalid response from refresh token endpoint');
-    }
-  } catch (error) {
-    console.error('Failed to refresh token:', error);
-    // Logout user jika refresh gagal
-    logout();
-    throw error;
-  }
-};
-
-// Tambahkan refreshToken ke dalam value yang disediakan context
-value = {
-  currentUser,
-  isAuthenticated,
-  userRole,
-  loading,
-  login,
-  logout,
-  register,
-  refreshToken // Tambahkan ini
-};
-
 };
