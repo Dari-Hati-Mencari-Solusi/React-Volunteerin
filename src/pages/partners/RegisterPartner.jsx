@@ -145,9 +145,14 @@ const RegisterPartner = () => {
         role: 'PARTNER'
       });
       
-      setStatus('success', 'Registrasi berhasil! Silakan login.');
+      // Ubah pesan sukses dan redirect untuk menginformasikan verifikasi email
+      setStatus('success', 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi.');
       setTimeout(() => {
-        navigate('/login-partner');
+        navigate('/login-partner', { 
+          state: { 
+            message: 'Link verifikasi telah dikirim ke email Anda. Silakan verifikasi email sebelum login.' 
+          } 
+        });
       }, 1500);
     } catch (err) {
       setStatus('error', err.message || 'Terjadi kesalahan saat registrasi');
@@ -156,6 +161,7 @@ const RegisterPartner = () => {
     }
   };
 
+  // Return tetap sama
   return (
     <section className="min-h-screen bg-white flex flex-col items-center p-4">
       <div className="lg:py-3 md:py-3 py-8">

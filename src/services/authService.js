@@ -453,5 +453,42 @@ export const authService = {
       console.error("Error decoding token:", e);
       return null;
     }
+  },
+
+/**
+ * Verify user email with verification token
+ * @param {string} token - Email verification token
+ * @returns {Promise<Object>} Verification response
+ * @throws {Object} Error object with message
+ */
+verifyEmail: async (token) => {
+  try {
+    // Opsi 1: Mengirim token sebagai parameter di body request POST
+    const response = await httpClient.post(`${API_URL}/auth/verify-email`, { token });
+    return response.data;
+    
+    // Opsi 2 (alternatif): Jika API mengharapkan token di URL path
+    // const response = await httpClient.get(`${API_URL}/auth/verify-email/${token}`);
+    // return response.data;
+  } catch (error) {
+    console.error("Verification error detail:", error);
+    handleApiError(error, 'Terjadi kesalahan saat verifikasi email');
   }
+},
+
+    /**
+     * Resend verification email
+     * @param {string} email - User email address
+     * @returns {Promise<Object>} Response from resend request
+     * @throws {Object} Error object with message
+     */
+    resendVerificationEmail: async (email) => {
+      try {
+        const response = await httpClient.post(`${API_URL}/auth/resend-verification`, { email });
+        return response.data;
+      } catch (error) {
+        handleApiError(error, 'An error occurred while resending verification email');
+      }
+    },
+
 };
