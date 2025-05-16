@@ -1,50 +1,59 @@
 import React, { useState, useEffect } from "react";
 import { Icon } from '@iconify/react';
+import ktp from "../../assets/images/ktp.jpg"; 
 
 const UserManagement = () => {
   const documentAssets = {
-    "NPWP.pdf": "/api/placeholder/600/800",
-    "KTP.pdf": "/api/placeholder/600/800",
-    "SuratIzin.pdf": "/api/placeholder/600/800",
-    "SIUP.pdf": "/api/placeholder/600/800"
+    "NPWP.pdf": ktp,
+    "KTP.pdf": ktp,
+    "SuratIzin.pdf": ktp,
+    "SIUP.pdf": ktp
   };
 
   const initialUsers = [
-    {
+     {
       id: 1,
-      namaPendaftar: "John Doe",
-      email: "johndoe@gmail.com",
+      namaPendaftar: "Hevin Jhon",
+      email: "hevinjhon@gmail.com",
       nomorHandphone: "089083287462",
       role: "User",
       namaPenyelenggara: "Event Master Indonesia",
       statusLegalitas: "Menunggu Review",
       dokumen: ["NPWP.pdf", "KTP.pdf", "SuratIzin.pdf"],
       pesan: "",
-      status: "pending"
     },
     {
       id: 2,
-      namaPendaftar: "Jane Smith",
-      email: "janesmith@gmail.com",
+      namaPendaftar: "Rantau yaps",
+      email: "Rantauyaps@gmail.com",
       nomorHandphone: "081234567890",
       role: "Partner",
       namaPenyelenggara: "Global Events Co.",
       statusLegalitas: "Lengkap",
       dokumen: ["NPWP.pdf", "KTP.pdf", "SuratIzin.pdf", "SIUP.pdf"],
       pesan: "",
-      status: "pending"
     },
     {
       id: 3,
-      namaPendaftar: "Ahmad Rizki",
-      email: "ahmad@gmail.com",
+      namaPendaftar: "Giber",
+      email: "Giber@gmail.com",
       nomorHandphone: "087654321098",
       role: "User",
       namaPenyelenggara: "Festival Budaya Nusantara",
       statusLegalitas: "Tidak Lengkap",
       dokumen: ["KTP.pdf"],
       pesan: "",
-      status: "pending"
+    },
+     {
+      id: 4,
+      namaPendaftar: "Yoglex",
+      email: "Yoglex@gmail.com",
+      nomorHandphone: "087654321098",
+      role: "User",
+      namaPenyelenggara: "Festival Punk",
+      statusLegalitas: "Tidak Lengkap",
+      dokumen: ["KTP.pdf"],
+      pesan: "",
     }
   ];
 
@@ -162,22 +171,19 @@ const UserManagement = () => {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="bg-gradient-to-r from-cyan-700 to-teal-500 rounded-lg p-6 mb-6 shadow-lg">
+    <section className="w-full mx-auto px-2 py-6">
+      <div className="bg-gradient-to-r from-[#0A3E54] to-[#088FB2] rounded-lg p-6 mb-6 shadow-lg">
         <h1 className="text-2xl font-bold text-white">Review User</h1>
         <p className="text-cyan-100 mt-1">Kelola dan tinjau penyelenggara event</p>
       </div>
 
       <div className="mb-8">
         <div className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-cyan-800 to-teal-600 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+          <div className="bg-gradient-to-r from-[#0A3E54] to-[#088FB2]  px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div className="mb-4 sm:mb-0">
               <h2 className="text-lg text-white font-medium">
                 Daftar Penyelenggara Event
               </h2>
-              <p className="text-cyan-100 text-sm mt-1">
-                {filteredUsers.length} dari {users.length} pendaftar
-              </p>
             </div>
             <div className="w-full sm:w-64">
               <div className="relative">
@@ -208,7 +214,7 @@ const UserManagement = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Penyelenggara
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-12 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Role
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -266,7 +272,7 @@ const UserManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleViewDetail(user)}
-                        className="text-cyan-600 hover:text-cyan-900 font-medium flex items-center transition-colors duration-150"
+                        className="text-[#0A3E54] hover:text-cyan-900 font-medium flex items-center transition-colors duration-150"
                       >
                         <Icon icon="heroicons-outline:eye" className="h-5 w-5" />
                         <span className={`${isMobile ? 'hidden' : 'ml-1'}`}>
@@ -312,7 +318,7 @@ const UserManagement = () => {
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-              <div className="bg-gradient-to-r from-cyan-800 to-teal-600 px-6 py-4">
+              <div className="bg-gradient-to-r from-[#0A3E54] to-[#088FB2]  px-6 py-4">
                 <h3 className="text-lg leading-6 font-medium text-white">
                   Detail Pendaftar - {selectedUser.namaPendaftar}
                 </h3>
@@ -379,7 +385,7 @@ const UserManagement = () => {
                     <textarea
                       value={reviewMessage}
                       onChange={(e) => setReviewMessage(e.target.value)}
-                      className="shadow-sm focus:ring-cyan-500 focus:border-cyan-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="shadow-sm focus:ring-cyan-500 focus:border-cyan-500 block w-full sm:text-sm border-gray-300 rounded-md p-4"
                       placeholder="Masukkan alasan diterima atau ditolak..."
                       rows="3"
                     ></textarea>
@@ -426,7 +432,7 @@ const UserManagement = () => {
             </div>
             
             <div className="relative inline-block bg-white rounded-lg overflow-hidden shadow-xl transform transition-all max-w-4xl w-full">
-              <div className="bg-gradient-to-r from-cyan-800 to-teal-600 px-6 py-4 flex justify-between items-center">
+              <div className="bg-gradient-to-r from-[#0A3E54] to-[#088FB2]  px-6 py-4 flex justify-between items-center">
                 <h3 className="text-lg leading-6 font-medium text-white">
                   {currentDocument.name}
                 </h3>

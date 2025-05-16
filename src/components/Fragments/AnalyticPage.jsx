@@ -24,7 +24,7 @@ const Analytics = () => {
         <div className="flex flex-col gap-y-4">
             <h1 className="title">Analytics Dashboard</h1>
             
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="card">
                     <div className="card-header">
                         <p className="card-title">User Growth</p>
@@ -135,7 +135,7 @@ const Analytics = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 };

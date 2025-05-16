@@ -38,9 +38,10 @@ const Layout = () => {
   const renderContent = () => {
     // Extract the current path and use it to determine which content to display
     const path = location.pathname;
-    const contentKey = path.split('/').pop(); // Get the last segment of the path
+    const contentKey = path.split("/").pop(); // Get the last segment of the path
 
     switch (contentKey) {
+      // partner
       case "dashboard":
         return <DashboardPartner />;
       case "analytics":
@@ -75,10 +76,7 @@ const Layout = () => {
             "max-md:pointer-events-auto max-md:z-50 max-md:opacity-30"
         )}
       />
-      <Sidebar
-        ref={sidebarRef}
-        collapsed={collapsed}
-      />
+      <Sidebar ref={sidebarRef} collapsed={collapsed} />
       <div
         className={cn(
           "transition-[margin] duration-300",

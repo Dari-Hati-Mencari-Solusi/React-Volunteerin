@@ -95,8 +95,13 @@ const ListEvents = () => {
           </div>
 
           <div className="border border-gray-200 rounded-lg">
-            <div className="p-4 flex flex-wrap items-center justify-end gap-4 border-b bg-[#0A3E54] rounded-t-xl">
-              <div className="relative w-full md:w-64">
+            <div className="p-4 flex flex-wrap items-center justify-between gap-4 border-b bg-gradient-to-r from-[#0A3E54] to-[#088FB2] rounded-t-xl px-6">
+              <div className="mb-4 sm:mb-0">
+                <h2 className="text-lg text-white font-medium">
+                  Daftar Relawan
+                </h2>
+              </div>
+              <div className="relative w-full md:w-72 flex items-center gap-2">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Icon
                     icon="flowbite:search-outline"
@@ -112,13 +117,13 @@ const ListEvents = () => {
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full pl-10 p-2.5"
                   placeholder="Cari event kamu..."
                 />
+                <Icon
+                  icon="line-md:filter"
+                  width="38"
+                  height="38"
+                  className="text-white"
+                />
               </div>
-              <Icon
-                icon="line-md:filter"
-                width="32"
-                height="32"
-                className="text-white"
-              />
             </div>
 
             <div>
