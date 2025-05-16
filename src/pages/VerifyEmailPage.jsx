@@ -1,43 +1,81 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 import ErrorAlert from '../components/Elements/Alert/ErrorAlert';
 import SuccessAlert from '../components/Elements/Alert/SuccesAlert';
 import logo from '../assets/images/logo_volunteerin.jpg';
+import WhatsAppButton from "../components/Elements/buttons/BtnWhatsapp";
 
 const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('t'); // Changed to match your token format
-  const navigate = useNavigate();
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [isVerifying, setIsVerifying] = useState(true);
-
+  const [status, setStatus] = useState({ loading: true, success: false, message: '' });
+  
   useEffect(() => {
-    const verifyEmailToken = async () => {
+    const verifyEmail = async () => {
+      const token = searchParams.get('t');
+      
+      if (!token) {
+        setStatus({ 
+          loading: false, 
+          success: false, 
+          message: 'Token verifikasi tidak ditemukan. Pastikan Anda menggunakan link yang benar.' 
+        });
+        return;
+      }
+      
       try {
-        if (!token) {
-          setError('Token verifikasi tidak valid!');
-          setIsVerifying(false);
-          return;
-        }
-
-        await authService.verifyEmail(token);
-        setSuccess('Email berhasil diverifikasi! Silakan login.');
-        setIsVerifying(false);
+        console.log("Attempting to verify email with token:", token);
+        const response = await authService.verifyEmail(token);
+        console.log("Verification response:", response);
         
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-      } catch (err) {
-        setError(err.message || 'Gagal memverifikasi email');
-        setIsVerifying(false);
+        setStatus({ 
+          loading: false, 
+          success: true, 
+          message: 'Email berhasil diverifikasi! Sekarang Anda dapat masuk ke akun Anda.' 
+        });
+      } catch (error) {
+        console.error("Verification error:", error);
+        setStatus({ 
+          loading: false, 
+          success: false, 
+          message: error.message || 'Gagal memverifikasi email. Token mungkin tidak valid atau sudah kadaluarsa.' 
+        });
       }
     };
-
-    verifyEmailToken();
-  }, [token, navigate]);
-
+    
+    verifyEmail();
+  }, [searchParams]);
+  
+  // Add a manual verification option if automatic verification fails
+  const handleManualVerification = async () => {
+    const token = searchParams.get('t');
+    if (!token) {
+      setStatus({ 
+        loading: false, 
+        success: false, 
+        message: 'Token verifikasi tidak ditemukan.' 
+      });
+      return;
+    }
+    
+    setStatus({ loading: true, success: false, message: '' });
+    
+    try {
+      await authService.verifyEmail(token);
+      setStatus({ 
+        loading: false, 
+        success: true, 
+        message: 'Email berhasil diverifikasi! Sekarang Anda dapat masuk ke akun Anda.' 
+      });
+    } catch (error) {
+      setStatus({ 
+        loading: false, 
+        success: false, 
+        message: error.message || 'Gagal memverifikasi email. Token mungkin tidak valid atau sudah kadaluarsa.' 
+      });
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-white flex flex-col items-center p-4">
       <div className="lg:py-3 md:py-3 py-8">
@@ -50,34 +88,49 @@ const VerifyEmailPage = () => {
         </Link>
       </div>
       
-      <div className="bg-white rounded-2xl border border-[#ECECEC] shadow-xl p-8 w-full max-w-[480px] text-center">
-        <ErrorAlert message={error} />
-        <SuccessAlert message={success} />
+      <div className="bg-white rounded-2xl border border-[#ECECEC] shadow-xl p-8 w-full max-w-[480px]">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-[#0a3e54] mb-2">
+            Verifikasi Email
+          </h1>
+        </div>
         
-        {isVerifying && (
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0a3e54] mb-4"></div>
-            <p className="text-gray-700 text-lg">Memverifikasi email...</p>
+        {status.loading ? (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0a3e54]"></div>
+            <p className="mt-4 text-gray-600">Memverifikasi email Anda...</p>
           </div>
-        )}
-        
-        {!isVerifying && !error && !success && (
-          <div className="text-center text-gray-600 py-8">
-            Terjadi kesalahan tak terduga.
-          </div>
-        )}
-        
-        {error && (
-          <div className="mt-4">
-            <Link
-              to="/login"
-              className="px-6 py-3 rounded-lg bg-[#0a3e54] text-white font-medium hover:bg-[#0a3e54]/90 transition-colors inline-block"
-            >
-              Kembali ke Login
-            </Link>
-          </div>
+        ) : (
+          <>
+            {status.success ? (
+              <SuccessAlert message={status.message} />
+            ) : (
+              <>
+                <ErrorAlert message={status.message} />
+                {/* Add manual verification button */}
+                <div className="mt-4 text-center">
+                  <button 
+                    onClick={handleManualVerification}
+                    className="bg-cyan-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-cyan-700 transition-colors"
+                  >
+                    Coba Verifikasi Ulang
+                  </button>
+                </div>
+              </>
+            )}
+            
+            <div className="mt-8 text-center">
+              <Link 
+                to="/login" 
+                className="bg-[#0a3e54] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#0a3e54]/90 transition-colors"
+              >
+                {status.success ? 'Masuk ke Akun' : 'Kembali ke Halaman Login'}
+              </Link>
+            </div>
+          </>
         )}
       </div>
+      <WhatsAppButton phoneNumber="+6285343037191" />
     </div>
   );
 };
