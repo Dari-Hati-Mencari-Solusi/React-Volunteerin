@@ -39,19 +39,49 @@ const Service = () => {
     },
   ];
 
+  const CardFitur = [
+    {
+      title: "Gamifikasi Point",
+      description:
+        "Volunteer dapat melihat point yang didapatkan dengan cara mendaftar event, login selama 10 menit, dan mengikuti event hingga selesai!",
+    },
+    {
+      title: "Ai Rekomendasi",
+      description:
+        "Volunteerin merekomendasikan event yang cocok untuk kamu dalam memilih event!",
+    },
+    {
+      title: "Pelacakan Lokasi",
+      description:
+        "Volunteerin dapat mendeteksi lokasi kamu berdasarkan jarak event dilaksanakan.",
+    },
+    {
+      title: "Dapatkan Informasi Real-time",
+      description:
+        "Volunteerin memberikan informasi pendaftaran secara jelas dan real-time, dengan track record riwayat pendaftaran event.",
+    },
+    {
+      title: "Custom Formulir Pendaftaran",
+      description:
+        "Volunteerin menyediakan custom formulir pendaftaran evetn organizer, sehingga event organizer dapat menyesuaikan formulir pendaftaran sesuai dengan kebutuhan event.",
+    },
+    {
+      title: "Transaksi dan withdraw",
+      description:
+        "Volunteerin menyediakan fitur transaksi dan withdraw untuk event organizer, sehingga event organizer dapat melakukan transaksi dengan mudah.",
+    },
+  ];
+
   const logos = [
     { id: 1, src: Banner, alt: "Volunteer Needed Logo" },
     { id: 2, src: Banner, alt: "Volunteer Group Logo" },
     { id: 3, src: Banner, alt: "Lets Volunteer Logo" },
     { id: 4, src: Banner, alt: "Volunteer Needed Blue Logo" },
     { id: 5, src: Banner, alt: "Lets Volunteer Community Logo" },
-    { id: 3, src: Banner, alt: "Lets Volunteer Logo" },
-    { id: 4, src: Banner, alt: "Volunteer Needed Blue Logo" },
-    { id: 5, src: Banner, alt: "Lets Volunteer Community Logo" },
+    { id: 6, src: Banner, alt: "Lets Volunteer Logo" },
+    { id: 7, src: Banner, alt: "Volunteer Needed Blue Logo" },
+    { id: 8, src: Banner, alt: "Lets Volunteer Community Logo" },
   ];
-
-  const topRowCards = benefitCards.slice(0, 2);
-  const bottomRowCards = benefitCards.slice(2, 4);
 
   return (
     <section className="min-h-screen flex flex-col bg-white">
@@ -65,22 +95,20 @@ const Service = () => {
             <h2 className="text-3xl md:text-4xl font-semibold text-[#0A3E54]">
               Di Volunteerin Aja
             </h2>
-            <h3 className="text-lg md:text-xl text-[#0A3E54]">Temukan Peluangmu, Wujudkan Aksimu</h3>
+            <h3 className="text-lg md:text-xl text-[#0A3E54]">
+              Temukan Peluangmu, Wujudkan Aksimu
+            </h3>
             <p className="text-gray-600 text-sm md:text-base">
-              Lorem Ipsum is simply dummy text of the printing and typesetting
-              industry. Lorem Ipsum has been the industry's standard dummy text
-              ever since the 1500s.
+              Semua tentang relawan dan event sosial? Satu klik di Volunteerin
+              aja! <br />
+              Daftar, temukan, dan mulai aksi sosialmu bareng komunitas hebat.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <button className="bg-[#0A3E54] text-white px-5 py-3 rounded-xl hover:bg-[#164D63] transition-colors w-full sm:w-auto">
-                <Link to='/auth'>
-                Buat Event Kamu
-                </Link>
+                <Link to="/auth">Buat Event Kamu</Link>
               </button>
               <button className="border-[1.5px] border-[#0A3E54] text-slate-800 px-5 py-3 rounded-xl hover:bg-slate-50 transition-colors w-full sm:w-auto">
-                <Link to='/'>
-                Jadi Volunteer
-                </Link>
+                <Link to="/">Jadi Volunteer</Link>
               </button>
             </div>
             <div className="flex justify-center md:justify-start gap-6 md:gap-12 pt-4 md:pt-8">
@@ -89,7 +117,9 @@ const Service = () => {
                   <div className="text-3xl md:text-5xl font-bold text-[#0A3E54]">
                     <CountUp end={stat.number} duration={4} suffix="+" />
                   </div>
-                  <div className="text-sm md:text-base text-[#87A5B1]">{stat.label}</div>
+                  <div className="text-sm md:text-base text-[#87A5B1]">
+                    {stat.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -97,7 +127,11 @@ const Service = () => {
           <div className="flex justify-center mt-6 md:mt-0">
             <div className="relative w-full max-w-xs md:max-w-md">
               <div className="flex items-end gap-4">
-                <img src={LogoHero} alt="Volunteerin Logo" className="w-full h-auto" />
+                <img
+                  src={LogoHero}
+                  alt="Volunteerin Logo"
+                  className="w-full h-auto"
+                />
               </div>
             </div>
           </div>
@@ -118,70 +152,78 @@ const Service = () => {
             </div>
             <div className="w-full lg:w-[65%] md:w-[50%]">
               <div className="overflow-hidden">
-              <Marquee
-              gradient={false}
-              speed={40}
-              pauseOnHover={true}
-              className="mb-1"
-            >
-              <div className="flex gap-1 py-2 cursor-default">
-                {benefitCards.slice(2, 4).map((card, index) => (
-                  <div
-                    key={`top-${index}`}
-                    className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-lg shadow-sm mx-2"
-                  >
-                    <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
-                      {card.title}
-                    </h3>
-                    <p className="text-gray-600 text-xs md:text-sm">{card.description}</p>
+                <Marquee
+                  gradient={false}
+                  speed={40}
+                  pauseOnHover={true}
+                  className="mb-1"
+                >
+                  <div className="flex gap-1 py-2 cursor-default">
+                    {benefitCards.slice(0, 2).map((card, index) => (
+                      <div
+                        key={`top-${index}`}
+                        className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-lg shadow-sm mx-2"
+                      >
+                        <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
+                          {card.title}
+                        </h3>
+                        <p className="text-gray-600 text-xs md:text-sm">
+                          {card.description}
+                        </p>
+                      </div>
+                    ))}
+                    {benefitCards.slice(0, 2).map((card, index) => (
+                      <div
+                        key={`top-dup-${index}`}
+                        className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-lg shadow-sm mx-2"
+                      >
+                        <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
+                          {card.title}
+                        </h3>
+                        <p className="text-gray-600 text-xs md:text-sm">
+                          {card.description}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-                {benefitCards.slice(2, 4).map((card, index) => (
-                  <div
-                    key={`top-dup-${index}`}
-                    className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-lg shadow-sm mx-2"
-                  >
-                    <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
-                      {card.title}
-                    </h3>
-                    <p className="text-gray-600 text-xs md:text-sm">{card.description}</p>
-                  </div>
-                ))}
-              </div>
-            </Marquee>
+                </Marquee>
               </div>
               <div className="overflow-hidden">
-            <Marquee
-              gradient={false}
-              speed={40}
-              pauseOnHover={true}
-              direction="right"
-            >
-              <div className="flex gap-1 py-1 cursor-default">
-                {benefitCards.slice(2, 4).map((card, index) => (
-                  <div
-                    key={`bottom-${index}`}
-                    className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-xl shadow-sm mx-2"
-                  >
-                    <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
-                      {card.title}
-                    </h3>
-                    <p className="text-gray-600 text-xs md:text-sm">{card.description}</p>
+                <Marquee
+                  gradient={false}
+                  speed={40}
+                  pauseOnHover={true}
+                  direction="right"
+                >
+                  <div className="flex gap-1 py-1 cursor-default">
+                    {benefitCards.slice(2, 4).map((card, index) => (
+                      <div
+                        key={`bottom-${index}`}
+                        className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-xl shadow-sm mx-2"
+                      >
+                        <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
+                          {card.title}
+                        </h3>
+                        <p className="text-gray-600 text-xs md:text-sm">
+                          {card.description}
+                        </p>
+                      </div>
+                    ))}
+                    {benefitCards.slice(2, 4).map((card, index) => (
+                      <div
+                        key={`bottom-dup-${index}`}
+                        className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-xl shadow-sm mx-2"
+                      >
+                        <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
+                          {card.title}
+                        </h3>
+                        <p className="text-gray-600 text-xs md:text-sm">
+                          {card.description}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-                {benefitCards.slice(2, 4).map((card, index) => (
-                  <div
-                    key={`bottom-dup-${index}`}
-                    className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-xl shadow-sm mx-2"
-                  >
-                    <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
-                      {card.title}
-                    </h3>
-                    <p className="text-gray-600 text-xs md:text-sm">{card.description}</p>
-                  </div>
-                ))}
-              </div>
-            </Marquee>
+                </Marquee>
               </div>
             </div>
           </div>
@@ -208,26 +250,30 @@ const Service = () => {
               className="mb-2"
             >
               <div className="flex gap-1 py-1 cursor-default">
-                {benefitCards.slice(2, 4).map((card, index) => (
+                {CardFitur.slice(0, 3).map((card, index) => (
                   <div
-                    key={`top-${index}`}
+                    key={`top-feature-${index}`}
                     className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-lg shadow-sm mx-2"
                   >
                     <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
                       {card.title}
                     </h3>
-                    <p className="text-gray-600 text-xs md:text-sm">{card.description}</p>
+                    <p className="text-gray-600 text-xs md:text-sm">
+                      {card.description}
+                    </p>
                   </div>
                 ))}
-                {benefitCards.slice(2, 4).map((card, index) => (
+                {CardFitur.slice(0, 3).map((card, index) => (
                   <div
-                    key={`top-dup-${index}`}
+                    key={`top-feature-dup-${index}`}
                     className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-lg shadow-sm mx-2"
                   >
                     <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
                       {card.title}
                     </h3>
-                    <p className="text-gray-600 text-xs md:text-sm">{card.description}</p>
+                    <p className="text-gray-600 text-xs md:text-sm">
+                      {card.description}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -239,26 +285,30 @@ const Service = () => {
               direction="right"
             >
               <div className="flex gap-1 py-1 cursor-default">
-                {benefitCards.slice(2, 4).map((card, index) => (
+                {CardFitur.slice(3, 6).map((card, index) => (
                   <div
-                    key={`bottom-${index}`}
+                    key={`bottom-feature-${index}`}
                     className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-xl shadow-sm mx-2"
                   >
                     <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
                       {card.title}
                     </h3>
-                    <p className="text-gray-600 text-xs md:text-sm">{card.description}</p>
+                    <p className="text-gray-600 text-xs md:text-sm">
+                      {card.description}
+                    </p>
                   </div>
                 ))}
-                {benefitCards.slice(2, 4).map((card, index) => (
+                {CardFitur.slice(3, 6).map((card, index) => (
                   <div
-                    key={`bottom-dup-${index}`}
+                    key={`bottom-feature-dup-${index}`}
                     className="w-64 sm:w-80 flex-shrink-0 bg-white p-3 md:p-4 rounded-xl shadow-sm mx-2"
                   >
                     <h3 className="text-lg md:text-xl font-bold text-[#0A3E54] mb-2 md:mb-3">
                       {card.title}
                     </h3>
-                    <p className="text-gray-600 text-xs md:text-sm">{card.description}</p>
+                    <p className="text-gray-600 text-xs md:text-sm">
+                      {card.description}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -353,7 +403,10 @@ const Service = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mt-3 md:mt-4">
           <div className="group bg-white border border-gray-200 p-4 md:p-6 rounded-lg flex justify-between items-center hover:bg-gray-50 cursor-pointer transition duration-300">
-            <a href="#" className="text-[#164D63] text-xl md:text-2xl font-reguler">
+            <a
+              href="#"
+              className="text-[#164D63] text-xl md:text-2xl font-reguler"
+            >
               Curhat
             </a>
             <Icon
@@ -364,7 +417,10 @@ const Service = () => {
             />
           </div>
           <div className="group bg-white border border-gray-200 p-4 md:p-6 rounded-lg flex justify-between items-center hover:bg-gray-50 cursor-pointer transition duration-300">
-            <a href="#" className="text-[#164D63] text-xl md:text-2xl font-reguler">
+            <a
+              href="#"
+              className="text-[#164D63] text-xl md:text-2xl font-reguler"
+            >
               Request Fitur
             </a>
             <Icon
@@ -375,7 +431,10 @@ const Service = () => {
             />
           </div>
           <div className="group bg-white border border-gray-200 p-4 md:p-6 rounded-lg flex justify-between items-center hover:bg-gray-50 cursor-pointer transition duration-300">
-            <a href="#" className="text-[#164D63] text-xl md:text-2xl font-reguler">
+            <a
+              href="#"
+              className="text-[#164D63] text-xl md:text-2xl font-reguler"
+            >
               Beri Feedback
             </a>
             <Icon
@@ -386,7 +445,10 @@ const Service = () => {
             />
           </div>
           <div className="group bg-white border border-gray-200 p-4 md:p-6 rounded-lg flex justify-between items-center hover:bg-gray-50 cursor-pointer transition duration-300">
-            <a href="#" className="text-[#164D63] text-xl md:text-2xl font-reguler">
+            <a
+              href="#"
+              className="text-[#164D63] text-xl md:text-2xl font-reguler"
+            >
               Kunjungi Kami
             </a>
             <Icon
