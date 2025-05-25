@@ -26,7 +26,7 @@ const BtnDaftarVolunteer = ({ eventId }) => {
 
   return (
     <button 
-      className="bg-[#0A3E54] rounded-[12px] text-white font-medium w-full h-[48px] text-center"
+      className="bg-[#1FB918] hover:bg-[#1FB918]/80 rounded-[12px] text-white font-medium w-full h-[48px] text-center transition-colors duration-300 ease-in-out transform hover:scale-[1.02] active:scale-[0.98]"
       onClick={handleClick}
     >
       <h1 className="text-sm md:text-xl">Daftar Volunteer</h1>
