@@ -5,7 +5,7 @@ import axios from 'axios';
  * Client HTTP untuk melakukan requests ke API
  */
 const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_BE_BASE_URL,
+  baseURL: import.meta.env.VITE_FE_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
