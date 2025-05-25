@@ -18,50 +18,33 @@ const EventPage = () => {
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
 
-  // Check authentication status dan fetch data event
-  useEffect(() => {
-    // Jika belum login, redirect ke halaman login
-    if (!isAuthenticated) {
-      // Simpan URL tujuan agar setelah login bisa kembali ke halaman ini
-      const returnUrl = `/event/${id}`;
+// Check authentication status dan fetch data event
+useEffect(() => {
+  // Langsung fetch data event dari API tanpa pengecekan login
+  const getEventData = async () => {
+    try {
+      setIsLoading(true);
+      // Ambil token dari localStorage jika ada
+      const token = localStorage.getItem("token");
       
-      // Gunakan localStorage untuk menyimpan URL tempat user ingin pergi
-      localStorage.setItem("returnUrl", returnUrl);
+      // Panggil fungsi dari eventService
+      const eventData = await fetchEventById(id, token);
       
-      // Redirect ke halaman login dengan pesan
-      navigate("/login", { 
-        state: { 
-          message: "Silakan login untuk melihat detail event",
-          returnUrl: returnUrl 
-        } 
-      });
-    } else {
-      // User sudah login, fetch data event dari API
-      const getEventData = async () => {
-        try {
-          setIsLoading(true);
-          // Ambil token dari localStorage
-          const token = localStorage.getItem("token");
-          
-          // Panggil fungsi dari eventService
-          const eventData = await fetchEventById(id, token);
-          
-          if (eventData && eventData.data) {
-            setEvent(eventData.data);
-          } else {
-            setError("Format respons API tidak valid");
-          }
-        } catch (err) {
-          console.error("Error fetching event:", err);
-          setError(err.message || "Terjadi kesalahan saat mengambil data event");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
-      getEventData();
+      if (eventData && eventData.data) {
+        setEvent(eventData.data);
+      } else {
+        setError("Format respons API tidak valid");
+      }
+    } catch (err) {
+      console.error("Error fetching event:", err);
+      setError(err.message || "Terjadi kesalahan saat mengambil data event");
+    } finally {
+      setIsLoading(false);
     }
-  }, [isAuthenticated, id, navigate]);
+  };
+  
+  getEventData();
+}, [id]);
 
   const toggleDescription = () => {
     setShowFullDescription(!showFullDescription);
