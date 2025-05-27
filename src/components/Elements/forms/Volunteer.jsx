@@ -36,16 +36,22 @@ const Volunteer = forwardRef(({ onUpdate }, ref) => {
     }
   }));
 
-  // useEffect dengan dependency array yang benar
   useEffect(() => {
+    // Convert acceptedQuota dari string ke number jika ada nilai
+    const formattedAcceptedQuota = acceptedQuota.trim() !== "" ? parseInt(acceptedQuota, 10) : "";
+    const formattedMaxApplicant = maxApplicant.trim() !== "" ? parseInt(maxApplicant, 10) : "";
+    
     // Debounced update ke parent component
-    debouncedUpdate({
-      requirement,
-      contactPerson,
-      maxApplicant,
-      acceptedQuota
-    });
-  }, [requirement, contactPerson, maxApplicant, acceptedQuota, debouncedUpdate]);
+    const data = {
+      requirement: requirement || "",
+      contactPerson: contactPerson || "",
+      maxApplicant: formattedMaxApplicant || "",
+      acceptedQuota: formattedAcceptedQuota || ""
+    };
+    
+    console.log("Updating volunteer data:", data);
+    debouncedUpdate(data);
+  }, [requirement, contactPerson, maxApplicant, acceptedQuota]);
 
   // Clean up effect saat komponen unmount
   useEffect(() => {
