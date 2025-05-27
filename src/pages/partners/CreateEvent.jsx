@@ -1757,98 +1757,10 @@ const CreateEvent = ({ onBack }) => {
           )}
           Buat Event
         </button>
-        <button
-          type="button"
-          onClick={fetchValidIds}
-          className="bg-green-500 py-2 px-4 text-white rounded-lg hover:bg-green-600 transition-colors"
-        >
-          Gunakan ID Valid
-        </button>
-        <button
-          onClick={testWithCorrectSizedBanner}
-          className="bg-blue-500 py-2 px-4 text-white rounded-lg"
-        >
-          Test with correct size banner
-        </button>
+        
 
-        {/* Debug buttons */}
-        {process.env.NODE_ENV === "development" && (
-          <>
-            <button
-              type="button"
-              onClick={() => apiUtils.testServerConnection(setLoading)}
-              disabled={loading}
-              className="bg-purple-500 py-2 px-4 text-white rounded-lg hover:bg-purple-600 transition-colors"
-            >
-              Test Koneksi Server
-            </button>
-            <button
-              type="button"
-              onClick={fetchValidIds}
-              className="bg-green-500 py-2 px-4 text-white rounded-lg hover:bg-green-600 transition-colors"
-            >
-              Ambil ID Valid
-            </button>
-
-            <button
-              type="button"
-              onClick={() => apiUtils.detectApiServer(setLoading, setApiStatus)}
-              disabled={loading}
-              className="bg-green-500 py-2 px-4 text-white rounded-lg hover:bg-green-600 transition-colors"
-            >
-              Cari Server API
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleSimulationMode}
-              className="bg-amber-500 py-2 px-4 text-white rounded-lg hover:bg-amber-600 transition-colors"
-            >
-              {localStorage.getItem("simulate_create_event") === "true"
-                ? "Nonaktifkan Simulasi"
-                : "Aktifkan Simulasi"}
-            </button>
-          </>
-        )}
+        
       </div>
-
-      {/* Debug info */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-          <div className="flex justify-between items-center">
-            <h3 className="font-medium text-gray-700">Debug Info</h3>
-            <span
-              className={`text-xs px-2 py-1 rounded ${
-                apiStatus.isConnected
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {apiStatus.isConnected ? "API Connected" : "API Disconnected"}
-            </span>
-          </div>
-
-          <div className="mt-2 text-xs">
-            <p>API URL: {apiUtils.getApiUrl() || "Not defined"}</p>
-            <p>
-              Auth Status:{" "}
-              {authService.isAuthenticated()
-                ? "Authenticated"
-                : "Not Authenticated"}
-            </p>
-            <p>Is Partner: {authService.isPartner() ? "Yes" : "No"}</p>
-            <p>Selected Benefits: {formData.benefitIds?.length || 0}</p>
-            <p>Selected Categories: {formData.categoryIds?.length || 0}</p>
-            <p>Has Banner: {formData.banner ? "Yes" : "No"}</p>
-            <p>
-              Simulation Mode:{" "}
-              {localStorage.getItem("simulate_create_event") === "true"
-                ? "On"
-                : "Off"}
-            </p>
-          </div>
-        </div>
-      )}
     </section>
   );
 };

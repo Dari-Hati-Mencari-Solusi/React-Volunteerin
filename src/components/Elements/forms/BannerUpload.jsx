@@ -11,6 +11,7 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
   const [bannerFile, setBannerFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [error, setError] = useState("");
+  const [isResizing, setIsResizing] = useState(false);
   const fileInputRef = useRef(null);
 
   // Keep track of whether onUpdate has been called already for this file
@@ -49,9 +50,97 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
         URL.revokeObjectURL(previewUrl);
       }
     };
-  }, [bannerFile]);
+  }, [bannerFile, onUpdate]);
 
-  const handleFileChange = (e) => {
+  // Fungsi untuk resize gambar ke 600x300
+  const resizeImageTo600x300 = (file) => {
+    return new Promise((resolve, reject) => {
+      setIsResizing(true);
+      
+      // Buat objek FileReader untuk membaca file
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        // Buat elemen gambar
+        const img = new Image();
+        
+        img.onload = () => {
+          // Buat canvas dengan dimensi target 600x300
+          const canvas = document.createElement('canvas');
+          canvas.width = 600;
+          canvas.height = 300;
+          const ctx = canvas.getContext('2d');
+          
+          // Isi background dengan warna putih
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, 600, 300);
+          
+          // Hitung dimensi untuk menjaga aspek rasio
+          let sourceWidth = img.width;
+          let sourceHeight = img.height;
+          let destX = 0;
+          let destY = 0;
+          let destWidth = 600;
+          let destHeight = 300;
+          
+          const sourceAspect = sourceWidth / sourceHeight;
+          const destAspect = destWidth / destHeight;
+          
+          if (sourceAspect > destAspect) {
+            // Gambar terlalu lebar, sesuaikan tinggi
+            destHeight = destWidth / sourceAspect;
+            destY = (canvas.height - destHeight) / 2;
+          } else {
+            // Gambar terlalu tinggi, sesuaikan lebar
+            destWidth = destHeight * sourceAspect;
+            destX = (canvas.width - destWidth) / 2;
+          }
+          
+          // Gambar ke canvas dengan posisi center dan ukuran yang tepat
+          ctx.drawImage(
+            img,
+            0, 0, sourceWidth, sourceHeight,
+            destX, destY, destWidth, destHeight
+          );
+          
+          // Konversi canvas ke blob
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              setIsResizing(false);
+              reject(new Error('Gagal mengubah ukuran gambar'));
+              return;
+            }
+            
+            // Buat file baru dari blob
+            const resizedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            
+            console.log(`Gambar berhasil diubah ke ukuran 600x300 dari ${img.width}x${img.height}`);
+            setIsResizing(false);
+            resolve(resizedFile);
+          }, 'image/jpeg', 0.92); // Kualitas 92%
+        };
+        
+        img.onerror = () => {
+          setIsResizing(false);
+          reject(new Error('Gagal memuat gambar untuk resize'));
+        };
+        
+        img.src = e.target.result;
+      };
+      
+      reader.onerror = () => {
+        setIsResizing(false);
+        reject(new Error('Gagal membaca file gambar'));
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
 
     if (!file) {
@@ -73,16 +162,24 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
       return;
     }
 
-    // Reset the update flag for the new file
-    hasUpdatedRef.current = false;
+    try {
+      // Reset the update flag for the new file
+      hasUpdatedRef.current = false;
 
-    // Create preview URL
-    const url = URL.createObjectURL(file);
+      // Resize gambar ke 600x300
+      const resizedFile = await resizeImageTo600x300(file);
+      
+      // Create preview URL
+      const url = URL.createObjectURL(resizedFile);
 
-    // Update state
-    setBannerFile(file);
-    setPreviewUrl(url);
-    setError("");
+      // Update state with resized file
+      setBannerFile(resizedFile);
+      setPreviewUrl(url);
+      setError("");
+    } catch (error) {
+      console.error("Error resizing image:", error);
+      setError("Gagal mengubah ukuran gambar: " + error.message);
+    }
   };
 
   const handleRemoveBanner = () => {
@@ -149,6 +246,7 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
               id="banner"
               accept="image/*"
               onChange={handleFileChange}
+              disabled={isResizing}
               className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-full file:border-0
@@ -160,11 +258,19 @@ const BannerUpload = forwardRef(({ onUpdate }, ref) => {
             <p className="text-sm text-gray-500">
               Format gambar: JPG, PNG. Ukuran maksimal: 1MB
             </p>
+            <p className="text-sm text-blue-600 font-medium">
+              Gambar akan otomatis disesuaikan ke ukuran 600x300 piksel
+            </p>
+            {isResizing && (
+              <p className="text-sm text-orange-500">
+                Sedang menyesuaikan ukuran gambar...
+              </p>
+            )}
           </div>
 
           {previewUrl && (
             <div className="space-y-2">
-              <p className="font-medium">Preview Banner</p>
+              <p className="font-medium">Preview Banner (600x300)</p>
               <div className="relative">
                 <img
                   src={previewUrl}
