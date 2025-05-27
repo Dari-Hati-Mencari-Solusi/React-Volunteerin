@@ -8,13 +8,16 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
   const [endDate, setEndDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-
-  // Buat versi debounced dari onUpdate yang TIDAK berubah pada setiap render
-  const debouncedUpdate = debounce((data) => {
-    if (onUpdate) {
-      onUpdate(data);
-    }
-  }, 500);
+  
+  // Buat versi debounced dari onUpdate dengan useRef agar tidak berubah setiap render
+  const debouncedUpdate = useRef(
+    debounce((data) => {
+      if (onUpdate) {
+        console.log("Sending date data to parent:", data);
+        onUpdate(data);
+      }
+    }, 500)
+  ).current;
 
   // Validasi dan ambil data
   useImperativeHandle(ref, () => ({
@@ -22,43 +25,44 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
       const errors = [];
       if (!startDate) errors.push("Tanggal pembukaan harus diisi");
       if (!startTime) errors.push("Waktu pembukaan harus diisi");
-      // endDate dan endTime bisa opsional
       return errors;
     },
     getData: () => {
-      const startAt = startDate && startTime ? `${startDate}T${startTime}:00Z` : "";
-      const endAt = endDate && endTime ? `${endDate}T${endTime}:00Z` : "";
+      const startAt = startDate && startTime ? `${startDate}T${startTime}:00Z` : null;
+      const endAt = endDate && endTime ? `${endDate}T${endTime}:00Z` : null;
       
-      return {
-        startAt,
-        endAt
-      };
+      console.log("Returning date data:", { startAt, endAt });
+      return { startAt, endAt };
     }
   }));
 
-  // useEffect dengan dependency array yang benar
+  // useEffect untuk mengirim data ke parent component
   useEffect(() => {
-    // Hanya jalankan jika startDate dan startTime ada
     if (startDate && startTime) {
       const startAt = `${startDate}T${startTime}:00Z`;
-      const endAt = endDate && endTime ? `${endDate}T${endTime}:00Z` : "";
+      const endAt = endDate && endTime ? `${endDate}T${endTime}:00Z` : null;
       
-      // Gunakan versi debounced yang disimpan di ref
       debouncedUpdate({ startAt, endAt });
-
-      return () => {
-        return debouncedUpdate.cancel();
-      }
     }
   }, [startDate, startTime, endDate, endTime, debouncedUpdate]);
   
   // Clean up effect saat komponen unmount
   useEffect(() => {
     return () => {
-      // Cancel debounced function saat unmount
-      debouncedUpdate.cancel();
+      if (debouncedUpdate && debouncedUpdate.cancel) {
+        debouncedUpdate.cancel();
+      }
     };
   }, [debouncedUpdate]);
+
+  // Handler untuk tanggal end date minimal sama dengan start date
+  const handleStartDateChange = (e) => {
+    const newStartDate = e.target.value;
+    setStartDate(newStartDate);
+    if (endDate && endDate < newStartDate) {
+      setEndDate(newStartDate);
+    }
+  };
 
   return (
     <div className="w-full max-w-full mx-auto">
@@ -82,7 +86,6 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
           }`}
         >
           <div className="p-6 space-y-6">
-            {/* Start Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label
@@ -95,7 +98,7 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
                   type="date"
                   id="start-date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={handleStartDateChange}
                   className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
                 />
                 {!startDate && (
@@ -126,38 +129,72 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
               </div>
             </div>
 
-            {/* End Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label
                   htmlFor="end-date"
-                  className="block text-sm font-medium mb-2"
+                  className="block text-sm font-medium mb-2 flex justify-between"
                 >
-                  Tanggal Penutupan
+                  <span>Tanggal Penutupan</span>
                 </label>
                 <input
                   type="date"
                   id="end-date"
                   value={endDate}
+                  min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
+                  className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
+                    endDate && !endTime ? "border-yellow-300" : ""
+                  }`}
                 />
+                {endDate && !endTime && (
+                  <p className="text-xs text-yellow-600 mt-1">
+                    Jangan lupa isi waktu penutupan juga
+                  </p>
+                )}
               </div>
               <div>
                 <label
                   htmlFor="end-time"
-                  className="block text-sm font-medium mb-2"
+                  className="block text-sm font-medium mb-2 flex justify-between"
                 >
-                  Waktu Penutupan
+                  <span>Waktu Penutupan</span>
                 </label>
                 <input
                   type="time"
                   id="end-time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
+                  className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
+                    endDate && !endTime ? "border-yellow-300" : ""
+                  }`}
                 />
+                {endTime && !endDate && (
+                  <p className="text-xs text-yellow-600 mt-1">
+                    Jangan lupa isi tanggal penutupan juga
+                  </p>
+                )}
               </div>
+            </div>
+
+            <div className="text-sm mt-2">
+              <p className="text-gray-600">
+                {startDate && startTime ? (
+                  <>
+                    <span className="font-medium">Event akan dimulai pada: </span>
+                    {new Date(`${startDate}T${startTime}:00`).toLocaleString('id-ID')}
+                  </>
+                ) : (
+                  <span className="text-gray-400">Silakan isi tanggal dan waktu pembukaan</span>
+                )}
+              </p>
+              
+              {endDate && endTime && (
+                <p className="text-gray-600 mt-1">
+                  <span className="font-medium">Event akan berakhir pada: </span>
+                  {new Date(`${endDate}T${endTime}:00`).toLocaleString('id-ID')}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -165,5 +202,7 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
     </div>
   );
 });
+
+DateForm.displayName = "DateForm";
 
 export default DateForm;

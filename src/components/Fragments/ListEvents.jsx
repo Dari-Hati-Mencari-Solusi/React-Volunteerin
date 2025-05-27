@@ -5,6 +5,7 @@ import BtnWhatsapp from "../Elements/buttons/BtnWhatsapp";
 import CreateEvent from "../../pages/partners/CreateEvent";
 import { partnerService } from "../../services/partnerService";
 import Swal from "sweetalert2";
+import defaultBanner from "../../assets/images/banner1.jpg"; // Impor banner lokal sebagai default
 
 const ListEvents = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,8 +24,8 @@ const ListEvents = () => {
     // Base URL dari API
     const BASE_URL = import.meta.env.VITE_BE_BASE_URL || 'http://localhost:3000';
     
-    // Placeholder default jika tidak ada banner
-    const DEFAULT_BANNER = "https://via.placeholder.com/600x300?text=No+Banner+Available";
+    // Gunakan defaultBanner (banner1.jpg yang diimpor) sebagai fallback
+    const DEFAULT_BANNER = defaultBanner;
     
     if (!event) return DEFAULT_BANNER;
     
@@ -115,50 +116,10 @@ const ListEvents = () => {
     }
   };
 
-  // Fungsi untuk memeriksa apakah gambar dapat dimuat
-  const checkImageExists = async (url) => {
-    return new Promise((resolve) => {
-      if (!url || url.includes('placeholder')) {
-        resolve(false);
-        return;
-      }
-      
-      const img = new Image();
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = url;
-      
-      // Set timeout untuk menghindari hang
-      setTimeout(() => resolve(false), 5000);
-    });
-  };
-
   // Panggil API saat komponen dimount
   useEffect(() => {
     fetchEvents(pagination.page, pagination.limit);
   }, []);
-
-  // Effect untuk preload dan validasi banner
-  useEffect(() => {
-    const preloadBanners = async () => {
-      if (events.length > 0) {
-        const updatedEvents = await Promise.all(
-          events.map(async (event) => {
-            const imageExists = await checkImageExists(event.banner);
-            return {
-              ...event,
-              banner: imageExists 
-                ? event.banner 
-                : "https://via.placeholder.com/600x300?text=No+Banner"
-            };
-          })
-        );
-        setEvents(updatedEvents);
-      }
-    };
-    
-    preloadBanners();
-  }, [events.length]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -317,9 +278,8 @@ const ListEvents = () => {
                                 alt={`Banner for ${event.name}`}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  console.error(`Failed to load image: ${event.banner}`);
-                                  e.target.src = "https://via.placeholder.com/600x300?text=Banner+Not+Found";
-                                  e.target.classList.add("error-image");
+                                  console.log(`Using default local banner for: ${event.name}`);
+                                  e.target.src = defaultBanner; // Gunakan banner lokal jika terjadi error
                                 }}
                               />
                             </div>

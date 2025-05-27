@@ -37,29 +37,42 @@ const Location = forwardRef(({ onUpdate }, ref) => {
       if (!selectedCity) errors.push("Kota/kabupaten harus dipilih");
       return errors;
     },
-    getData: () => ({
-      province: selectedProvince,
-      regency: selectedCity,
-      address,
-      gmaps: googleMapsUrl,
-      latitude,
-      longitude
-    })
+    getData: () => {
+      // Pastikan nilai yang dikembalikan sudah divalidasi dan tidak undefined
+      const validatedData = {
+        province: selectedProvince || "",
+        regency: selectedCity || "",
+        address: address || "",
+        gmaps: googleMapsUrl || "",
+        // Konversi latitude dan longitude ke string
+        latitude: latitude ? String(latitude).trim() : "",
+        longitude: longitude ? String(longitude).trim() : ""
+      };
+      
+      console.log("Location.getData() returning:", validatedData);
+      return validatedData;
+    }
   }));
 
   // Update parent component when data changes - WITH DEBOUNCE AND DEPENDENCY ARRAY
   useEffect(() => {
-    // Only update if the province and city are selected
-    if (selectedProvince && selectedCity) {
-      debouncedUpdate({
-        province: selectedProvince,
-        regency: selectedCity,
-        address,
-        gmaps: googleMapsUrl,
-        latitude,
-        longitude
-      });
-    }
+    // Pastikan gmaps, address, longitude dan latitude tidak undefined atau null
+    const data = {
+      province: selectedProvince || "",
+      regency: selectedCity || "",
+      address: address || "",
+      gmaps: googleMapsUrl || "",
+      latitude: latitude || "",
+      longitude: longitude || ""
+    };
+    
+    // Log data untuk debugging
+    console.log("Location data yang akan diupdate:", data);
+    
+    // Selalu update parent dengan data yang ada, bahkan jika tidak lengkap
+    // Ini memastikan bahwa field opsional seperti latitude/longitude tetap terkirim
+    debouncedUpdate(data);
+    
   }, [selectedProvince, selectedCity, address, googleMapsUrl, latitude, longitude, debouncedUpdate]);
 
   // Cleanup debounce on unmount
@@ -72,10 +85,26 @@ const Location = forwardRef(({ onUpdate }, ref) => {
   // Extract coordinates from Google Maps URL
   useEffect(() => {
     if (googleMapsUrl) {
-      const matches = googleMapsUrl.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (matches && matches.length === 3) {
-        setLatitude(matches[1]);
-        setLongitude(matches[2]);
+      try {
+        // Coba berbagai format URL Google Maps
+        let matches = googleMapsUrl.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+        
+        if (!matches) {
+          // Coba format lain
+          matches = googleMapsUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        }
+        
+        if (matches && matches.length === 3) {
+          const lat = matches[1];
+          const lng = matches[2];
+          console.log(`Extracted coordinates from URL: ${lat}, ${lng}`);
+          setLatitude(lat);
+          setLongitude(lng);
+        } else {
+          console.log("Could not extract coordinates from URL:", googleMapsUrl);
+        }
+      } catch (error) {
+        console.error("Error processing Google Maps URL:", error);
       }
     }
   }, [googleMapsUrl]);
@@ -380,6 +409,47 @@ const Location = forwardRef(({ onUpdate }, ref) => {
               </p>
             </div>
 
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  // Set contoh koordinat Jakarta
+                  setLatitude("-6.200000");
+                  setLongitude("106.816666");
+                  setGoogleMapsUrl("https://maps.google.com/?q=-6.200000,106.816666");
+                }}
+                className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+              >
+                Gunakan Koordinat Jakarta
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  // Coba dapatkan lokasi saat ini
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const lat = position.coords.latitude.toFixed(6);
+                        const lng = position.coords.longitude.toFixed(6);
+                        setLatitude(lat);
+                        setLongitude(lng);
+                        setGoogleMapsUrl(`https://maps.google.com/?q=${lat},${lng}`);
+                      },
+                      (error) => {
+                        console.error("Error getting location:", error);
+                        alert("Tidak dapat mengakses lokasi Anda. Pastikan Anda mengizinkan akses lokasi.");
+                      }
+                    );
+                  } else {
+                    alert("Geolocation tidak didukung oleh browser Anda.");
+                  }
+                }}
+                className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
+              >
+                Gunakan Lokasi Saat Ini
+              </button>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -412,5 +482,13 @@ const Location = forwardRef(({ onUpdate }, ref) => {
     </div>
   );
 });
+
+Location.displayName = "Location";
+
+console.log("Location component loaded");
+console.log("Location component ref:", Location);
+// Add a console log to confirm data is being sent
+console.log("Location component is ready to send data.");
+
 
 export default Location;
