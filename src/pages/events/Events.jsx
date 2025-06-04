@@ -93,7 +93,9 @@ const EventCard = ({ event }) => {
             
             {/* Save button dengan z-index lebih tinggi untuk tetap dapat diklik */}
             <Link 
-              to={`/save-event/${event.id}`} 
+            // aku matikan duls, karena belum ada api untuk save event
+              // to={`/save-event/${event.id}`}
+              to={`/save-event`} 
               className="relative z-20"
               onClick={(e) => e.stopPropagation()}
             >

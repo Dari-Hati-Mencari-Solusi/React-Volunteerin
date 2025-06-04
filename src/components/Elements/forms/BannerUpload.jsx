@@ -1,314 +1,309 @@
-import React, { useState, useRef } from "react";
-import { Icon } from "@iconify/react";
-import Banner from "../../../assets/images/banner2.jpg";
+import React, {
+  useState,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+  useEffect,
+} from "react";
 
-const BannerUpload = ({ onClose }) => {
+const BannerUpload = forwardRef(({ onUpdate }, ref) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [bannerFile, setBannerFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [showExampleModal, setShowExampleModal] = useState(false);
-  const [sizeError, setSizeError] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [error, setError] = useState("");
+  const [isResizing, setIsResizing] = useState(false);
   const fileInputRef = useRef(null);
-  
-  const MAX_FILE_SIZE = 1 * 1024 * 1024;
 
-  const validateFileSize = (file) => {
-    if (file.size > MAX_FILE_SIZE) {
-      setSizeError(true);
-      return false;
+  // Keep track of whether onUpdate has been called already for this file
+  const hasUpdatedRef = useRef(false);
+
+  // Expose validate function to parent component
+  useImperativeHandle(ref, () => ({
+    validate: () => {
+      if (!bannerFile) {
+        return ["Banner event harus diunggah"];
+      }
+      return [];
+    },
+  }));
+
+  // FIXED: Use useEffect with bannerFile dependency only
+  // Call onUpdate only when bannerFile changes and only once per file
+  useEffect(() => {
+    // Only update if we have a file and haven't already updated for this file
+    if (bannerFile && onUpdate && !hasUpdatedRef.current) {
+      console.log(
+        `Updating with banner: ${bannerFile.name}, size: ${bannerFile.size}`
+      );
+      onUpdate({ banner: bannerFile });
+      hasUpdatedRef.current = true;
     }
-    
-    setSizeError(false);
-    return true;
+
+    // Reset the flag if bannerFile changes to null
+    if (!bannerFile) {
+      hasUpdatedRef.current = false;
+    }
+
+    // Cleanup function for preview URL
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [bannerFile, onUpdate]);
+
+  // Fungsi untuk resize gambar ke 600x300
+  const resizeImageTo600x300 = (file) => {
+    return new Promise((resolve, reject) => {
+      setIsResizing(true);
+      
+      // Buat objek FileReader untuk membaca file
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        // Buat elemen gambar
+        const img = new Image();
+        
+        img.onload = () => {
+          // Buat canvas dengan dimensi target 600x300
+          const canvas = document.createElement('canvas');
+          canvas.width = 600;
+          canvas.height = 300;
+          const ctx = canvas.getContext('2d');
+          
+          // Isi background dengan warna putih
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, 600, 300);
+          
+          // Hitung dimensi untuk menjaga aspek rasio
+          let sourceWidth = img.width;
+          let sourceHeight = img.height;
+          let destX = 0;
+          let destY = 0;
+          let destWidth = 600;
+          let destHeight = 300;
+          
+          const sourceAspect = sourceWidth / sourceHeight;
+          const destAspect = destWidth / destHeight;
+          
+          if (sourceAspect > destAspect) {
+            // Gambar terlalu lebar, sesuaikan tinggi
+            destHeight = destWidth / sourceAspect;
+            destY = (canvas.height - destHeight) / 2;
+          } else {
+            // Gambar terlalu tinggi, sesuaikan lebar
+            destWidth = destHeight * sourceAspect;
+            destX = (canvas.width - destWidth) / 2;
+          }
+          
+          // Gambar ke canvas dengan posisi center dan ukuran yang tepat
+          ctx.drawImage(
+            img,
+            0, 0, sourceWidth, sourceHeight,
+            destX, destY, destWidth, destHeight
+          );
+          
+          // Konversi canvas ke blob
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              setIsResizing(false);
+              reject(new Error('Gagal mengubah ukuran gambar'));
+              return;
+            }
+            
+            // Buat file baru dari blob
+            const resizedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            
+            console.log(`Gambar berhasil diubah ke ukuran 600x300 dari ${img.width}x${img.height}`);
+            setIsResizing(false);
+            resolve(resizedFile);
+          }, 'image/jpeg', 0.92); // Kualitas 92%
+        };
+        
+        img.onerror = () => {
+          setIsResizing(false);
+          reject(new Error('Gagal memuat gambar untuk resize'));
+        };
+        
+        img.src = e.target.result;
+      };
+      
+      reader.onerror = () => {
+        setIsResizing(false);
+        reject(new Error('Gagal membaca file gambar'));
+      };
+      
+      reader.readAsDataURL(file);
+    });
   };
 
-  const handleBannerUpload = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      if (!validateFileSize(file)) {
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-        return;
-      }
-      
-      setBannerFile(file);
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
 
+    if (!file) {
+      setBannerFile(null);
+      setPreviewUrl("");
+      setError("");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError("File harus berupa gambar (JPG, PNG, dll)");
+      return;
+    }
+
+    // Validate file size (1MB max)
+    if (file.size > 1024 * 1024) {
+      setError("Ukuran gambar maksimal 1MB");
+      return;
+    }
+
+    try {
+      // Reset the update flag for the new file
+      hasUpdatedRef.current = false;
+
+      // Resize gambar ke 600x300
+      const resizedFile = await resizeImageTo600x300(file);
+      
       // Create preview URL
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
+      const url = URL.createObjectURL(resizedFile);
+
+      // Update state with resized file
+      setBannerFile(resizedFile);
+      setPreviewUrl(url);
+      setError("");
+    } catch (error) {
+      console.error("Error resizing image:", error);
+      setError("Gagal mengubah ukuran gambar: " + error.message);
     }
   };
 
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isDragging) {
-      setIsDragging(true);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      
-      if (!validateFileSize(file)) {
-        return;
-      }
-      
-      setBannerFile(file);
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
-
-      if (fileInputRef.current) {
-        fileInputRef.current.files = e.dataTransfer.files;
-      }
-    }
-  };
-
-  const togglePreview = () => {
-    if (previewUrl) {
-      setShowPreview(!showPreview);
-    }
-  };
-
-  const removeFile = (e) => {
-    e.stopPropagation();
+  const handleRemoveBanner = () => {
     setBannerFile(null);
-    setPreviewUrl(null);
-    setShowPreview(false);
-    setSizeError(false);
+    setPreviewUrl("");
+    setError("");
+
+    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
 
-  const toggleExampleModal = () => {
-    setShowExampleModal(!showExampleModal);
-  };
-
-  const downloadImage = () => {
-    const link = document.createElement("a");
-    link.href = previewUrl;
-    link.download = bannerFile.name || "banner-image";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleContainerClick = (e) => {
-    if (previewUrl && !showPreview) {
-      e.preventDefault();
-      togglePreview();
+    // Notify parent component
+    if (onUpdate) {
+      onUpdate({ banner: null });
     }
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes < 1024) return bytes + " B";
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + " KB";
-    else return (bytes / 1048576).toFixed(2) + " MB";
+  const toggleExpandCollapse = () => {
+    setIsExpanded(!isExpanded);
   };
 
   return (
-    <div className="w-full max-w-full mx-auto">
-      <div className="w-full">
-        <div
-          className="flex items-center justify-between bg-[#0A3E54] text-white p-3 rounded-t-xl cursor-pointer"
-          onClick={() => setIsExpanded(!isExpanded)}
+    <div className="border rounded-lg p-6 bg-white shadow-sm">
+      <div
+        className="flex justify-between items-center cursor-pointer"
+        onClick={toggleExpandCollapse}
+      >
+        <h2 className="text-xl font-medium">Banner Event</h2>
+        <button
+          type="button"
+          className="text-gray-400 hover:text-gray-500"
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? "Collapse section" : "Expand section"}
         >
-          <h2 className="text-lg font-semibold">Upload Banner</h2>
-          <button className="text-white focus:outline-none">
-            <Icon
-              icon={isExpanded ? "mdi:chevron-up" : "mdi:chevron-down"}
-              className="text-3xl"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-6 w-6 transition-transform ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
             />
-          </button>
-        </div>
-
-        <div
-          className={`bg-[#F7F7F7] border border-[#ECECEC] overflow-hidden transition-all rounded-b-xl duration-300 w-full ${
-            isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="p-6 space-y-6">
-            <div>
-              <div className="flex justify-between items-center">
-                <label className="block text-sm font-medium">
-                  Upload Banner <span className="text-red-500">*</span>
-                </label>
-                <span className="text-red-500 text-sm">
-                  Ukuran maksimal banner adalah 300px × 600px Max 1MB
-                </span>
-              </div>
-
-              {sizeError && (
-                <div className="mt-2 text-red-500 text-sm font-medium">
-                  Ukuran file terlalu besar. Maksimal 1MB. Silakan pilih file yang lebih kecil.
-                </div>
-              )}
-
-              <div className="mt-2">
-                <div
-                  className={`border-2 border-dashed rounded-lg text-center cursor-pointer bg-white
-                    ${
-                      isDragging
-                        ? "border-blue-500 bg-blue-50"
-                        : sizeError
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300"
-                    }
-                    ${bannerFile && !sizeError ? "border-none" : ""}`}
-                  onDragEnter={handleDragEnter}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={handleContainerClick}
-                >
-                  {(!previewUrl || !showPreview) && (
-                    <>
-                      <input
-                        type="file"
-                        onChange={handleBannerUpload}
-                        className="hidden"
-                        id="banner-upload"
-                        ref={fileInputRef}
-                        accept="image/*"
-                      />
-                      <label
-                        htmlFor={previewUrl ? "" : "banner-upload"}
-                        className="cursor-pointer w-full h-full block"
-                        onClick={(e) => {
-                          if (previewUrl) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        {previewUrl ? (
-                          <div className="flex flex-col items-center justify-center p-8">
-                            <Icon
-                              icon="mdi:file-image-outline"
-                              className="text-gray-400 text-5xl mb-2"
-                            />
-                            <p className="text-blue-500 underline">Klik untuk buka</p>
-                            {bannerFile && (
-                              <p className="text-gray-500 text-sm mt-1">
-                                {bannerFile.name} ({formatFileSize(bannerFile.size)})
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center p-8">
-                            <Icon
-                              icon="mdi:file-outline"
-                              className="text-gray-400 text-5xl mb-2"
-                            />
-                            <p className="text-gray-400">Seret banner anda disini</p>
-                            <p className="text-gray-400 text-sm mt-1">
-                              Atau klik untuk memilih file (Max 1MB)
-                            </p>
-                          </div>
-                        )}
-                      </label>
-                    </>
-                  )}
-
-                  {previewUrl && showPreview && (
-                    <div className="relative w-full">
-                      <img
-                        src={previewUrl}
-                        alt="Banner preview"
-                        className="w-full h-auto object-contain rounded-lg"
-                      />
-                      <button
-                        onClick={removeFile}
-                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
-                      >
-                        <Icon icon="mdi:close" className="text-xl" />
-                      </button>
-                      <button
-                        onClick={downloadImage}
-                        className="absolute bottom-2 right-2 bg-blue-500 text-white p-1 rounded-full"
-                      >
-                        <Icon icon="mdi:download" className="text-xl" />
-                      </button>
-                      {bannerFile && (
-                        <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-sm">
-                          {bannerFile.name} ({formatFileSize(bannerFile.size)})
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-medium">Ketentuan:</h3>
-              <p className="text-gray-500 mt-1">
-                Lorem Ipsum is simply dummy text of the printing and typesetting
-                industry. Lorem Ipsum has been the industry's standard dummy
-                text ever since the 1500s, when an unknown printer took a galley
-                of type and scrambled it to make a type specimen book.{" "}
-                <button
-                  onClick={toggleExampleModal}
-                  className="text-black font-medium hover:underline"
-                >
-                  Lihat contoh banner
-                </button>
-              </p>
-            </div>
-          </div>
-        </div>
+          </svg>
+        </button>
       </div>
 
-      {showExampleModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Contoh Banner</h2>
-              <button
-                onClick={toggleExampleModal}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <Icon icon="mdi:close" className="text-2xl" />
-              </button>
-            </div>
-            <img
-              src={Banner}
-              alt="Contoh Banner"
-              className="w-full h-auto"
+      {isExpanded && (
+        <div className="mt-4 space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="banner" className="block text-gray-700">
+              Upload Banner
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              id="banner"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={isResizing}
+              className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
             />
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <p className="text-sm text-gray-500">
+              Format gambar: JPG, PNG. Ukuran maksimal: 1MB
+            </p>
+            <p className="text-sm text-blue-600 font-medium">
+              Gambar akan otomatis disesuaikan ke ukuran 600x300 piksel
+            </p>
+            {isResizing && (
+              <p className="text-sm text-orange-500">
+                Sedang menyesuaikan ukuran gambar...
+              </p>
+            )}
           </div>
+
+          {previewUrl && (
+            <div className="space-y-2">
+              <p className="font-medium">Preview Banner (600x300)</p>
+              <div className="relative">
+                <img
+                  src={previewUrl}
+                  alt="Banner Preview"
+                  className="w-full h-auto max-h-64 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveBanner}
+                  className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
-};
+});
+
+BannerUpload.displayName = "BannerUpload";
 
 export default BannerUpload;
