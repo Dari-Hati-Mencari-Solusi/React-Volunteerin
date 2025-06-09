@@ -773,117 +773,102 @@ uploadLegalDocument: async (formData) => {
       throw new Error("Nama dokumen tidak boleh kosong");
     }
     
-    // Get file info only for logging
+    // Get original file
     const documentFile = formData.get('document');
-    if (documentFile && documentFile instanceof File) {
-      console.log(`Document file details: ${documentFile.name}, type: ${documentFile.type}, size: ${documentFile.size} bytes`);
+    if (!documentFile || !(documentFile instanceof File)) {
+      throw new Error("File dokumen tidak valid");
     }
     
-    // Log FormData
-    console.log("FormData contents:");
-    for (let [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        console.log(`${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`);
-      } else {
-        console.log(`${key}: ${value}`);
-      }
-    }
-
-    // Create a new FormData with both possible field names
-    const multiFormData = new FormData();
-    multiFormData.append('documentName', formData.get('documentName'));
+    console.log(`Document file details: ${documentFile.name}, type: ${documentFile.type}, size: ${documentFile.size} bytes`);
     
-    // Rename file yang asli agar lebih simple (menghilangkan karakter khusus)
-    const originalFile = formData.get('document');
-    let safeFileName = "document.pdf";
-    if (originalFile.type === 'application/pdf') {
-      safeFileName = "document.pdf";
-    } else if (originalFile.type.startsWith('image/')) {
-      const ext = originalFile.name.split('.').pop().toLowerCase();
-      safeFileName = `document.${ext}`;
-    }
+    // PENTING: Buat FormData baru yang sangat sederhana
+    const simpleFormData = new FormData();
+    simpleFormData.append('documentName', formData.get('documentName'));
+    simpleFormData.append('document', documentFile);
     
-    // TRY #1: Append dengan field name 'document'
-    multiFormData.append('document', new File([originalFile], safeFileName, {
-      type: originalFile.type,
-      lastModified: originalFile.lastModified
-    }));
-    
-    // TRY #2: Append dengan field name 'file' (alternatif)
-    multiFormData.append('file', new File([originalFile], safeFileName, {
-      type: originalFile.type,
-      lastModified: originalFile.lastModified
-    }));
-    
-    // Optional information
+    // Tambahkan information jika ada
     if (formData.has('information')) {
-      multiFormData.append('information', formData.get('information'));
+      simpleFormData.append('information', formData.get('information'));
     }
-
-    console.log("Sending document to backend (ImageKit) with multiple field options...");
-    console.log("Modified FormData contents:");
-    for (let [key, value] of multiFormData.entries()) {
+    
+    // Debug log
+    console.log("Simple FormData prepared for upload:");
+    for (let [key, value] of simpleFormData.entries()) {
       if (value instanceof File) {
         console.log(`${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`);
       } else {
         console.log(`${key}: ${value}`);
       }
     }
-
+    
+    console.log("Sending document...");
+    
+    // PERUBAHAN KRITIS: Gunakan konfigurasi axios tanpa Content-Type manual
     try {
-      const response = await httpClient.post(`${API_URL}/partners/me/legality`, multiFormData, {
-        // Jangan set Content-Type header, biarkan browser mengatur dengan boundary yang tepat
-        timeout: 60000,
-        maxBodyLength: Infinity,
-      });
+      // Kirim request dan WAJIB sertakan header multipart/form-data
+      const response = await httpClient.post(
+        `${API_URL}/partners/me/legality`, 
+        simpleFormData, 
+        {
+          // PENTING: Sertakan header multipart/form-data
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 60000
+        }
+      );
       
-      console.log("Document upload success:", response.data);
+      console.log("Upload success:", response.data);
       return response.data;
     } catch (uploadError) {
-      console.error("Upload error:", uploadError);
+      console.error("Upload failed:", uploadError);
       
-      // Jika masih error, mungkin backend menggunakan field name lain, coba dengan FormData yang sangat minimal
-      if (uploadError.response?.status === 400 && 
-          uploadError.response?.data?.message?.includes('tidak ditemukan')) {
+      // Tambahkan debugging info lebih detail
+      if (uploadError.response) {
+        console.log("Response status:", uploadError.response.status);
+        console.log("Response data:", uploadError.response.data);
+        console.log("Response headers:", uploadError.response.headers);
         
-        console.log("First attempt failed. Trying with minimal FormData and different field names...");
+        // Tampilkan request yang dikirim
+        console.log("Request configuration:");
+        console.log("- URL:", uploadError.config.url);
+        console.log("- Method:", uploadError.config.method);
+        console.log("- Headers:", uploadError.config.headers);
+      }
+      
+      // Jika masih gagal, coba pendekatan alternatif dengan FormData manual
+      if (uploadError.response?.status === 400 && uploadError.response?.data?.message?.includes('tidak ditemukan')) {
+        console.log("Trying alternative approach with direct FormData...");
         
-        // Buat array dari kemungkinan nama field
-        const possibleFieldNames = ['document', 'file', 'pdf', 'attachment', 'image'];
+        // Buat FormData baru dari awal
+        const directFormData = new FormData();
+        directFormData.append('documentName', formData.get('documentName'));
+        directFormData.append('document', new Blob([documentFile], { type: documentFile.type }), documentFile.name);
         
-        // Coba masing-masing nama field secara berurutan
-        for (const fieldName of possibleFieldNames) {
-          console.log(`Trying with field name: "${fieldName}"`);
-          
-          const testFormData = new FormData();
-          testFormData.append('documentName', formData.get('documentName'));
-          
-          // Gunakan nama file yang sangat simple
-          testFormData.append(fieldName, new File([originalFile], 'file.pdf', {
-            type: 'application/pdf',
-            lastModified: originalFile.lastModified
-          }));
-          
-          if (formData.has('information')) {
-            testFormData.append('information', formData.get('information'));
-          }
-          
-          try {
-            const response = await httpClient.post(`${API_URL}/partners/me/legality`, testFormData, {
-              timeout: 60000,
-            });
-            
-            console.log(`Success with field name "${fieldName}"!`);
-            console.log("Response:", response.data);
-            return response.data;
-          } catch (error) {
-            console.log(`Field name "${fieldName}" failed:`, error.message);
-            // Continue to next field name
-          }
+        if (formData.has('information')) {
+          directFormData.append('information', formData.get('information'));
         }
         
-        // Jika semua gagal, throw error yang lebih deskriptif
-        throw new Error("Gagal mengunggah dokumen. File tidak dikenali oleh server.");
+        try {
+          const alternativeResponse = await fetch(`${API_URL}/partners/me/legality`, {
+            method: 'POST',
+            body: directFormData,
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          
+          if (!alternativeResponse.ok) {
+            throw new Error(`Alternative approach failed with status ${alternativeResponse.status}`);
+          }
+          
+          const responseData = await alternativeResponse.json();
+          console.log("Alternative approach succeeded:", responseData);
+          return responseData;
+        } catch (alternativeError) {
+          console.error("Alternative approach also failed:", alternativeError);
+          throw new Error("Server tidak dapat memproses file dokumen melalui berbagai pendekatan. Silakan hubungi tim teknis.");
+        }
       }
       
       throw uploadError;
@@ -891,12 +876,8 @@ uploadLegalDocument: async (formData) => {
   } catch (error) {
     console.error("Error in uploadLegalDocument:", error);
     
-    if (error.response) {
-      if (error.response.data?.message) {
-        throw new Error(error.response.data.message);
-      } else {
-        throw new Error("Gagal mengunggah dokumen");
-      }
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
     }
     
     throw new Error(error.message || "Gagal mengunggah dokumen");
@@ -904,31 +885,71 @@ uploadLegalDocument: async (formData) => {
 },
 
 
-
-  /**
- * Update partner profile with logo using PUT method 
- * @param {FormData} formData - Form data containing logo and profile data
+/**
+ * Update partner profile with logo (optimized for backend requirements)
+ * @param {FormData} formData - Form data with logo and profile fields
  * @returns {Promise<Object>} Update response
  * @throws {Object} Error object with message
  */
 updatePartnerProfileWithLogo: async (formData) => {
   try {
-    console.log("Updating partner profile with logo using PUT method...");
+    console.log("Updating partner profile with logo (optimized for BE requirements)");
     
-    const response = await httpClient.put(`${API_URL}/partners/me/profile`, formData, {
+    // Validate required fields exist
+    if (!formData.has('logo')) {
+      throw new Error("Logo file is required");
+    }
+    
+    const logoFile = formData.get('logo');
+    console.log(`Logo file: ${logoFile.name}, type: ${logoFile.type}, size: ${logoFile.size} bytes, size in KB: ${(logoFile.size / 1024).toFixed(2)}KB`);
+    
+    // STRICT validation against BE requirements
+    if (logoFile.size > 200 * 1024) { // 200KB in bytes
+      throw new Error(`Logo terlalu besar: ${(logoFile.size / 1024).toFixed(2)}KB. Maksimum 200KB.`);
+    }
+    
+    if (!['image/png', 'image/jpg', 'image/jpeg'].includes(logoFile.type)) {
+      throw new Error(`Format file ${logoFile.type} tidak didukung. Gunakan PNG, JPG, atau JPEG.`);
+    }
+    
+    // Simple fetch implementation with additional logging
+    const token = localStorage.getItem('token');
+    
+    console.log("Sending PUT request to /partners/me/profile with FormData:");
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`- ${key}: [File: ${value.name}, type: ${value.type}, size: ${(value.size / 1024).toFixed(2)}KB]`);
+      } else {
+        console.log(`- ${key}: ${value}`);
+      }
+    }
+    
+    const response = await fetch(`${API_URL}/partners/me/profile`, {
+      method: 'PUT',
+      body: formData,
       headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      timeout: 60000,
-      maxContentLength: 10 * 1024 * 1024,
-      maxBodyLength: 10 * 1024 * 1024,
+        'Authorization': `Bearer ${token}`
+      }
     });
     
-    console.log("Profile update response:", response.data);
-    return response.data;
+    console.log(`Response status: ${response.status}`);
+    
+    const responseData = await response.json();
+    console.log("Response data:", responseData);
+    
+    if (!response.ok) {
+      throw {
+        status: response.status,
+        message: responseData.message || `Server responded with status ${response.status}`,
+        data: responseData
+      };
+    }
+    
+    return responseData;
   } catch (error) {
     console.error("Error updating profile with logo:", error);
-    handleApiError(error, 'An error occurred while updating profile with logo');
+    throw error;
   }
 },
+
 };

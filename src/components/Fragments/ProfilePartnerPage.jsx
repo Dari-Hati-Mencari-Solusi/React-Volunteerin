@@ -255,55 +255,71 @@ const ProfilePartnerPage = () => {
   };
   
   // Handle avatar upload/update callback
-  const handleAvatarUpload = (file, url) => {
-    if (file && url) {
-      console.log("Avatar uploaded successfully:", url);
-      
-      // Update state avatarUrl
-      setAvatarUrl(url);
-      
-      // Update user data jika perlu
-      if (userData) {
-        setUserData(prevUserData => ({
-          ...prevUserData,
-          avatarUrl: url
-        }));
-      }
-      
-      // Update locally stored user data jika menggunakan localStorage
-      try {
-        const storedUser = authService.getStoredUser();
-        if (storedUser) {
-          storedUser.avatarUrl = url;
-          localStorage.setItem('user', JSON.stringify(storedUser));
-        }
-      } catch (error) {
-        console.error("Error updating stored user:", error);
-      }
-    } else {
-      console.log("Avatar removed");
-      setAvatarUrl(null);
-      
-      // Update user data jika perlu
-      if (userData) {
-        setUserData(prevUserData => ({
-          ...prevUserData,
-          avatarUrl: null
-        }));
-      }
-      
-      // Update locally stored user data
-      try {
-        const storedUser = authService.getStoredUser();
-        if (storedUser) {
-          storedUser.avatarUrl = null;
-          localStorage.setItem('user', JSON.stringify(storedUser));
-        }
-      } catch (error) {
-        console.error("Error updating stored user:", error);
-      }
+// Perbaiki handleAvatarUpload untuk handling error yang lebih baik
+const handleAvatarUpload = (file, url) => {
+  if (file && url) {
+    console.log("Avatar uploaded successfully:", url);
+    toast.success("Logo berhasil diunggah!");
+    
+    // Update state avatarUrl
+    setAvatarUrl(url);
+    
+    // Update user data jika perlu
+    if (userData) {
+      setUserData(prevUserData => ({
+        ...prevUserData,
+        avatarUrl: url
+      }));
     }
-  };
+    
+    // Update locally stored user data jika menggunakan localStorage
+    try {
+      const storedUser = authService.getStoredUser();
+      if (storedUser) {
+        storedUser.avatarUrl = url;
+        localStorage.setItem('user', JSON.stringify(storedUser));
+      }
+    } catch (error) {
+      console.error("Error updating stored user:", error);
+    }
+    
+    // Refresh profile dari server untuk memastikan data terbaru
+    setTimeout(() => {
+      partnerService.getPartnerProfile()
+        .then(response => {
+          console.log("Profile refreshed after avatar upload:", response);
+        })
+        .catch(error => {
+          console.log("Error refreshing profile:", error);
+        });
+    }, 1000);
+  } else if (url) {
+    // Jika hanya URL yang tersedia (tanpa file)
+    setAvatarUrl(url);
+  } else {
+    console.log("Avatar removed");
+    setAvatarUrl(null);
+    
+    // Update user data jika perlu
+    if (userData) {
+      setUserData(prevUserData => ({
+        ...prevUserData,
+        avatarUrl: null
+      }));
+    }
+    
+    // Update locally stored user data
+    try {
+      const storedUser = authService.getStoredUser();
+      if (storedUser) {
+        storedUser.avatarUrl = null;
+        localStorage.setItem('user', JSON.stringify(storedUser));
+      }
+    } catch (error) {
+      console.error("Error updating stored user:", error);
+    }
+  }
+};
 
   if (loading) {
     return (

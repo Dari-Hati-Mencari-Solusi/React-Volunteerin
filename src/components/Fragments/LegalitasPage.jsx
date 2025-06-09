@@ -144,7 +144,6 @@ const LegalitasPage = () => {
       if (formData.keterangan.trim()) {
         fileFormData.append('information', formData.keterangan.trim());
       }
-
       // Debug: Log what's being sent
       console.log("Sending to API:");
       for (let [key, value] of fileFormData.entries()) {

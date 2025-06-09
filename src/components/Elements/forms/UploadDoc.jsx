@@ -153,8 +153,8 @@ const UploadDoc = ({
       
       if (onUploadSuccess && typeof onUploadSuccess === 'function') {
         try {
-          onUploadSuccess(cleanFile, fileUrl);
-        } catch (callbackError) {
+          onUploadSuccess(file, fileUrl);
+            } catch (callbackError) {
           console.error("Error in callback:", callbackError);
           toast.error("Error processing file callback");
         }
