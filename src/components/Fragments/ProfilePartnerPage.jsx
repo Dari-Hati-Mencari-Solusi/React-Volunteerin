@@ -23,20 +23,26 @@ const ProfilePartnerPage = () => {
   // Map backend organization types to frontend dropdown values
   const organizationTypeMap = {
     'COMMUNITY': 'komunitas',
-    'FOUNDATION': 'pemerintah',
-    'COMPANY': 'perusahaan',
-    'EDUCATION': 'pemerintah',
-    'INDIVIDUAL': 'individu',
-    'OTHER': 'individu'
+    'GOVERNMENT': 'pemerintah',
+    'CORPORATE': 'perusahaan',
+    'INDIVIDUAL': 'individu'
   };
 
   // Map frontend dropdown values to backend organization types
   const reverseOrganizationTypeMap = {
     'komunitas': 'COMMUNITY',
-    'pemerintah': 'FOUNDATION', 
-    'perusahaan': 'COMPANY',
+    'pemerintah': 'GOVERNMENT', 
+    'perusahaan': 'CORPORATE',
     'individu': 'INDIVIDUAL'
   };
+
+  // Provide current form data to child components
+  useEffect(() => {
+    window.getCurrentProfileFormData = () => formData;
+    return () => {
+      delete window.getCurrentProfileFormData;
+    };
+  }, [formData]);
 
   useEffect(() => {
     const fetchPartnerProfile = async () => {
@@ -65,6 +71,11 @@ const ProfilePartnerPage = () => {
             email: user.email || "",
             phoneNumber: user.phoneNumber || "",
           }));
+          
+          // Set avatar from user data if available
+          if (user.avatarUrl) {
+            setAvatarUrl(user.avatarUrl);
+          }
         }
         
         // Second attempt: from auth service API
@@ -84,6 +95,11 @@ const ProfilePartnerPage = () => {
                 email: user.email || "",
                 phoneNumber: user.phoneNumber || "",
               }));
+              
+              // Set avatar from user data if available
+              if (user.avatarUrl) {
+                setAvatarUrl(user.avatarUrl);
+              }
             }
           } catch (profileError) {
             console.log("Could not get user profile, continuing:", profileError.message);
@@ -99,11 +115,6 @@ const ProfilePartnerPage = () => {
           
           if (partnerProfile && partnerProfile.data) {
             const partnerData = partnerProfile.data;
-            
-            // Set avatarUrl jika ada
-            if (partnerData.avatarUrl) {
-              setAvatarUrl(partnerData.avatarUrl);
-            }
             
             // Update formData with partner data
             setFormData(prevData => ({
@@ -225,11 +236,6 @@ const ProfilePartnerPage = () => {
             usernameInstagram: refreshedProfile.data.instagram || "",
             organizationAddress: refreshedProfile.data.organizationAddress || "",
           }));
-          
-          // Update avatar URL if available
-          if (refreshedProfile.data.avatarUrl) {
-            setAvatarUrl(refreshedProfile.data.avatarUrl);
-          }
         }
       } catch (refreshError) {
         console.log("Could not refresh profile data:", refreshError);
@@ -248,56 +254,56 @@ const ProfilePartnerPage = () => {
     }
   };
   
-// Update fungsi handleAvatarUpload untuk menyesuaikan dengan struktur response
-const handleAvatarUpload = (file, url) => {
-  if (file && url) {
-    console.log("Avatar uploaded successfully:", url);
-    
-    // Update state avatarUrl
-    setAvatarUrl(url);
-    
-    // Update user data jika perlu
-    if (userData) {
-      setUserData(prevUserData => ({
-        ...prevUserData,
-        avatarUrl: url
-      }));
-    }
-    
-    // Update locally stored user data jika menggunakan localStorage
-    try {
-      const storedUser = authService.getStoredUser();
-      if (storedUser) {
-        storedUser.avatarUrl = url;
-        localStorage.setItem('user', JSON.stringify(storedUser));
+  // Handle avatar upload/update callback
+  const handleAvatarUpload = (file, url) => {
+    if (file && url) {
+      console.log("Avatar uploaded successfully:", url);
+      
+      // Update state avatarUrl
+      setAvatarUrl(url);
+      
+      // Update user data jika perlu
+      if (userData) {
+        setUserData(prevUserData => ({
+          ...prevUserData,
+          avatarUrl: url
+        }));
       }
-    } catch (error) {
-      console.error("Error updating stored user:", error);
-    }
-  } else {
-    console.log("Avatar removed");
-    setAvatarUrl(null);
-    
-    // Update user data jika perlu
-    if (userData) {
-      setUserData(prevUserData => ({
-        ...prevUserData,
-        avatarUrl: null
-      }));
-    }
-    
-    // Update locally stored user data
-    try {
-      const storedUser = authService.getStoredUser();
-      if (storedUser) {
-        storedUser.avatarUrl = null;
-        localStorage.setItem('user', JSON.stringify(storedUser));
+      
+      // Update locally stored user data jika menggunakan localStorage
+      try {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          storedUser.avatarUrl = url;
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+      } catch (error) {
+        console.error("Error updating stored user:", error);
       }
-    } catch (error) {
-      console.error("Error updating stored user:", error);
+    } else {
+      console.log("Avatar removed");
+      setAvatarUrl(null);
+      
+      // Update user data jika perlu
+      if (userData) {
+        setUserData(prevUserData => ({
+          ...prevUserData,
+          avatarUrl: null
+        }));
+      }
+      
+      // Update locally stored user data
+      try {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          storedUser.avatarUrl = null;
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+      } catch (error) {
+        console.error("Error updating stored user:", error);
+      }
     }
-  }
-};
+  };
 
   if (loading) {
     return (
@@ -332,6 +338,7 @@ const handleAvatarUpload = (file, url) => {
             <AvatarProfilePartner 
               onAvatarUpload={handleAvatarUpload}
               initialAvatarUrl={avatarUrl}
+              currentFormData={formData}
             />
           </div>
           
@@ -394,7 +401,7 @@ const handleAvatarUpload = (file, url) => {
                     className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white appearance-none"
                   >
                     <option value="" disabled>
-                      Pilih salah satu jenis event
+                      Pilih salah satu jenis penyelenggara
                     </option>
                     <option value="komunitas">Komunitas</option>
                     <option value="pemerintah">Pemerintah / Instansi</option>
@@ -422,6 +429,7 @@ const handleAvatarUpload = (file, url) => {
                   name="usernameInstagram"
                   value={formData.usernameInstagram}
                   onChange={handleInputChange}
+                  placeholder="Masukkan username Instagram (tanpa @)"
                   className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
                 />
               </div>
