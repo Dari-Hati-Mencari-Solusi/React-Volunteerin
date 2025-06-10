@@ -1,10 +1,211 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Icon } from "@iconify/react";
 import { fetchEvents } from "../../services/eventService";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1770&q=80";
+
+const EventCard = ({ event, isLoading, showSaveButton = true }) => {
+  const navigate = useNavigate();
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    const checkIfSaved = () => {
+      const savedEvents = JSON.parse(
+        localStorage.getItem("savedEvents") || "[]"
+      );
+      const isEventSaved = savedEvents.some(
+        (savedEvent) => savedEvent.id === event.id
+      );
+      setIsSaved(isEventSaved);
+    };
+
+    checkIfSaved();
+
+    window.addEventListener("storage", checkIfSaved);
+
+    return () => {
+      window.removeEventListener("storage", checkIfSaved);
+    };
+  }, [event.id]);
+
+  const toggleSaveEvent = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const savedEvents = JSON.parse(localStorage.getItem("savedEvents") || "[]");
+
+    if (isSaved) {
+      const updatedSavedEvents = savedEvents.filter(
+        (savedEvent) => savedEvent.id !== event.id
+      );
+      localStorage.setItem("savedEvents", JSON.stringify(updatedSavedEvents));
+
+      window.dispatchEvent(new Event("storage"));
+
+      setIsSaved(false);
+      showNotification("Event dihapus dari daftar tersimpan");
+    } else {
+      const eventToSave = {
+        id: event.id,
+        title: event.title,
+        bannerUrl: event.bannerUrl,
+        address: event.address,
+        startAt: event.startAt,
+        endAt: event.endAt,
+        registrationCount: event.registrationCount,
+        maxApplicant: event.maxApplicant,
+        categories: event.categories,
+        savedAt: new Date().toISOString(),
+      };
+
+      savedEvents.push(eventToSave);
+      localStorage.setItem("savedEvents", JSON.stringify(savedEvents));
+
+      window.dispatchEvent(new Event("storage"));
+
+      setIsSaved(true);
+      showNotification("Event disimpan!");
+    }
+  };
+
+  const showNotification = (message) => {
+    const notification = document.createElement("div");
+    notification.textContent = message;
+    notification.className =
+      "fixed bottom-4 right-4 bg-[#0A3E54] text-white py-2 px-4 rounded-md z-50";
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.className += " opacity-0 transition-opacity duration-500";
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 500);
+    }, 2500);
+  };
+
+  // const formatEventDate = (dateString) => {
+  //   if (!dateString) return "";
+  //   try {
+  //     return new Date(dateString).toLocaleDateString();
+  //   } catch (error) {
+  //     return "";
+  //   }
+  // };
+
+const formatEventDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+    
+    const dayName = days[date.getDay()];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return `${dayName}, ${day} ${month} ${year}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "";
+  }
+};
+
+  if (isLoading) {
+    return <EventCardSkeleton />;
+  }
+
+  return (
+    <div
+      key={event.id}
+      className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 relative"
+    >
+      <Link
+        to={`/event/${event.id}`}
+        className="block h-full w-full absolute top-0 left-0 z-10"
+        aria-label={`View details for ${event.title}`}
+      />
+
+      <img
+        alt={event.title}
+        src={event.bannerUrl}
+        className="w-full h-48 object-cover"
+        onError={(e) => {
+          e.target.src = FALLBACK_IMAGE;
+        }}
+      />
+
+      <div className="p-4 flex flex-col gap-3">
+        <h2 className="text-xl font-bold text-[#0A3E54] truncate">
+          {event.title}
+        </h2>
+        <div className="space-y-3 text-sm font-normal text-[#0A3E54]">
+          <div className="flex items-center gap-2">
+            <Icon
+              icon="tdesign:location"
+              width="20"
+              height="20"
+              className="flex-shrink-0"
+            />
+            <span className="truncate text-[14px]">{event.address}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Icon icon="lets-icons:date-today-light" width="22" height="22" />
+            <span className=" text-[14px]">
+              {formatEventDate(event.startAt)} - {formatEventDate(event.endAt)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 mb-2">
+            <Icon icon="fa6-solid:user" width="20" height="20" />
+            <span className="text-[14px]">
+              {`${event.registrationCount || 0} / ${
+                event.maxApplicant
+              } Terdaftar`}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <CategoryBadge categories={event.categories} />
+
+            {showSaveButton && (
+              <button
+                className={`${
+                  isSaved ? "text-[#16A1CB]" : "text-[#0A3E54]"
+                } hover:text-[#16A1CB] transition-colors focus:outline-none relative group p-2 z-30`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  toggleSaveEvent(e);
+                }}
+                aria-label={isSaved ? "Hapus dari tersimpan" : "Simpan event"}
+                type="button"
+              >
+                <Icon
+                  icon={
+                    isSaved ? "akar-icons:ribbon-fill" : "akar-icons:ribbon"
+                  }
+                  width="20"
+                  height="20"
+                  className="pointer-events-none"
+                />
+
+                <span className="absolute -top-10 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-40">
+                  {isSaved ? "Hapus dari tersimpan" : "Simpan event"}
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const EventCardSkeleton = () => (
   <div className="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
@@ -89,75 +290,6 @@ const CategoryBadge = ({ categories }) => (
   </div>
 );
 
-const EventCard = ({ event, isLoading }) => {
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString();
-
-  if (isLoading) {
-    return <EventCardSkeleton />;
-  }
-
-  return (
-    <div
-      key={event.id}
-      className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 relative"
-    >
-      <Link
-        to={`/event/${event.id}`}
-        className="block h-full w-full absolute top-0 left-0 z-10"
-        aria-label={`View details for ${event.title}`}
-      />
-
-      <img
-        alt={event.title}
-        src={event.bannerUrl}
-        className="w-full h-48 object-cover"
-        onError={(e) => {
-          e.target.src = FALLBACK_IMAGE;
-        }}
-      />
-
-      <div className="p-4 flex flex-col gap-3">
-        <h2 className="text-xl font-bold text-[#0A3E54] truncate">
-          {event.title}
-        </h2>
-
-        <div className="space-y-3 text-sm font-normal text-[#0A3E54]">
-          <div className="flex items-center gap-2">
-            <Icon icon="tdesign:location" width="24" height="24" />
-            <span className="truncate text-[14px]">{event.address}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Icon icon="lets-icons:date-today-light" width="18" height="18" />
-            <span className="truncate text-[14px]">
-              {formatDate(event.startAt)} - {formatDate(event.endAt)}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 mb-2">
-            <Icon icon="fa6-solid:user" width="16" height="16" />
-            <span className="text-[14px]">
-              {`${event.registrationCount || 0} / ${
-                event.maxApplicant
-              } Terdaftar`}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <CategoryBadge categories={event.categories} />
-
-            <div className="relative z-20" onClick={(e) => e.stopPropagation()}>
-              <button className="text-[#0A3E54] hover:text-[#126D8A] transition-colors focus:outline-none">
-                <Icon icon="akar-icons:ribbon" width="24" height="24" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const Events = ({ selectedCategory, limit, isLoading: externalLoading }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -175,7 +307,6 @@ const Events = ({ selectedCategory, limit, isLoading: externalLoading }) => {
         setLoading(true);
         setError(null);
 
-        // Loading skeleton untuk fetch data
         await new Promise((resolve) => setTimeout(resolve, 200));
 
         const response = await fetchEvents(limit, selectedCategory);
@@ -197,7 +328,6 @@ const Events = ({ selectedCategory, limit, isLoading: externalLoading }) => {
 
         setEvents(filteredEvents);
 
-        // Loading skeleton untuk card individu
         setCardLoading(true);
         await new Promise((resolve) => setTimeout(resolve, 200));
         setCardLoading(false);
@@ -213,7 +343,6 @@ const Events = ({ selectedCategory, limit, isLoading: externalLoading }) => {
     fetchEventsData();
   }, [selectedCategory, limit, externalLoading]);
 
-  // loading placeholder khusus untuk card saja
   if (loading || externalLoading) {
     return <EventsSkeletonGrid count={limit && limit <= 8 ? limit : 8} />;
   }
@@ -230,4 +359,5 @@ const Events = ({ selectedCategory, limit, isLoading: externalLoading }) => {
   );
 };
 
+export { EventCard, CategoryBadge, EventCardSkeleton };
 export default Events;

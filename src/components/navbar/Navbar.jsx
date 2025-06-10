@@ -61,7 +61,7 @@ const Navbar = () => {
   };
 
   const csWhatsAppLink = "https://wa.me/6285343037191";
-  const csPartnerWhatsAppLink = "https://wa.me/6285343037191"; 
+  const csPartnerWhatsAppLink = "https://wa.me/6285343037191";
 
   return (
     <nav className="bg-white fixed w-full z-50 border-b border-gray-200">
@@ -77,120 +77,162 @@ const Navbar = () => {
           <div className="hidden lg:block">
             <nav aria-label="Global">
               <ul className="flex items-center gap-12 text-md">
-                <li>
-                  <Link
-                    to="/"
-                    className="text-black transition text-md hover:text-[#0A3E54] font-normal"
-                  >
-                    Beranda
-                  </Link>
-                </li>
-                <li>
-                  <div className="relative">
-                    <button
-                      onClick={() => toggleDropdown("event")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 text-md font-normal"
-                    >
-                      Aktivitas
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg "
-                        className={`h-5 w-5 transition-transform ${
-                          openDropdown === "event" ? "rotate-180" : ""
-                        }`}
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                    {openDropdown === "event" && (
-                      <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                        <Link
-                          to="/"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Semua Event
-                        </Link>
-                        <Link
-                          to="/"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Lingkungan
-                        </Link>
-                        <Link
-                          to="/"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Sosial
-                        </Link>
-                        <Link
-                          to="/"
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        >
-                          Pendidikan
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </li>
-                <li>
-                  <Link
-                    to="/layanan"
-                    className="text-black transition text-md hover:text-[#0A3E54] font-normal"
-                  >
-                    Layanan
-                  </Link>
-                </li>
-                <li>
-                  <div className="relative">
-                    <button
-                      onClick={() => toggleDropdown("hubungiKami")}
-                      className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
-                    >
-                      Hubungi Kami
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg "
-                        className={`h-5 w-5 transition-transform ${
-                          openDropdown === "hubungiKami" ? "rotate-180" : ""
-                        }`}
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                    {openDropdown === "hubungiKami" && (
-                    <div className="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                      <div className="py-1">
-                        <a 
-                          href={csWhatsAppLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          CS
-                        </a>
-                        <a 
-                          href={csPartnerWhatsAppLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          CS Partner
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                </li>
+                <div className="hidden lg:block">
+  <nav aria-label="Global">
+    <ul className="flex items-center gap-12 text-md">
+      <li>
+        <Link
+          to="/"
+          className="text-black transition text-md hover:text-[#0A3E54] font-normal"
+        >
+          Beranda
+        </Link>
+      </li>
+      <li>
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown("event")}
+            className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 text-md font-normal"
+          >
+            Jelajahi Event
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-5 w-5 transition-transform ${
+                openDropdown === "event" ? "rotate-180" : ""
+              }`}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          {openDropdown === "event" && (
+            <div className="absolute left-0 mt-1 w-48 bg-white shadow-lg rounded-xl py-0 z-50 border border-slate-200">
+              <Link
+                to="/"
+                className="block px-4 py-3 text-black rounded-t-xl hover:text-white hover:bg-[#0A3E54] border-b-[1.5px] border-slate-200 font-semibold "
+              >
+                Semua Event
+              </Link>
+              <Link
+                to="/"
+                className="block px-4 py-3 text-black hover:text-white hover:bg-[#0A3E54]"
+              >
+                Konser
+              </Link>
+              <Link
+                to="/"
+                className="block px-4 py-3 text-black hover:text-white hover:bg-[#0A3E54]"
+              >
+                Seminar & Workshop
+              </Link>
+              <Link
+                to="/"
+                className="block px-4 py-3 text-black hover:text-white hover:bg-[#0A3E54]"
+              >
+                Pameran
+              </Link>
+              <Link
+                to="/"
+                className="block px-4 py-3 text-black rounded-b-xl hover:text-white hover:bg-[#0A3E54]"
+              >
+                Lainnya
+              </Link>
+            </div>
+          )}
+        </div>
+      </li>
+      <li>
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown("create")}
+            className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 text-md font-normal"
+          >
+            Buat Event
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-5 w-5 transition-transform ${
+                openDropdown === "create" ? "rotate-180" : ""
+              }`}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          {openDropdown === "create" && (
+            <div className="absolute left-0 mt-1 w-64 bg-white shadow-lg rounded-xl py-0 z-50 border border-slate-200">
+              <Link
+                to="/layanan"
+                className="block px-4 py-3 text-black hover:text-white hover:bg-[#0A3E54] border-b-[1.5px] border-slate-200 font-semibold rounded-t-xl"
+              >
+                Layanan & Informasi
+              </Link>
+              <Link
+                to="/register-partner"
+                className="block px-4 py-3 text-black rounded-b-xl hover:text-white hover:bg-[#0A3E54]"
+              >
+                Kolaborasi Partner
+              </Link>
+            </div>
+          )}
+        </div>
+      </li>
+      <li>
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown("hubungiKami")}
+            className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
+          >
+            Bantuan
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-5 w-5 transition-transform ${
+                openDropdown === "hubungiKami" ? "rotate-180" : ""
+              }`}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          {openDropdown === "hubungiKami" && (
+            <div className="absolute left-0 mt-1 w-48 rounded-xl bg-white shadow-lg py-0 z-50 border border-slate-200">
+              <a 
+                href={csWhatsAppLink} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="block px-4 py-3 text-black rounded-t-xl hover:text-white hover:bg-[#0A3E54] border-b-[1.5px] border-slate-100"
+              >
+                Bantuan Relawan
+              </a>
+              <a 
+                href={csPartnerWhatsAppLink} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="block px-4 py-3 text-black  hover:text-white hover:bg-[#0A3E54] rounded-b-xl"
+              >
+                Bantuan Partner
+              </a>
+            </div>
+          )}
+        </div>
+      </li>
+    </ul>
+  </nav>
+</div>
               </ul>
             </nav>
           </div>
@@ -237,11 +279,14 @@ const Navbar = () => {
                             <Icon icon="mdi:cog" className="w-6 h-6" />
                             <span className="font-medium">Pengaturan Akun</span>
                           </Link>
-                           <Link
-                            to= "/misi-kamu"
+                          <Link
+                            to="/misi-kamu"
                             className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
                           >
-                            <Icon icon="mingcute:target-line" className="w-6 h-6" />
+                            <Icon
+                              icon="mingcute:target-line"
+                              className="w-6 h-6"
+                            />
                             <span className="font-medium">Misi Kamu</span>
                           </Link>
                           <button
@@ -318,7 +363,7 @@ const Navbar = () => {
               <li>
                 <Link
                   to="/"
-                  className="transition text-black hover:text-[#0A3E54] duration-200 ease-in-out text-md md:text-xl font-normal"
+                  className="text-black transition text-md hover:text-[#0A3E54] font-normal"
                 >
                   Beranda
                 </Link>
@@ -327,11 +372,11 @@ const Navbar = () => {
                 <div className="relative">
                   <button
                     onClick={() => toggleDropdown("event")}
-                    className="w-full transition text-black hover:text-[#0A3E54] duration-200 text-md md:text-xl ease-in-out flex items-center justify-between"
+                    className="text-black transition hover:text-[#0A3E54] flex items-center justify-between w-full text-md font-normal"
                   >
-                    <span>Aktivitas</span>
+                    <span>Jelajahi Event</span>
                     <svg
-                      xmlns="http://www.w3.org/2000/svg "
+                      xmlns="http://www.w3.org/2000/svg"
                       className={`h-5 w-5 transition-transform ${
                         openDropdown === "event" ? "rotate-180" : ""
                       }`}
@@ -346,52 +391,84 @@ const Navbar = () => {
                     </svg>
                   </button>
                   {openDropdown === "event" && (
-                    <div className="mt-2 bg-white rounded-lg py-2 z-50 text-md md:text-xl">
+                    <div className="mt-2 w-full  rounded-lg py-2 z-50">
                       <Link
                         to="/"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        className="block py-2 text-black "
                       >
-                        Semua Event
+                        Semua Kegiatan
                       </Link>
                       <Link
                         to="/"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        className="block py-2 text-black "
                       >
-                        Lingkungan
+                        Lingkungan Hidup
                       </Link>
                       <Link
                         to="/"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        className="block py-2 text-black "
                       >
-                        Sosial
+                        Pengembangan Sosial
                       </Link>
                       <Link
                         to="/"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        className="block py-2 text-black "
                       >
-                        Pendidikan
+                        Pendidikan & Literasi
                       </Link>
                     </div>
                   )}
                 </div>
               </li>
               <li>
-                <Link
-                  to="/layanan"
-                  className="text-black transition text-md hover:text-[#0A3E54] font-normal"
-                >
-                  Layanan
-                </Link>
+                <div className="relative">
+                  <button
+                    onClick={() => toggleDropdown("create")}
+                    className="text-black transition hover:text-[#0A3E54] flex items-center justify-between w-full text-md font-normal"
+                  >
+                    <span>Buat Event</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-5 w-5 transition-transform ${
+                        openDropdown === "create" ? "rotate-180" : ""
+                      }`}
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                  {openDropdown === "create" && (
+                    <div className="mt-2 w-full rounded-lg py-2 z-50">
+                      <Link
+                        to="/layanan"
+                        className="block py-2 text-black"
+                      >
+                        Layanan & Informasi
+                      </Link>
+                      <Link
+                        to="/register-partner"
+                        className="block py-2 text-black"
+                      >
+                        Daftar Sebagai Partner (Penyelenggara)
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </li>
               <li>
                 <div className="relative">
                   <button
                     onClick={() => toggleDropdown("hubungiKami")}
-                    className="text-black transition hover:text-[#0A3E54] flex items-center gap-1 font-normal text-md"
+                    className="text-black transition hover:text-[#0A3E54] flex items-center justify-between w-full font-normal text-md"
                   >
-                    Hubungi Kami
+                    <span>Bantuan</span>
                     <svg
-                      xmlns="http://www.w3.org/2000/svg "
+                      xmlns="http://www.w3.org/2000/svg"
                       className={`h-5 w-5 transition-transform ${
                         openDropdown === "hubungiKami" ? "rotate-180" : ""
                       }`}
@@ -406,19 +483,23 @@ const Navbar = () => {
                     </svg>
                   </button>
                   {openDropdown === "hubungiKami" && (
-                    <div className="mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                      <Link
-                        to="#"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    <div className="mt-2 w-full rounded-lg py-2 z-50">
+                      <a
+                        href={csWhatsAppLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block py-2 text-black"
                       >
-                        Cs
-                      </Link>
-                      <Link
-                        to="#"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        Bantuan Relawan
+                      </a>
+                      <a
+                        href={csPartnerWhatsAppLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block py-2 text-black"
                       >
-                        Cs Partner
-                      </Link>
+                        Bantuan Partner
+                      </a>
                     </div>
                   )}
                 </div>
@@ -480,13 +561,16 @@ const Navbar = () => {
                                 Pengaturan Akun
                               </span>
                             </Link>
-                              <Link
-                            to= "/misi-kamu"
-                            className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
-                          >
-                            <Icon icon="mingcute:target-line" className="w-6 h-6" />
-                            <span className="font-medium">Misi Kamu</span>
-                          </Link>
+                            <Link
+                              to="/misi-kamu"
+                              className="flex items-center gap-2 px-6 py-3 text-[#0A3E54] hover:bg-gray-50 transition duration-150"
+                            >
+                              <Icon
+                                icon="mingcute:target-line"
+                                className="w-6 h-6"
+                              />
+                              <span className="font-medium">Misi Kamu</span>
+                            </Link>
                             <button
                               onClick={handleLogout}
                               className="flex items-center gap-2 px-6 py-3 text-red-600 hover:bg-gray-50 transition duration-150 w-full text-left border-t border-gray-100"

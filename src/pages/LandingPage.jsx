@@ -64,7 +64,6 @@ const LandingPage = () => {
     loadingMoreFree: false,
   });
 
-  // Loading state untuk komponen UI lainnya
   const [uiLoading, setUiLoading] = useState({
     searchBar: true,
     popularEvents: true,
@@ -75,7 +74,6 @@ const LandingPage = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Destructure untuk kemudahan penggunaan
   const {
     selectedCategory,
     selectedCategoryName,
@@ -435,7 +433,7 @@ const LandingPage = () => {
     return (
       <div className="bg-[#16A1CB]/20 text-[#0A3E54] p-3 rounded-lg mt-4 mb-2 text-center animate-fade-in-down">
         <p className="font-medium">
-          Menampilkan event untuk kategori{" "}
+          Menampilkan event untuk kategori
           <span className="font-bold">{selectedCategoryName}</span>
         </p>
       </div>
@@ -448,7 +446,7 @@ const LandingPage = () => {
     return (
       <div className="bg-blue-100 text-blue-800 p-3 rounded-lg mt-4 mb-2 flex items-center justify-between">
         <span className="font-medium">
-          <span className="font-bold">Filter Aktif:</span> Kategori{" "}
+          <span className="font-bold">Filter Aktif:</span> Kategori
           {selectedCategoryName}
         </span>
         <button
@@ -522,7 +520,6 @@ const LandingPage = () => {
       <HeroSection />
 
       <div className="mx-auto max-w-screen-xl w-full px-4 sm:px-6 lg:px-8">
-        {/* Search Bar & Buttons */}
         <div className="w-full gap-2 flex flex-wrap mt-6">
           {uiLoading.searchBar ? (
             <>
