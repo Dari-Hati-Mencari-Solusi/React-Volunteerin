@@ -111,36 +111,31 @@ const Navbar = () => {
             </svg>
           </button>
           {openDropdown === "event" && (
-            <div className="absolute left-0 mt-1 w-48 bg-white shadow-lg rounded-xl py-0 z-50 border border-slate-200">
+            <div className="absolute left-0 mt-1 w-52 bg-white shadow-lg rounded-xl py-0 z-50 border border-slate-200">
               <Link
                 to="/"
                 className="block px-4 py-3 text-black rounded-t-xl hover:text-white hover:bg-[#0A3E54] border-b-[1.5px] border-slate-200 font-semibold "
               >
-                Semua Event
+                Semua Kegiatan
               </Link>
               <Link
                 to="/"
                 className="block px-4 py-3 text-black hover:text-white hover:bg-[#0A3E54]"
               >
-                Konser
+                 Lingkungan Hidup
               </Link>
               <Link
                 to="/"
                 className="block px-4 py-3 text-black hover:text-white hover:bg-[#0A3E54]"
               >
-                Seminar & Workshop
+               Pengembangan Sosial
               </Link>
-              <Link
-                to="/"
-                className="block px-4 py-3 text-black hover:text-white hover:bg-[#0A3E54]"
-              >
-                Pameran
-              </Link>
+             
               <Link
                 to="/"
                 className="block px-4 py-3 text-black rounded-b-xl hover:text-white hover:bg-[#0A3E54]"
               >
-                Lainnya
+              Pendidikan & Literasi
               </Link>
             </div>
           )}
@@ -169,7 +164,7 @@ const Navbar = () => {
             </svg>
           </button>
           {openDropdown === "create" && (
-            <div className="absolute left-0 mt-1 w-64 bg-white shadow-lg rounded-xl py-0 z-50 border border-slate-200">
+            <div className="absolute left-0 mt-1 w-52 bg-white shadow-lg rounded-xl py-0 z-50 border border-slate-200">
               <Link
                 to="/layanan"
                 className="block px-4 py-3 text-black hover:text-white hover:bg-[#0A3E54] border-b-[1.5px] border-slate-200 font-semibold rounded-t-xl"
@@ -209,7 +204,7 @@ const Navbar = () => {
             </svg>
           </button>
           {openDropdown === "hubungiKami" && (
-            <div className="absolute left-0 mt-1 w-48 rounded-xl bg-white shadow-lg py-0 z-50 border border-slate-200">
+            <div className="absolute left-0 mt-1 w-52 rounded-xl bg-white shadow-lg py-0 z-50 border border-slate-200">
               <a 
                 href={csWhatsAppLink} 
                 target="_blank" 
