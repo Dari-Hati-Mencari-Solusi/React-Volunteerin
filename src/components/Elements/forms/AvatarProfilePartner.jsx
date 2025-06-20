@@ -10,12 +10,35 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
   const [error, setError] = useState(null);
   const [compressionStatus, setCompressionStatus] = useState('');
   const fileInputRef = useRef(null);
+  const [localLogoDataUrl, setLocalLogoDataUrl] = useState(null);
+  
+  // Tambahkan definisi reverseOrganizationTypeMap di sini
+  const reverseOrganizationTypeMap = {
+    'komunitas': 'COMMUNITY',
+    'pemerintah': 'GOVERNMENT', 
+    'perusahaan': 'CORPORATE',
+    'individu': 'INDIVIDUAL'
+  };
 
   // Effect untuk memuat avatar dari initialAvatarUrl jika tersedia
   useEffect(() => {
     if (initialAvatarUrl) {
-      setPreview(initialAvatarUrl);
+      // Coba ambil dari localStorage terlebih dahulu untuk mencegah CORS
+      const savedLogo = localStorage.getItem('partnerLogoPreview');
+      if (savedLogo) {
+        setPreview(savedLogo);
+        setLocalLogoDataUrl(savedLogo);
+      } else {
+        setPreview(initialAvatarUrl);
+      }
       setError(null);
+    } else {
+      // Jika tidak ada initialAvatarUrl, coba cari di localStorage
+      const savedLogo = localStorage.getItem('partnerLogoPreview');
+      if (savedLogo) {
+        setPreview(savedLogo);
+        setLocalLogoDataUrl(savedLogo);
+      }
     }
   }, [initialAvatarUrl]);
 
@@ -41,19 +64,16 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
     return null;
   };
 
-  // Function untuk resize gambar sesuai aturan server yang super-ketat
   const resizeImage = (file) => {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
-
+  
       img.onload = () => {
         const { width, height } = img;
         
-        console.log(`Original dimensions: ${width}x${height}`);
-        
-        // Resize dengan ukuran maksimum 300x300
+        // Resize dengan maksimum 300px dimensions
         const maxDimension = 300;
         let newWidth, newHeight;
         
@@ -65,60 +85,43 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
           newWidth = Math.round((width * newHeight) / height);
         }
         
-        console.log(`Resized dimensions: ${newWidth}x${newHeight}`);
-
         canvas.width = newWidth;
         canvas.height = newHeight;
-
-        // Fill dengan background putih
+  
+        // Latar belakang putih
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Draw gambar
+        // Gambar
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
-
-        // Kompres dengan kualitas bertingkat sampai ukuran < 190KB
-        const tryQuality = (quality) => {
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              reject(new Error('Gagal memproses gambar'));
-              return;
-            }
-            
-            const sizeKB = blob.size / 1024;
-            console.log(`Compressed to ${sizeKB.toFixed(2)}KB with quality ${quality}`);
-            
-            // Jika sudah cukup kecil atau sudah kualitas minimal
-            if (sizeKB <= 190 || quality <= 0.3) {
-              // Nama file sangat sederhana: 'logo.jpg'
-              const simpleFile = new File([blob], "logo.jpg", { 
-                type: 'image/jpeg',
-                lastModified: Date.now()
-              });
-
-              resolve({
-                file: simpleFile,
-                originalSize: file.size / 1024,
-                resizedSize: sizeKB,
-                originalDimensions: `${width}x${height}`,
-                finalDimensions: `${newWidth}x${newHeight}`,
-                quality
-              });
-            } else {
-              // Coba kualitas lebih rendah
-              tryQuality(Math.max(0.3, quality - 0.1));
-            }
-          }, 'image/jpeg', quality);
-        };
-        
-        // Mulai dengan kualitas 0.8
-        tryQuality(0.8);
+  
+        // Gunakan kualitas 85% secara konsisten
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Gagal memproses gambar'));
+            return;
+          }
+          
+          const sizeKB = blob.size / 1024;
+          const simpleFile = new File([blob], "logo.jpg", { 
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+  
+          resolve({
+            file: simpleFile,
+            originalSize: file.size / 1024,
+            resizedSize: sizeKB,
+            originalDimensions: `${width}x${height}`,
+            finalDimensions: `${newWidth}x${newHeight}`
+          });
+        }, 'image/jpeg', 0.85);
       };
-
+  
       img.onerror = () => {
         reject(new Error('Gagal memuat gambar'));
       };
-
+  
       const reader = new FileReader();
       reader.onload = (e) => {
         img.src = e.target.result;
@@ -136,35 +139,45 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
     
     const file = e.target.files[0];
     if (!file) return;
-
+  
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     const maxOriginalSize = 5 * 1024 * 1024; // 5MB
-
+  
     if (!validTypes.includes(file.type)) {
       setError('Format file harus JPG, JPEG, atau PNG');
       toast.error('Format file harus JPG, JPEG, atau PNG');
       return;
     }
-
+  
     if (file.size > maxOriginalSize) {
       setError(`File terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 5MB`);
       toast.error('File terlalu besar. Maksimal 5MB');
       return;
     }
-
+  
     try {
       setLoading(true);
       
-      // Preview gambar untuk responsivitas
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
+      // SIMPAN PREVIEW LOKAL DARI FILE ASLI
+      const fileReader = new FileReader();
+      fileReader.onloadend = () => {
+        const localPreviewUrl = fileReader.result;
+        // Simpan preview lokal di localStorage untuk mencegah masalah CORS
+        try {
+          localStorage.setItem('partnerLogoPreview', localPreviewUrl);
+          setLocalLogoDataUrl(localPreviewUrl);
+        } catch (e) {
+          console.log("Error menyimpan logo ke localStorage:", e);
+        }
+        
+        // Set preview lokal
+        setPreview(localPreviewUrl);
       };
-      reader.readAsDataURL(file);
-
+      fileReader.readAsDataURL(file);
+  
       setCompressionStatus('Mengoptimalkan gambar...');
       
-      // Resize dan compress gambar
+      // Resize image
       const resizeResult = await resizeImage(file);
       const processedFile = resizeResult.file;
       
@@ -174,195 +187,170 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
       // Validasi ukuran akhir
       if (processedFile.size > 200 * 1024) {
         setError(`Gambar masih terlalu besar: ${(processedFile.size / 1024).toFixed(1)}KB. Maksimal 200KB.`);
-        toast.error("Gagal mengoptimalkan gambar. Coba gambar lain.");
+        toast.error("Gambar terlalu besar setelah kompresi. Coba gambar lain yang lebih sederhana.");
         setLoading(false);
         return;
       }
       
+      // SIMPAN PREVIEW DARI FILE TERKOMPRESI KE LOCALSTORAGE
+      const processedReader = new FileReader();
+      processedReader.onloadend = () => {
+        const processedDataUrl = processedReader.result;
+        try {
+          localStorage.setItem('partnerLogoPreview', processedDataUrl);
+          setLocalLogoDataUrl(processedDataUrl);
+          
+          // Update preview dengan hasil kompresi
+          setPreview(processedDataUrl);
+        } catch (e) {
+          console.log("Error menyimpan logo terkompresi ke localStorage:", e);
+        }
+      };
+      processedReader.readAsDataURL(processedFile);
+      
       setAvatar(processedFile);
       
-      // METODE 1: Upload via Fetch API langsung
+      const API_URL = import.meta.env.VITE_BE_BASE_URL;
+      const token = localStorage.getItem('token');
       
-      setCompressionStatus('Mengunggah logo ke server...');
+      if (!token) {
+        throw new Error('Token autentikasi tidak ditemukan');
+      }
       
+      // PENDEKATAN BARU: Coba buat profil terlebih dahulu tanpa peduli apakah sudah ada atau belum
       try {
-        // Buat FormData sederhana dengan field minimal
-        const formData = new FormData();
+        setCompressionStatus('Mempersiapkan profil...');
         
-        // Nama field HARUS 'logo' sesuai API
-        formData.append('logo', processedFile);
-        
-        // Tambah data profil yang diperlukan
+        // Ambil data profil yang diperlukan
         const currentData = getCurrentFormData();
-        const organizationTypeMap = {
-          'komunitas': 'COMMUNITY',
-          'pemerintah': 'GOVERNMENT', 
-          'perusahaan': 'CORPORATE',
-          'individu': 'INDIVIDUAL'
-        };
-        
-        // Default ke COMMUNITY jika tidak ada
         const organizationType = currentData?.jenisPenyelenggara 
-          ? (organizationTypeMap[currentData.jenisPenyelenggara] || 'COMMUNITY')
+          ? (reverseOrganizationTypeMap[currentData.jenisPenyelenggara] || 'COMMUNITY') 
           : 'COMMUNITY';
+        const organizationAddress = currentData?.organizationAddress || 'Alamat Penyelenggara';
+        const instagram = currentData?.usernameInstagram || 'instagram_handle';
         
-        // Tambahkan field wajib (simpel tanpa karakter khusus)
-        formData.append('organizationType', organizationType);
-        formData.append('organizationAddress', currentData?.organizationAddress || 'Alamat Penyelenggara');
-        formData.append('instagram', currentData?.usernameInstagram || 'instagram_handle');
+        // PERBAIKAN: Gunakan FormData untuk POST & PUT (bukan JSON)
         
-        // Log FormData untuk debugging
-        console.log("FormData for profile update:");
-        for (let [key, value] of formData.entries()) {
-          if (value instanceof File) {
-            console.log(`${key}: [File: ${value.name}, type: ${value.type}, size: ${(value.size / 1024).toFixed(2)}KB]`);
-          } else {
-            console.log(`${key}: ${value}`);
-          }
-        }
+        // Buat FormData untuk operasi create/update profil
+        const profileFormData = new FormData();
+        profileFormData.append('organizationType', organizationType);
+        profileFormData.append('organizationAddress', organizationAddress);
+        profileFormData.append('instagram', instagram);
         
-        // Upload menggunakan service yang sudah dioptimalkan
-        const response = await partnerService.updatePartnerProfileWithLogo(formData);
+        // Tambahkan dummy file untuk memenuhi persyaratan backend
+        const pngData = new Uint8Array([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+          0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+          0x08, 0x04, 0x00, 0x00, 0x00, 0xB5, 0x1C, 0x0C, 0x02, 0x00, 0x00, 0x00,
+          0x0B, 0x49, 0x44, 0x41, 0x54, 0x08, 0x99, 0x63, 0xF8, 0x0F, 0x00, 0x01,
+          0x01, 0x01, 0x00, 0x1B, 0xBF, 0x17, 0x84, 0x00, 0x00, 0x00, 0x00, 0x49,
+          0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+        ]);
+        const pngBlob = new Blob([pngData], {type: 'image/png'});
+        const dummyFile = new File([pngBlob], 'dummy.png', {type: 'image/png'});
         
-        console.log("Logo upload response:", response);
-        
-        toast.success("Logo berhasil diunggah!");
-        setCompressionStatus('✅ Logo berhasil diunggah ke server!');
-        
-        // Update state dan callback
-        if (response?.data?.partnerProfile?.logoUrl) {
-          const logoUrl = response.data.partnerProfile.logoUrl;
-          setPreview(logoUrl);
-          
-          // Callback ke parent
-          if (onAvatarUpload && typeof onAvatarUpload === 'function') {
-            onAvatarUpload(processedFile, logoUrl);
-          }
-        } else {
-          if (onAvatarUpload && typeof onAvatarUpload === 'function') {
-            onAvatarUpload(processedFile, preview);
-          }
-        }
-      } catch (uploadError) {
-        console.error("Upload error:", uploadError);
-        
-        // METODE 2: Jika fetch gagal, coba dengan XHR langsung
-        setCompressionStatus('Mencoba metode alternatif dengan XHR...');
-        
+        // PENDEKATAN BARU: Coba POST untuk membuat profil baru terlebih dahulu
+        console.log("Mencoba membuat profil baru dengan POST...");
+        setCompressionStatus('Mencoba membuat profil baru...');
         try {
-          console.log("Trying XHR approach...");
+          // FormData untuk POST (tambahkan logo dummy)
+          const postFormData = new FormData();
+          postFormData.append('organizationType', organizationType);
+          postFormData.append('organizationAddress', organizationAddress);
+          postFormData.append('instagram', instagram);
+          postFormData.append('logo', dummyFile);
           
-          // Buat XHR request manual
-          const xhr = new XMLHttpRequest();
-          const API_URL = import.meta.env.VITE_BE_BASE_URL;
-          const token = localStorage.getItem('token');
-          
-          // Buat promise untuk XHR
-          const xhrPromise = new Promise((resolve, reject) => {
-            xhr.open('PUT', `${API_URL}/partners/me/profile`, true);
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-            
-            xhr.onload = function() {
-              if (this.status >= 200 && this.status < 300) {
-                try {
-                  const response = JSON.parse(xhr.responseText);
-                  resolve(response);
-                } catch (e) {
-                  reject(new Error('Invalid JSON response'));
-                }
-              } else {
-                try {
-                  const errorData = JSON.parse(xhr.responseText);
-                  reject({
-                    status: this.status,
-                    message: errorData.message || `Error ${this.status}`,
-                    data: errorData
-                  });
-                } catch (e) {
-                  reject(new Error(`Server error: ${this.status}`));
-                }
-              }
-            };
-            
-            xhr.onerror = function() {
-              reject(new Error('Network error'));
-            };
-            
-            // Buat FormData baru untuk XHR
-            const xhrFormData = new FormData();
-            xhrFormData.append('logo', processedFile);
-            xhrFormData.append('organizationType', organizationType);
-            xhrFormData.append('organizationAddress', currentData?.organizationAddress || 'Alamat Penyelenggara');
-            xhrFormData.append('instagram', currentData?.usernameInstagram || 'instagram_handle');
-            
-            // Kirim request
-            xhr.send(xhrFormData);
+          const createResponse = await fetch(`${API_URL}/partners/me/profile`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: postFormData
           });
           
-          // Tunggu XHR selesai
-          const xhrResponse = await xhrPromise;
-          console.log("XHR upload successful:", xhrResponse);
-          
-          toast.success("Logo berhasil diunggah dengan metode alternatif!");
-          setCompressionStatus('✅ Logo berhasil diunggah!');
-          
-          // Update dan callback - sama seperti metode 1
-          if (xhrResponse?.data?.partnerProfile?.logoUrl || xhrResponse?.partnerProfile?.logoUrl) {
-            const logoUrl = xhrResponse?.data?.partnerProfile?.logoUrl || xhrResponse?.partnerProfile?.logoUrl;
-            setPreview(logoUrl);
-            
-            if (onAvatarUpload && typeof onAvatarUpload === 'function') {
-              onAvatarUpload(processedFile, logoUrl);
-            }
+          const createData = await createResponse.json();
+          if (createResponse.ok) {
+            console.log("Profil berhasil dibuat:", createData);
+            setCompressionStatus('Profil berhasil dibuat, mengupload logo...');
           } else {
-            if (onAvatarUpload && typeof onAvatarUpload === 'function') {
-              onAvatarUpload(processedFile, preview);
-            }
+            console.log("Pembuatan profil gagal:", createData);
+            // Lanjutkan ke metode PUT (kemungkinan profil sudah ada)
           }
-        } catch (xhrError) {
-          console.error("XHR also failed:", xhrError);
-          throw new Error(xhrError.message || "Semua metode upload gagal. Coba gambar lain.");
+        } catch (createError) {
+          console.log("Error saat mencoba membuat profil:", createError);
+          // Tetap lanjutkan ke metode PUT
         }
+        
+        // PERBAIKAN: Sekarang upload logo yang sesungguhnya dengan PUT
+        console.log("Mengupload logo dengan PUT...");
+        setCompressionStatus('Mengunggah logo ke server...');
+        
+        // FormData untuk upload logo
+        const logoFormData = new FormData();
+        logoFormData.append('logo', processedFile);
+        logoFormData.append('organizationType', organizationType);
+        logoFormData.append('organizationAddress', organizationAddress);
+        logoFormData.append('instagram', instagram);
+        
+        const uploadResponse = await fetch(`${API_URL}/partners/me/profile`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': `Bearer ${token}`
+            // JANGAN set Content-Type untuk multipart/form-data
+          },
+          body: logoFormData
+        });
+        
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          throw new Error(errorData.message || `Gagal upload logo! Status: ${uploadResponse.status}`);
+        }
+        
+        const uploadData = await uploadResponse.json();
+        console.log("Logo berhasil diupload:", uploadData);
+        
+        setCompressionStatus('✅ Logo berhasil diunggah ke server!');
+        toast.success("Logo berhasil diunggah!");
+        
+        // PERBAIKAN: Gunakan server URL untuk metadata tetapi tetap tampilkan logo lokal
+        // untuk menghindari masalah CORS
+        const serverLogoUrl = `${API_URL}/partners/me/logo?t=${Date.now()}`;
+        
+        // Panggil callback jika ada
+        if (onAvatarUpload && typeof onAvatarUpload === 'function') {
+          // PENTING: Kirim preview lokal sebagai parameter ketiga untuk digunakan tampilan
+          onAvatarUpload(processedFile, serverLogoUrl, localLogoDataUrl || processedReader.result);
+        }
+        
+      } catch (profileError) {
+        console.error("Error saat memeriksa/membuat profil:", profileError);
+        throw profileError;
       }
+      
     } catch (error) {
       console.error("Error uploading logo:", error);
       
-      // Reset preview ke yang sebelumnya jika gagal
-      setPreview(initialAvatarUrl || null);
-      
-      let errorMessage = "Gagal mengunggah logo";
-      
-      if (error.status === 500) {
-        errorMessage = "Server tidak dapat memproses gambar. Coba gambar lain atau hubungi administrator.";
-      } else if (error.message) {
-        errorMessage = error.message;
+      // Coba gunakan preview lokal yang tersimpan jika ada
+      const savedPreview = localStorage.getItem('partnerLogoPreview');
+      if (savedPreview) {
+        setPreview(savedPreview);
+      } else {
+        setPreview(initialAvatarUrl || null);
       }
       
+      const errorMessage = error.message || "Gagal mengunggah logo";
       setError(errorMessage);
       toast.error(errorMessage);
       
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
-      }
-      
-      // FALLBACK untuk development mode
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Development mode: Using local preview as fallback');
-        if (onAvatarUpload && typeof onAvatarUpload === 'function') {
-          onAvatarUpload(file, preview);
-          toast.info("Development mode: Menggunakan preview lokal untuk testing UI");
-        }
       }
     } finally {
       setLoading(false);
       
-      // Clear status message after delay
       setTimeout(() => {
         if (!error) {
           setCompressionStatus('');
         }
-      }, 5000);
+      }, 3000);
     }
   };
 
@@ -377,6 +365,10 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
       try {
         setLoading(true);
         setCompressionStatus('Menghapus logo...');
+        
+        // Hapus dari localStorage
+        localStorage.removeItem('partnerLogoPreview');
+        setLocalLogoDataUrl(null);
         
         // Panggil API untuk menghapus avatar jika ada
         if (initialAvatarUrl) {
@@ -430,8 +422,18 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
               className="w-full h-full object-cover"
               onError={(e) => {
                 console.error("Error loading image");
-                setError("Gagal memuat gambar. URL tidak valid atau gambar rusak.");
-                e.target.src = 'https://placehold.co/200x200?text=Error';
+                
+                // Coba ambil dari localStorage jika gambar gagal load
+                const savedPreview = localStorage.getItem('partnerLogoPreview');
+                if (savedPreview) {
+                  console.log("Using saved logo from localStorage");
+                  e.target.src = savedPreview;
+                  return;
+                }
+                
+                // Fallback ke error placeholder
+                setError("Gagal memuat gambar. Coba upload logo baru.");
+                e.target.src = 'https://placehold.co/200x200?text=Logo';
               }}
             />
             {!loading && (

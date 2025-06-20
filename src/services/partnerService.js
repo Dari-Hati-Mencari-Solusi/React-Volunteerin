@@ -44,8 +44,23 @@ export const partnerService = {
    */
   updatePartnerProfile: async (profileData) => {
     try {
-      const response = await httpClient.put(`${API_URL}/partners/me/profile`, profileData);
-      return response.data;
+      // First check if the profile exists
+      try {
+        await httpClient.get(`${API_URL}/partners/me/profile`);
+        // If we get here, profile exists, update it
+        const response = await httpClient.put(`${API_URL}/partners/me/profile`, profileData);
+        return response.data;
+      } catch (checkError) {
+        // If profile doesn't exist, create it
+        if (checkError.response?.status === 404) {
+          console.log("Profile doesn't exist, creating instead of updating");
+          const response = await httpClient.post(`${API_URL}/partners/me/profile`, profileData);
+          return response.data;
+        } else {
+          // Re-throw other errors
+          throw checkError;
+        }
+      }
     } catch (error) {
       handleApiError(error, 'An error occurred while updating partner profile');
     }
@@ -655,7 +670,7 @@ getResponsiblePerson: async () => {
 // Di dalam method updateResponsiblePerson
 
 /**
- * Update responsible person data (sesuai dokumentasi - menggunakan PUT dengan FormData)
+ * Update responsible person data dengan pendekatan try POST first, then PUT
  * @param {Object} personData - Responsible person data
  * @param {File} ktpFile - KTP image file (optional)
  * @returns {Promise<Object>} Updated responsible person data
@@ -697,15 +712,29 @@ updateResponsiblePerson: async (personData, ktpFile = null) => {
       }
     }
     
-    // Kirim request dengan satu field KTP yang benar
-    console.log("Sending PUT request to update responsible person...");
-    const response = await httpClient.put(`${API_URL}/partners/me/responsible-person`, formData, {
-      // PENTING: Jangan set Content-Type header untuk FormData
-      timeout: 60000 
-    });
-    
-    console.log("Responsible person update successful:", response.data);
-    return response.data;
+    // PENDEKATAN BARU: Coba POST terlebih dahulu
+    console.log("Trying POST first for responsible person...");
+    try {
+      const postResponse = await httpClient.post(`${API_URL}/partners/me/responsible-person`, formData, {
+        // PENTING: Jangan set Content-Type header untuk FormData
+        timeout: 60000 
+      });
+      
+      console.log("POST responsible person successful:", postResponse.data);
+      return postResponse.data;
+    } catch (postError) {
+      console.log("POST attempt failed:", postError.response?.status, postError.response?.data);
+      
+      // Jika POST gagal, coba PUT
+      console.log("Trying PUT for responsible person...");
+      const putResponse = await httpClient.put(`${API_URL}/partners/me/responsible-person`, formData, {
+        // PENTING: Jangan set Content-Type header untuk FormData
+        timeout: 60000 
+      });
+      
+      console.log("PUT responsible person successful:", putResponse.data);
+      return putResponse.data;
+    }
   } catch (error) {
     console.error("Error updating responsible person:", error);
     
@@ -949,6 +978,71 @@ updatePartnerProfileWithLogo: async (formData) => {
   } catch (error) {
     console.error("Error updating profile with logo:", error);
     throw error;
+  }
+},
+
+
+/**
+ * Get registrants for a specific event with filtering, search and pagination
+ * @param {string} eventId - ID of the event
+ * @param {Object} params - Query parameters (status, limit, page, sort, s)
+ * @returns {Promise<Object>} Registrants data with pagination
+ * @throws {Object} Error object with message
+ */
+getEventRegistrants: async (eventId, params = {}) => {
+  try {
+    const response = await httpClient.get(
+      `${API_URL}/partners/me/events/${eventId}/registrants`, 
+      { params }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching registrants:", error);
+    handleApiError(error, 'Gagal mendapatkan data pendaftar');
+  }
+},
+
+/**
+ * Get detailed data for a specific registrant
+ * @param {string} eventId - ID of the event
+ * @param {string} registrantId - ID of the registrant (form response ID)
+ * @returns {Promise<Object>} Detailed registrant data
+ * @throws {Object} Error object with message
+ */
+getRegistrantDetail: async (eventId, registrantId) => {
+  try {
+    const response = await httpClient.get(
+      `${API_URL}/partners/me/events/${eventId}/registrants/${registrantId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching registrant detail:", error);
+    handleApiError(error, 'Gagal mendapatkan detail pendaftar');
+  }
+},
+
+/**
+ * Review a registrant application (accept or reject)
+ * @param {string} eventId - ID of the event
+ * @param {string} registrantId - ID of the registrant (form response ID)
+ * @param {string} status - Review status ('accepted' or 'rejected')
+ * @returns {Promise<Object>} Updated registrant data
+ * @throws {Object} Error object with message
+ */
+reviewRegistrant: async (eventId, registrantId, status) => {
+  try {
+    if (!['accepted', 'rejected'].includes(status.toLowerCase())) {
+      throw new Error('Status harus "accepted" atau "rejected"');
+    }
+    
+    const response = await httpClient.post(
+      `${API_URL}/partners/me/events/${eventId}/registrants/${registrantId}`,
+      { status: status.toLowerCase() }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error reviewing registrant:", error);
+    handleApiError(error, 'Gagal mereview pendaftar');
   }
 },
 
