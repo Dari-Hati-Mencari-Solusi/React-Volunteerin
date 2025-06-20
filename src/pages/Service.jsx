@@ -11,9 +11,9 @@ import CountUp from "react-countup";
 
 const Service = () => {
   const stats = [
-    { number: 50, label: "Partner" },
-    { number: 55, label: "Pengguna" },
-    { number: 512, label: "Event dibuat" },
+    { number: 10, label: "Partner" },
+    { number: 50, label: "Pengguna" },
+    { number: 5, label: "Event dibuat" },
   ];
 
   const benefitCards = [
@@ -88,9 +88,9 @@ const Service = () => {
       <Navbar />
       <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 md:py-12 max-w-screen-xl">
         <div className="grid md:grid-cols-2 gap-8 items-center mt-16 md:mt-16">
-          <div className="space-y-4 md:space-y-6 text-center md:text-left">
+          <div className="space-y-4 md:space-y-4 text-center md:text-left">
             <h1 className="text-3xl md:text-5xl font-semibold text-[#87A5B1]">
-              Mau Gabung Event?
+              Bingung Nyari Calon Relawan?
             </h1>
             <h2 className="text-3xl md:text-4xl font-semibold text-[#0A3E54]">
               Di Volunteerin Aja
@@ -377,7 +377,7 @@ const Service = () => {
                   <img
                     src={logoPartner.src}
                     alt={logoPartner.alt}
-                    className="h-20 w-20 md:h-32 md:w-32 rounded-full"
+                    className="h-20 w-20 md:h-32 md:w-32 rounded-full object-cover"
                   />
                 </div>
               ))}
