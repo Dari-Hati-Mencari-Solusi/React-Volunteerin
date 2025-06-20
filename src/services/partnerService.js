@@ -44,8 +44,23 @@ export const partnerService = {
    */
   updatePartnerProfile: async (profileData) => {
     try {
-      const response = await httpClient.put(`${API_URL}/partners/me/profile`, profileData);
-      return response.data;
+      // First check if the profile exists
+      try {
+        await httpClient.get(`${API_URL}/partners/me/profile`);
+        // If we get here, profile exists, update it
+        const response = await httpClient.put(`${API_URL}/partners/me/profile`, profileData);
+        return response.data;
+      } catch (checkError) {
+        // If profile doesn't exist, create it
+        if (checkError.response?.status === 404) {
+          console.log("Profile doesn't exist, creating instead of updating");
+          const response = await httpClient.post(`${API_URL}/partners/me/profile`, profileData);
+          return response.data;
+        } else {
+          // Re-throw other errors
+          throw checkError;
+        }
+      }
     } catch (error) {
       handleApiError(error, 'An error occurred while updating partner profile');
     }
@@ -394,62 +409,224 @@ export const partnerService = {
     }
   },
 
-  /**
-   * Upload an avatar/logo image for partner profile
-   * @param {FormData} formData - Form data containing the avatar image file
-   * @returns {Promise<Object>} Upload response with avatar URL
-   * @throws {Object} Error object with message
-   */
-  uploadAvatar: async (formData) => {
-    try {
-      // Validasi formData
-      if (formData.has('avatar')) {
-        const avatarFile = formData.get('avatar');
-        console.log(`Uploading avatar: ${avatarFile.name}, size: ${avatarFile.size} bytes`);
+// ...existing code...
+
+/**
+ * Upload an avatar/logo image for partner profile
+ * @param {FormData} formData - Form data containing the logo image file and profile data
+ * @returns {Promise<Object>} Upload response with avatar URL
+ * @throws {Object} Error object with message
+ */
+uploadAvatar: async (formData) => {
+  try {
+    // Validasi formData
+    if (!formData.has('logo')) {
+      throw new Error("File logo tidak ditemukan dalam form data");
+    }
+    
+    const logoFile = formData.get('logo');
+    console.log(`Uploading logo: ${logoFile.name}, size: ${logoFile.size} bytes`);
+    
+    // Debug: Log all form data
+    console.log("FormData contents:");
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`);
       } else {
-        console.warn("FormData does not contain 'avatar' field");
-        throw new Error("File avatar tidak ditemukan dalam form data");
+        console.log(`${key}: ${value}`);
       }
-      
-      // Ganti endpoint sesuai dengan API yang tersedia
-      const response = await httpClient.post(`${API_URL}/users/avatar`, formData, {
+    }
+    
+    // Strategi 1: Coba GET profile dulu untuk cek apakah profile sudah ada
+    let profileExists = false;
+    try {
+      console.log("Checking if profile exists...");
+      const existingProfile = await httpClient.get(`${API_URL}/partners/me/profile`);
+      profileExists = existingProfile && existingProfile.data;
+      console.log("Profile exists:", profileExists);
+    } catch (getError) {
+      console.log("Profile check failed or doesn't exist:", getError.response?.status);
+      profileExists = false;
+    }
+    
+    // Strategi 2: Jika profile ada, coba update dengan PUT, jika tidak ada, coba POST
+    const method = profileExists ? 'PUT' : 'POST';
+    console.log(`Using ${method} method for avatar upload...`);
+    
+    try {
+      const response = await httpClient({
+        method: method.toLowerCase(),
+        url: `${API_URL}/partners/me/profile`,
+        data: formData,
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        timeout: 60000, // Increase timeout to 60 seconds
+        maxContentLength: 10 * 1024 * 1024, // 10MB
+        maxBodyLength: 10 * 1024 * 1024, // 10MB
       });
       
-      console.log("Avatar upload API response:", response.data);
+      console.log(`Logo upload API response (${method}):`, response.data);
       
       // Validasi struktur response
-      if (!response.data || !response.data.data || !response.data.data.user) {
-        console.error("Invalid response format from avatar upload API:", response.data);
-        throw new Error("Format response tidak valid dari server");
+      if (response.data && response.data.data && response.data.data.avatarUrl) {
+        return response.data;
+      } else if (response.data && response.data.avatarUrl) {
+        // Fallback jika struktur response berbeda
+        return {
+          data: {
+            avatarUrl: response.data.avatarUrl
+          }
+        };
+      } else {
+        throw new Error("Response tidak mengandung avatarUrl");
       }
+    } catch (primaryError) {
+      console.log(`${method} method failed:`, primaryError.response?.status, primaryError.response?.data?.message);
       
-      return response.data;
-    } catch (error) {
-      console.error("Error in uploadAvatar:", error);
+      // Strategi 3: Jika PUT gagal, coba POST (dan sebaliknya)
+      const alternativeMethod = method === 'PUT' ? 'POST' : 'PUT';
+      console.log(`Trying alternative method: ${alternativeMethod}`);
       
-      // Log detail error
-      if (error.response) {
-        console.log("Response status:", error.response.status);
-        console.log("Response data:", error.response.data);
+      try {
+        const response = await httpClient({
+          method: alternativeMethod.toLowerCase(),
+          url: `${API_URL}/partners/me/profile`,
+          data: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 60000,
+          maxContentLength: 10 * 1024 * 1024,
+          maxBodyLength: 10 * 1024 * 1024,
+        });
+        
+        console.log(`Logo upload API response (${alternativeMethod}):`, response.data);
+        
+        if (response.data && response.data.data && response.data.data.avatarUrl) {
+          return response.data;
+        } else if (response.data && response.data.avatarUrl) {
+          return {
+            data: {
+              avatarUrl: response.data.avatarUrl
+            }
+          };
+        } else {
+          throw new Error("Response tidak mengandung avatarUrl");
+        }
+      } catch (alternativeError) {
+        console.error(`Both ${method} and ${alternativeMethod} methods failed`);
+        
+        // Strategi 4: Coba dengan data minimal jika masih gagal
+        if (primaryError.response?.status === 500) {
+          console.log("Trying with minimal data due to server error...");
+          
+          try {
+            // Buat FormData minimal hanya dengan logo dan data wajib
+            const minimalFormData = new FormData();
+            minimalFormData.append('logo', logoFile);
+            
+            // Hanya tambahkan data yang benar-benar diperlukan
+            const currentData = formData.get('organizationType') || 'COMMUNITY';
+            const currentAddress = formData.get('organizationAddress') || 'Default Address';
+            const currentInstagram = formData.get('instagram') || 'default_instagram';
+            
+            minimalFormData.append('organizationType', currentData);
+            minimalFormData.append('organizationAddress', currentAddress);
+            minimalFormData.append('instagram', currentInstagram);
+            
+            console.log("Minimal FormData:");
+            for (let [key, value] of minimalFormData.entries()) {
+              if (value instanceof File) {
+                console.log(`${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`);
+              } else {
+                console.log(`${key}: ${value}`);
+              }
+            }
+            
+            const response = await httpClient.put(`${API_URL}/partners/me/profile`, minimalFormData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+                'X-Retry-Minimal': 'true'
+              },
+              timeout: 60000,
+            });
+            
+            console.log("Minimal data upload successful:", response.data);
+            
+            if (response.data && response.data.data && response.data.data.avatarUrl) {
+              return response.data;
+            } else if (response.data && response.data.avatarUrl) {
+              return {
+                data: {
+                  avatarUrl: response.data.avatarUrl
+                }
+              };
+            } else {
+              throw new Error("Response minimal tidak mengandung avatarUrl");
+            }
+          } catch (minimalError) {
+            console.error("Minimal data approach also failed:", minimalError);
+            throw primaryError; // Throw original error
+          }
+        } else {
+          throw primaryError; // Throw original error
+        }
       }
-      
-      // Handle timeout
-      if (error.code === 'ECONNABORTED') {
-        throw new Error("Koneksi timeout. Coba lagi nanti.");
-      }
-      
-      // Handle offline
-      if (!navigator.onLine) {
-        throw new Error("Anda sedang offline. Periksa koneksi internet Anda.");
-      }
-      
-      // Gunakan handler error global
-      handleApiError(error, 'Gagal mengunggah logo. Silakan coba lagi.');
     }
-  },
+  } catch (error) {
+    console.error("Error in uploadAvatar:", error);
+    
+    // Enhanced error logging
+    if (error.response) {
+      console.log("Response status:", error.response.status);
+      console.log("Response data:", error.response.data);
+      console.log("Response headers:", error.response.headers);
+    }
+    
+    // Handle specific error cases
+    if (error.response?.status === 500) {
+      const errorMessage = error.response.data?.message;
+      
+      if (errorMessage?.includes('mengubah gambar') || errorMessage?.includes('image')) {
+        throw new Error("Server gagal memproses gambar. Coba dengan gambar yang berbeda atau hubungi administrator.");
+      } else {
+        throw new Error(`Server error: ${errorMessage || 'Terjadi kesalahan pada server'}`);
+      }
+    }
+    
+    if (error.response?.status === 413) {
+      throw new Error("Ukuran file terlalu besar. Maksimal 200KB");
+    }
+    
+    if (error.response?.status === 400) {
+      const errorMessage = error.response.data?.message;
+      
+      if (errorMessage?.includes('sudah memiliki profile')) {
+        throw new Error("Profile sudah ada. Mencoba dengan method update...");
+      } else if (errorMessage?.includes('Data tidak valid')) {
+        throw new Error(`Validasi gagal: ${errorMessage}`);
+      } else {
+        throw new Error(errorMessage || "Data tidak valid");
+      }
+    }
+    
+    // Handle timeout
+    if (error.code === 'ECONNABORTED') {
+      throw new Error("Koneksi timeout. Coba lagi nanti atau gunakan gambar yang lebih kecil.");
+    }
+    
+    // Handle offline
+    if (!navigator.onLine) {
+      throw new Error("Anda sedang offline. Periksa koneksi internet Anda.");
+    }
+    
+    // Default error handling
+    throw new Error(error.message || 'Gagal mengunggah logo. Silakan coba lagi.');
+  }
+},
+
+// ...existing code...
   
   // Method tambahan untuk menghapus avatar (opsional)
   removeAvatar: async () => {
@@ -472,162 +649,401 @@ export const partnerService = {
     }
   },
 
-  /**
-   * Get responsible person data
-   * @returns {Promise<Object>} Responsible person data
-   * @throws {Object} Error object with message
-   */
-  getResponsiblePerson: async () => {
-    try {
-      const response = await httpClient.get(`${API_URL}/partners/me/responsible-person`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while fetching responsible person data');
+/**
+ * Get responsible person data
+ * @returns {Promise<Object>} Responsible person data
+ * @throws {Object} Error object with message
+ */
+getResponsiblePerson: async () => {
+  try {
+    const response = await httpClient.get(`${API_URL}/partners/me/responsible-person`);
+    return response.data;
+  } catch (error) {
+    // Handle 404 (tidak ada data) sebagai kondisi normal
+    if (error.response?.status === 404) {
+      return { message: "Data penanggung jawab belum ada", data: null };
     }
-  },
-  
-  /**
-   * Create responsible person data
-   * @param {Object} personData - Responsible person data
-   * @returns {Promise<Object>} Created responsible person data
-   * @throws {Object} Error object with message
-   */
-  createResponsiblePerson: async (personData) => {
-    try {
-      const response = await httpClient.post(`${API_URL}/partners/me/responsible-person`, personData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while creating responsible person data');
-    }
-  },
-  
-  /**
-   * Update responsible person data
-   * @param {Object} personData - Updated responsible person data
-   * @returns {Promise<Object>} Updated responsible person data
-   * @throws {Object} Error object with message
-   */
-  updateResponsiblePerson: async (personData) => {
-    try {
-      const response = await httpClient.put(`${API_URL}/partners/me/responsible-person`, personData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while updating responsible person data');
-    }
-  },
-  
-  /**
-   * Upload KTP image for responsible person
-   * @param {FormData} formData - Form data containing the KTP image file
-   * @returns {Promise<Object>} Upload response with image URL and ID
-   * @throws {Object} Error object with message
-   */
-  uploadKtpImage: async (formData) => {
-    try {
-      const response = await httpClient.post(`${API_URL}/partners/me/responsible-person/ktp`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'An error occurred while uploading KTP image');
-    }
-  },
-
-  /**
-   * Get all legal documents
-   * @returns {Promise<Object>} Legal documents data
-   * @throws {Object} Error object with message
-   */
-  getLegalDocuments: async () => {
-    try {
-      const response = await httpClient.get(`${API_URL}/partners/me/legality`);
-      return response.data;
-    } catch (error) {
-      console.error("Error in getLegalDocuments:", error);
-      handleApiError(error, 'An error occurred while fetching legal documents');
-    }
-  },
-  
-  /**
-   * Upload a new legal document
-   * @param {FormData} formData - Form data containing the document file
-   * @returns {Promise<Object>} Upload response with document data
-   * @throws {Object} Error object with message
-   */
-  uploadLegalDocument: async (formData) => {
-    try {
-      // Log all formData entries for debugging
-      console.log("FormData contents:");
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value instanceof File ? `File: ${value.name}` : value}`);
-      }
-      
-      const response = await httpClient.post(`${API_URL}/partners/me/legality`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error("Error in uploadLegalDocument:", error);
-      throw error; // Rethrow to handle in component
-    }
-  },
-  
-  /**
-   * Delete a legal document
-   * @param {string} documentId - ID of the document to delete
-   * @returns {Promise<Object>} Deletion response
-   * @throws {Object} Error object with message
-   */
-  deleteLegalDocument: async (documentId) => {
-    try {
-      console.log(`Menghapus dokumen dengan ID: ${documentId}`);
-      
-      // Metode 1: DELETE dengan path parameter
-      const response = await httpClient.delete(`${API_URL}/partners/me/legality/${documentId}`);
-      return response.data;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        // Metode 2: DELETE dengan query params
-        try {
-          console.log("Trying with query params...");
-          const response = await httpClient.delete(`${API_URL}/partners/me/legality`, {
-            params: { id: documentId }
-          });
-          return response.data;
-        } catch (queryError) {
-          // Metode 3: DELETE dengan request body
-          try {
-            console.log("Trying with request body...");
-            const response = await httpClient.delete(`${API_URL}/partners/me/legality`, {
-              data: { id: documentId }
-            });
-            return response.data;
-          } catch (bodyError) {
-            console.error("All delete methods failed:", bodyError);
-            
-            if (bodyError.response) {
-              console.log("Final error status:", bodyError.response.status);
-              console.log("Final error data:", bodyError.response.data);
-            }
-            
-            throw bodyError;
-          }
-        }
-      } else {
-        console.error("Error in deleteLegalDocument:", error);
-        
-        if (error.response) {
-          console.log("Response status:", error.response.status);
-          console.log("Response data:", error.response.data);
-        }
-        
-        throw error;
-      }
-    }
+    handleApiError(error, 'An error occurred while fetching responsible person data');
   }
+},
+
+// Di dalam method updateResponsiblePerson
+
+/**
+ * Update responsible person data dengan pendekatan try POST first, then PUT
+ * @param {Object} personData - Responsible person data
+ * @param {File} ktpFile - KTP image file (optional)
+ * @returns {Promise<Object>} Updated responsible person data
+ * @throws {Object} Error object with message
+ */
+updateResponsiblePerson: async (personData, ktpFile = null) => {
+  try {
+    console.log("Updating responsible person data...");
+    console.log("Person data:", personData);
+    console.log("KTP file:", ktpFile);
+    
+    // Buat FormData dengan nama field yang benar sesuai BE
+    const formData = new FormData();
+    
+    // Data personal
+    formData.append('nik', personData.nik);
+    formData.append('fullName', personData.fullName);
+    formData.append('phoneNumber', personData.phoneNumber);
+    formData.append('position', personData.position);
+    
+    // HANYA gunakan field 'ktp' untuk file KTP
+    // Pastikan file KTP valid
+    if (ktpFile && ktpFile instanceof File) {
+      formData.append('ktp', ktpFile);
+      console.log(`Adding KTP file: ${ktpFile.name}, size: ${ktpFile.size} bytes`);
+    } else if (personData.ktpImageId) {
+      // Jika tidak ada file baru tapi ada ID gambar lama, kirim ID tersebut
+      formData.append('ktpImageId', personData.ktpImageId);
+      console.log(`Using existing KTP image ID: ${personData.ktpImageId}`);
+    }
+    
+    // Debug: Log FormData
+    console.log("FormData for responsible person update:");
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`);
+      } else {
+        console.log(`${key}: ${value}`);
+      }
+    }
+    
+    // PENDEKATAN BARU: Coba POST terlebih dahulu
+    console.log("Trying POST first for responsible person...");
+    try {
+      const postResponse = await httpClient.post(`${API_URL}/partners/me/responsible-person`, formData, {
+        // PENTING: Jangan set Content-Type header untuk FormData
+        timeout: 60000 
+      });
+      
+      console.log("POST responsible person successful:", postResponse.data);
+      return postResponse.data;
+    } catch (postError) {
+      console.log("POST attempt failed:", postError.response?.status, postError.response?.data);
+      
+      // Jika POST gagal, coba PUT
+      console.log("Trying PUT for responsible person...");
+      const putResponse = await httpClient.put(`${API_URL}/partners/me/responsible-person`, formData, {
+        // PENTING: Jangan set Content-Type header untuk FormData
+        timeout: 60000 
+      });
+      
+      console.log("PUT responsible person successful:", putResponse.data);
+      return putResponse.data;
+    }
+  } catch (error) {
+    console.error("Error updating responsible person:", error);
+    
+    if (error.response?.status === 500 && error.response?.data?.message) {
+      throw new Error(`Server error: ${error.response.data.message}`);
+    }
+    
+    handleApiError(error, 'An error occurred while updating responsible person data');
+  }
+},
+/**
+ * Create responsible person data (untuk data baru)
+ * @param {Object} personData - Responsible person data
+ * @param {File} ktpFile - KTP image file (required for new data)
+ * @returns {Promise<Object>} Created responsible person data
+ * @throws {Object} Error object with message
+ */
+createResponsiblePerson: async (personData, ktpFile) => {
+  try {
+    console.log("Creating responsible person data...");
+    
+    // Untuk create, gunakan same endpoint dengan PUT karena BE menggunakan PUT
+    return await partnerService.updateResponsiblePerson(personData, ktpFile);
+  } catch (error) {
+    console.error("Error creating responsible person:", error);
+    handleApiError(error, 'An error occurred while creating responsible person data');
+  }
+},
+
+ /**
+ * Get all legal documents (sesuai dokumentasi BE)
+ * @returns {Promise<Object>} Legal documents data
+ * @throws {Object} Error object with message
+ */
+getLegalDocuments: async () => {
+  try {
+    console.log("Fetching legal documents...");
+    const response = await httpClient.get(`${API_URL}/partners/me/legality`);
+    console.log("Legal documents response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error in getLegalDocuments:", error);
+    
+    // Handle 404 sebagai kondisi normal (belum ada dokumen)
+    if (error.response?.status === 404) {
+      return { message: "Belum ada dokumen legalitas", data: null };
+    }
+    
+    handleApiError(error, 'An error occurred while fetching legal documents');
+  }
+},
+
+// Update fungsi uploadLegalDocument
+
+uploadLegalDocument: async (formData) => {
+  try {
+    console.log("=== UPLOADING LEGAL DOCUMENT ===");
+    
+    // Basic validation
+    if (!formData.has('document')) {
+      throw new Error("File dokumen tidak ditemukan");
+    }
+    
+    if (!formData.has('documentName')) {
+      throw new Error("Nama dokumen tidak boleh kosong");
+    }
+    
+    // Get original file
+    const documentFile = formData.get('document');
+    if (!documentFile || !(documentFile instanceof File)) {
+      throw new Error("File dokumen tidak valid");
+    }
+    
+    console.log(`Document file details: ${documentFile.name}, type: ${documentFile.type}, size: ${documentFile.size} bytes`);
+    
+    // PENTING: Buat FormData baru yang sangat sederhana
+    const simpleFormData = new FormData();
+    simpleFormData.append('documentName', formData.get('documentName'));
+    simpleFormData.append('document', documentFile);
+    
+    // Tambahkan information jika ada
+    if (formData.has('information')) {
+      simpleFormData.append('information', formData.get('information'));
+    }
+    
+    // Debug log
+    console.log("Simple FormData prepared for upload:");
+    for (let [key, value] of simpleFormData.entries()) {
+      if (value instanceof File) {
+        console.log(`${key}: [File: ${value.name}, type: ${value.type}, size: ${value.size} bytes]`);
+      } else {
+        console.log(`${key}: ${value}`);
+      }
+    }
+    
+    console.log("Sending document...");
+    
+    // PERUBAHAN KRITIS: Gunakan konfigurasi axios tanpa Content-Type manual
+    try {
+      // Kirim request dan WAJIB sertakan header multipart/form-data
+      const response = await httpClient.post(
+        `${API_URL}/partners/me/legality`, 
+        simpleFormData, 
+        {
+          // PENTING: Sertakan header multipart/form-data
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 60000
+        }
+      );
+      
+      console.log("Upload success:", response.data);
+      return response.data;
+    } catch (uploadError) {
+      console.error("Upload failed:", uploadError);
+      
+      // Tambahkan debugging info lebih detail
+      if (uploadError.response) {
+        console.log("Response status:", uploadError.response.status);
+        console.log("Response data:", uploadError.response.data);
+        console.log("Response headers:", uploadError.response.headers);
+        
+        // Tampilkan request yang dikirim
+        console.log("Request configuration:");
+        console.log("- URL:", uploadError.config.url);
+        console.log("- Method:", uploadError.config.method);
+        console.log("- Headers:", uploadError.config.headers);
+      }
+      
+      // Jika masih gagal, coba pendekatan alternatif dengan FormData manual
+      if (uploadError.response?.status === 400 && uploadError.response?.data?.message?.includes('tidak ditemukan')) {
+        console.log("Trying alternative approach with direct FormData...");
+        
+        // Buat FormData baru dari awal
+        const directFormData = new FormData();
+        directFormData.append('documentName', formData.get('documentName'));
+        directFormData.append('document', new Blob([documentFile], { type: documentFile.type }), documentFile.name);
+        
+        if (formData.has('information')) {
+          directFormData.append('information', formData.get('information'));
+        }
+        
+        try {
+          const alternativeResponse = await fetch(`${API_URL}/partners/me/legality`, {
+            method: 'POST',
+            body: directFormData,
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          
+          if (!alternativeResponse.ok) {
+            throw new Error(`Alternative approach failed with status ${alternativeResponse.status}`);
+          }
+          
+          const responseData = await alternativeResponse.json();
+          console.log("Alternative approach succeeded:", responseData);
+          return responseData;
+        } catch (alternativeError) {
+          console.error("Alternative approach also failed:", alternativeError);
+          throw new Error("Server tidak dapat memproses file dokumen melalui berbagai pendekatan. Silakan hubungi tim teknis.");
+        }
+      }
+      
+      throw uploadError;
+    }
+  } catch (error) {
+    console.error("Error in uploadLegalDocument:", error);
+    
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    
+    throw new Error(error.message || "Gagal mengunggah dokumen");
+  }
+},
+
+
+/**
+ * Update partner profile with logo (optimized for backend requirements)
+ * @param {FormData} formData - Form data with logo and profile fields
+ * @returns {Promise<Object>} Update response
+ * @throws {Object} Error object with message
+ */
+updatePartnerProfileWithLogo: async (formData) => {
+  try {
+    console.log("Updating partner profile with logo (optimized for BE requirements)");
+    
+    // Validate required fields exist
+    if (!formData.has('logo')) {
+      throw new Error("Logo file is required");
+    }
+    
+    const logoFile = formData.get('logo');
+    console.log(`Logo file: ${logoFile.name}, type: ${logoFile.type}, size: ${logoFile.size} bytes, size in KB: ${(logoFile.size / 1024).toFixed(2)}KB`);
+    
+    // STRICT validation against BE requirements
+    if (logoFile.size > 200 * 1024) { // 200KB in bytes
+      throw new Error(`Logo terlalu besar: ${(logoFile.size / 1024).toFixed(2)}KB. Maksimum 200KB.`);
+    }
+    
+    if (!['image/png', 'image/jpg', 'image/jpeg'].includes(logoFile.type)) {
+      throw new Error(`Format file ${logoFile.type} tidak didukung. Gunakan PNG, JPG, atau JPEG.`);
+    }
+    
+    // Simple fetch implementation with additional logging
+    const token = localStorage.getItem('token');
+    
+    console.log("Sending PUT request to /partners/me/profile with FormData:");
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`- ${key}: [File: ${value.name}, type: ${value.type}, size: ${(value.size / 1024).toFixed(2)}KB]`);
+      } else {
+        console.log(`- ${key}: ${value}`);
+      }
+    }
+    
+    const response = await fetch(`${API_URL}/partners/me/profile`, {
+      method: 'PUT',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    console.log(`Response status: ${response.status}`);
+    
+    const responseData = await response.json();
+    console.log("Response data:", responseData);
+    
+    if (!response.ok) {
+      throw {
+        status: response.status,
+        message: responseData.message || `Server responded with status ${response.status}`,
+        data: responseData
+      };
+    }
+    
+    return responseData;
+  } catch (error) {
+    console.error("Error updating profile with logo:", error);
+    throw error;
+  }
+},
+
+
+/**
+ * Get registrants for a specific event with filtering, search and pagination
+ * @param {string} eventId - ID of the event
+ * @param {Object} params - Query parameters (status, limit, page, sort, s)
+ * @returns {Promise<Object>} Registrants data with pagination
+ * @throws {Object} Error object with message
+ */
+getEventRegistrants: async (eventId, params = {}) => {
+  try {
+    const response = await httpClient.get(
+      `${API_URL}/partners/me/events/${eventId}/registrants`, 
+      { params }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching registrants:", error);
+    handleApiError(error, 'Gagal mendapatkan data pendaftar');
+  }
+},
+
+/**
+ * Get detailed data for a specific registrant
+ * @param {string} eventId - ID of the event
+ * @param {string} registrantId - ID of the registrant (form response ID)
+ * @returns {Promise<Object>} Detailed registrant data
+ * @throws {Object} Error object with message
+ */
+getRegistrantDetail: async (eventId, registrantId) => {
+  try {
+    const response = await httpClient.get(
+      `${API_URL}/partners/me/events/${eventId}/registrants/${registrantId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching registrant detail:", error);
+    handleApiError(error, 'Gagal mendapatkan detail pendaftar');
+  }
+},
+
+/**
+ * Review a registrant application (accept or reject)
+ * @param {string} eventId - ID of the event
+ * @param {string} registrantId - ID of the registrant (form response ID)
+ * @param {string} status - Review status ('accepted' or 'rejected')
+ * @returns {Promise<Object>} Updated registrant data
+ * @throws {Object} Error object with message
+ */
+reviewRegistrant: async (eventId, registrantId, status) => {
+  try {
+    if (!['accepted', 'rejected'].includes(status.toLowerCase())) {
+      throw new Error('Status harus "accepted" atau "rejected"');
+    }
+    
+    const response = await httpClient.post(
+      `${API_URL}/partners/me/events/${eventId}/registrants/${registrantId}`,
+      { status: status.toLowerCase() }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error reviewing registrant:", error);
+    handleApiError(error, 'Gagal mereview pendaftar');
+  }
+},
+
 };
