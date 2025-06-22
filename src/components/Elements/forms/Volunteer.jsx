@@ -9,7 +9,7 @@ const Volunteer = forwardRef(({ onUpdate }, ref) => {
   const [maxApplicant, setMaxApplicant] = useState("");
   const [acceptedQuota, setAcceptedQuota] = useState("");
 
-  // Buat versi debounced dari onUpdate yang TIDAK berubah pada setiap render
+  // Create a debounced version of onUpdate that doesn't change on each render
   const debouncedUpdate = useRef(
     debounce((data) => {
       if (onUpdate) {
@@ -18,7 +18,7 @@ const Volunteer = forwardRef(({ onUpdate }, ref) => {
     }, 500)
   ).current;
 
-  // Validasi dan akses data
+  // Expose validation and data access methods to parent component
   useImperativeHandle(ref, () => ({
     validate: () => {
       const errors = [];
@@ -37,11 +37,11 @@ const Volunteer = forwardRef(({ onUpdate }, ref) => {
   }));
 
   useEffect(() => {
-    // Convert acceptedQuota dari string ke number jika ada nilai
+    // Convert string values to numbers if they exist
     const formattedAcceptedQuota = acceptedQuota.trim() !== "" ? parseInt(acceptedQuota, 10) : "";
     const formattedMaxApplicant = maxApplicant.trim() !== "" ? parseInt(maxApplicant, 10) : "";
     
-    // Debounced update ke parent component
+    // Send updated data to parent component
     const data = {
       requirement: requirement || "",
       contactPerson: contactPerson || "",
@@ -49,11 +49,10 @@ const Volunteer = forwardRef(({ onUpdate }, ref) => {
       acceptedQuota: formattedAcceptedQuota || ""
     };
     
-    console.log("Updating volunteer data:", data);
     debouncedUpdate(data);
   }, [requirement, contactPerson, maxApplicant, acceptedQuota]);
 
-  // Clean up effect saat komponen unmount
+  // Cleanup debounce on component unmount
   useEffect(() => {
     return () => {
       debouncedUpdate.cancel();

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-// Universal upload icon
+// Icon components for UI elements
 const UploadIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
     <path d="M16 16L12 12L8 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -48,7 +48,7 @@ const UploadDoc = ({
   onUploadSuccess, 
   initialDocumentUrl = null, 
   initialDocumentName = null,
-  acceptedFileTypes = ".pdf,application/pdf", // Default to PDF, but can be overridden
+  acceptedFileTypes = ".pdf,application/pdf", // Default to PDF, can be overridden
   maxFileSizeMB = 5 // Default max size 5MB
 }) => {
   const [preview, setPreview] = useState(initialDocumentUrl);
@@ -82,8 +82,6 @@ const UploadDoc = ({
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    console.log("File selected:", file.name, file.type, file.size);
 
     // Validate file type
     const fileExtension = file.name.split('.').pop().toLowerCase();
@@ -131,7 +129,7 @@ const UploadDoc = ({
           return;
         }
       } catch (validationError) {
-        console.warn("Could not validate PDF content:", validationError);
+        // Continue if we can't validate PDF content
       }
     }
 
@@ -154,17 +152,13 @@ const UploadDoc = ({
       if (onUploadSuccess && typeof onUploadSuccess === 'function') {
         try {
           onUploadSuccess(file, fileUrl);
-            } catch (callbackError) {
-          console.error("Error in callback:", callbackError);
+        } catch (callbackError) {
           toast.error("Error processing file callback");
         }
-      } else {
-        console.error("onUploadSuccess is not a function:", typeof onUploadSuccess);
       }
       
       toast.success(`${acceptsImages && file.type.startsWith('image/') ? 'Gambar' : 'Dokumen'} berhasil dipilih dan siap untuk diunggah`);
     } catch (error) {
-      console.error('Error processing file:', error);
       toast.error(`Gagal memproses ${getTypeDescription()}`);
     } finally {
       setLoading(false);
@@ -196,7 +190,7 @@ const UploadDoc = ({
       try {
         onUploadSuccess(null, null);
       } catch (error) {
-        console.error("Error clearing file:", error);
+        // Handle error silently
       }
     }
     
@@ -238,7 +232,6 @@ const UploadDoc = ({
                     alt="Preview dokumen" 
                     className="w-full h-auto max-h-64 object-contain rounded border shadow-sm"
                     onError={(e) => {
-                      console.error("Error loading image preview");
                       e.target.style.display = 'none';
                     }}
                   />
