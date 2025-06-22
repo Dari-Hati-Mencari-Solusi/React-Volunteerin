@@ -19,8 +19,10 @@ const BtnDaftarVolunteer = ({ eventId }) => {
         } 
       });
     } else {
-      // If user is authenticated, proceed to the registration form
-      navigate("/form-register");
+      // If user is authenticated, proceed to the registration form WITH eventId
+      navigate(`/events/${eventId}/register-user`, { 
+        state: { eventId } 
+      });
     }
   };
 
