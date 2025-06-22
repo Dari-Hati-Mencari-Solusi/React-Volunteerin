@@ -23,20 +23,26 @@ const ProfilePartnerPage = () => {
   // Map backend organization types to frontend dropdown values
   const organizationTypeMap = {
     'COMMUNITY': 'komunitas',
-    'FOUNDATION': 'pemerintah',
-    'COMPANY': 'perusahaan',
-    'EDUCATION': 'pemerintah',
-    'INDIVIDUAL': 'individu',
-    'OTHER': 'individu'
+    'GOVERNMENT': 'pemerintah',
+    'CORPORATE': 'perusahaan',
+    'INDIVIDUAL': 'individu'
   };
 
   // Map frontend dropdown values to backend organization types
   const reverseOrganizationTypeMap = {
     'komunitas': 'COMMUNITY',
-    'pemerintah': 'FOUNDATION', 
-    'perusahaan': 'COMPANY',
+    'pemerintah': 'GOVERNMENT', 
+    'perusahaan': 'CORPORATE',
     'individu': 'INDIVIDUAL'
   };
+
+  // Provide current form data to child components
+  useEffect(() => {
+    window.getCurrentProfileFormData = () => formData;
+    return () => {
+      delete window.getCurrentProfileFormData;
+    };
+  }, [formData]);
 
   useEffect(() => {
     const fetchPartnerProfile = async () => {
@@ -65,6 +71,11 @@ const ProfilePartnerPage = () => {
             email: user.email || "",
             phoneNumber: user.phoneNumber || "",
           }));
+          
+          // Set avatar from user data if available
+          if (user.avatarUrl) {
+            setAvatarUrl(user.avatarUrl);
+          }
         }
         
         // Second attempt: from auth service API
@@ -84,6 +95,11 @@ const ProfilePartnerPage = () => {
                 email: user.email || "",
                 phoneNumber: user.phoneNumber || "",
               }));
+              
+              // Set avatar from user data if available
+              if (user.avatarUrl) {
+                setAvatarUrl(user.avatarUrl);
+              }
             }
           } catch (profileError) {
             console.log("Could not get user profile, continuing:", profileError.message);
@@ -99,11 +115,6 @@ const ProfilePartnerPage = () => {
           
           if (partnerProfile && partnerProfile.data) {
             const partnerData = partnerProfile.data;
-            
-            // Set avatarUrl jika ada
-            if (partnerData.avatarUrl) {
-              setAvatarUrl(partnerData.avatarUrl);
-            }
             
             // Update formData with partner data
             setFormData(prevData => ({
@@ -168,7 +179,7 @@ const ProfilePartnerPage = () => {
       setSaving(true);
       setUpdateSuccess(false);
       
-      // Validate form data
+      // Validasi form data
       if (!formData.jenisPenyelenggara) {
         toast.error("Silakan pilih Jenis Penyelenggara");
         setSaving(false);
@@ -193,24 +204,86 @@ const ProfilePartnerPage = () => {
         window.location.href = "/login";
         return;
       }
+
+      // PENDEKATAN BARU: Gunakan FormData untuk semua kasus
+      // Ini lebih konsisten dengan apa yang diharapkan oleh backend
+      const formDataToSend = new FormData();
+      formDataToSend.append('organizationType', reverseOrganizationTypeMap[formData.jenisPenyelenggara]);
+      formDataToSend.append('organizationAddress', formData.organizationAddress);
+      formDataToSend.append('instagram', formData.usernameInstagram);
       
-      // Prepare data for API
-      const updateData = {
-        organizationType: reverseOrganizationTypeMap[formData.jenisPenyelenggara],
-        organizationAddress: formData.organizationAddress,
-        instagram: formData.usernameInstagram,
-      };
+      // Tambahkan logo minimal (1x1 pixel PNG transparan)
+      const pngData = new Uint8Array([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x04, 0x00, 0x00, 0x00, 0xB5, 0x1C, 0x0C, 0x02, 0x00, 0x00, 0x00,
+        0x0B, 0x49, 0x44, 0x41, 0x54, 0x08, 0x99, 0x63, 0xF8, 0x0F, 0x00, 0x01,
+        0x01, 0x01, 0x00, 0x1B, 0xBF, 0x17, 0x84, 0x00, 0x00, 0x00, 0x00, 0x49,
+        0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+      ]);
+      const pngBlob = new Blob([pngData], {type: 'image/png'});
+      const emptyLogoFile = new File([pngBlob], 'empty-logo.png', {
+        type: 'image/png',
+        lastModified: new Date().getTime()
+      });
       
-      console.log("Updating partner profile with data:", updateData);
+      // Tambahkan ke FormData
+      formDataToSend.append('logo', emptyLogoFile);
       
-      // Use partnerService to update profile
-      const response = await partnerService.updatePartnerProfile(updateData);
+      console.log("Updating partner profile with FormData...");
       
-      console.log("Update response:", response);
+      // PENDEKATAN BARU: Coba POST terlebih dahulu, jika gagal baru PUT
+      try {
+        console.log("Mencoba dengan POST terlebih dahulu...");
+        const postResponse = await fetch(`${import.meta.env.VITE_BE_BASE_URL}/partners/me/profile`, {
+          method: 'POST',
+          body: formDataToSend,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            // Jangan set Content-Type, biarkan browser mengaturnya untuk FormData
+          }
+        });
+        
+        const postData = await postResponse.json();
+        
+        if (postResponse.ok) {
+          console.log("Profil berhasil dibuat dengan POST:", postData);
+          toast.success("Profil berhasil dibuat!");
+          setUpdateSuccess(true);
+        } else {
+          console.log("POST gagal dengan status:", postResponse.status, postData);
+          // Lanjutkan dengan metode PUT
+        }
+      } catch (postError) {
+        console.log("Percobaan POST gagal, mencoba dengan PUT...");
+      }
       
-      // Show success message and set success state
-      toast.success("Profil berhasil diperbarui!");
-      setUpdateSuccess(true);
+      // Selalu coba PUT setelah POST (terlepas dari hasil POST)
+      try {
+        console.log("Mencoba dengan PUT...");
+        const putResponse = await fetch(`${import.meta.env.VITE_BE_BASE_URL}/partners/me/profile`, {
+          method: 'PUT',
+          body: formDataToSend,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            // Jangan set Content-Type, biarkan browser mengaturnya untuk FormData
+          }
+        });
+        
+        const putData = await putResponse.json();
+        
+        if (putResponse.ok) {
+          console.log("Profil berhasil diupdate dengan PUT:", putData);
+          toast.success("Profil berhasil diperbarui!");
+          setUpdateSuccess(true);
+        } else {
+          console.log("PUT gagal dengan status:", putResponse.status, putData);
+          throw new Error(putData.message || "Gagal memperbarui profil dengan PUT");
+        }
+      } catch (putError) {
+        console.error("Kedua percobaan POST dan PUT gagal");
+        throw new Error(putError.message || "Gagal menyimpan profil");
+      }
       
       // Refresh partner profile data to reflect changes
       try {
@@ -225,15 +298,9 @@ const ProfilePartnerPage = () => {
             usernameInstagram: refreshedProfile.data.instagram || "",
             organizationAddress: refreshedProfile.data.organizationAddress || "",
           }));
-          
-          // Update avatar URL if available
-          if (refreshedProfile.data.avatarUrl) {
-            setAvatarUrl(refreshedProfile.data.avatarUrl);
-          }
         }
       } catch (refreshError) {
         console.log("Could not refresh profile data:", refreshError);
-        // No need to show error toast since the update was successful
       }
       
     } catch (error) {
@@ -242,62 +309,75 @@ const ProfilePartnerPage = () => {
       setUpdateSuccess(false);
     } finally {
       setSaving(false);
-      
-      // Auto-scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
   
-// Update fungsi handleAvatarUpload untuk menyesuaikan dengan struktur response
-const handleAvatarUpload = (file, url) => {
-  if (file && url) {
-    console.log("Avatar uploaded successfully:", url);
-    
-    // Update state avatarUrl
-    setAvatarUrl(url);
-    
-    // Update user data jika perlu
-    if (userData) {
-      setUserData(prevUserData => ({
-        ...prevUserData,
-        avatarUrl: url
-      }));
-    }
-    
-    // Update locally stored user data jika menggunakan localStorage
-    try {
-      const storedUser = authService.getStoredUser();
-      if (storedUser) {
-        storedUser.avatarUrl = url;
-        localStorage.setItem('user', JSON.stringify(storedUser));
+  // Handle avatar upload/update callback
+  const handleAvatarUpload = (file, url) => {
+    if (file && url) {
+      console.log("Avatar uploaded successfully:", url);
+      toast.success("Logo berhasil diunggah!");
+      
+      // Update state avatarUrl
+      setAvatarUrl(url);
+      
+      // Update user data jika perlu
+      if (userData) {
+        setUserData(prevUserData => ({
+          ...prevUserData,
+          avatarUrl: url
+        }));
       }
-    } catch (error) {
-      console.error("Error updating stored user:", error);
-    }
-  } else {
-    console.log("Avatar removed");
-    setAvatarUrl(null);
-    
-    // Update user data jika perlu
-    if (userData) {
-      setUserData(prevUserData => ({
-        ...prevUserData,
-        avatarUrl: null
-      }));
-    }
-    
-    // Update locally stored user data
-    try {
-      const storedUser = authService.getStoredUser();
-      if (storedUser) {
-        storedUser.avatarUrl = null;
-        localStorage.setItem('user', JSON.stringify(storedUser));
+      
+      // Update locally stored user data jika menggunakan localStorage
+      try {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          storedUser.avatarUrl = url;
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+      } catch (error) {
+        console.error("Error updating stored user:", error);
       }
-    } catch (error) {
-      console.error("Error updating stored user:", error);
+      
+      // Refresh profile dari server untuk memastikan data terbaru
+      setTimeout(() => {
+        partnerService.getPartnerProfile()
+          .then(response => {
+            console.log("Profile refreshed after avatar upload:", response);
+          })
+          .catch(error => {
+            console.log("Error refreshing profile:", error);
+          });
+      }, 1000);
+    } else if (url) {
+      // Jika hanya URL yang tersedia (tanpa file)
+      setAvatarUrl(url);
+    } else {
+      console.log("Avatar removed");
+      setAvatarUrl(null);
+      
+      // Update user data jika perlu
+      if (userData) {
+        setUserData(prevUserData => ({
+          ...prevUserData,
+          avatarUrl: null
+        }));
+      }
+      
+      // Update locally stored user data
+      try {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          storedUser.avatarUrl = null;
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+      } catch (error) {
+        console.error("Error updating stored user:", error);
+      }
     }
-  }
-};
+  };
 
   if (loading) {
     return (
@@ -332,6 +412,7 @@ const handleAvatarUpload = (file, url) => {
             <AvatarProfilePartner 
               onAvatarUpload={handleAvatarUpload}
               initialAvatarUrl={avatarUrl}
+              currentFormData={formData}
             />
           </div>
           
@@ -394,7 +475,7 @@ const handleAvatarUpload = (file, url) => {
                     className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white appearance-none"
                   >
                     <option value="" disabled>
-                      Pilih salah satu jenis event
+                      Pilih salah satu jenis penyelenggara
                     </option>
                     <option value="komunitas">Komunitas</option>
                     <option value="pemerintah">Pemerintah / Instansi</option>
@@ -422,6 +503,7 @@ const handleAvatarUpload = (file, url) => {
                   name="usernameInstagram"
                   value={formData.usernameInstagram}
                   onChange={handleInputChange}
+                  placeholder="Masukkan username Instagram (tanpa @)"
                   className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
                 />
               </div>
