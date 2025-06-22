@@ -89,7 +89,8 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/event/:id" element={<EventPage />} />
-        <Route path="/events/:eventId/register" element={<FormPendaftaran />} />
+        <Route path="/events/:eventId/register-user" element={<FormRegisterUser />} />
+        
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
@@ -104,7 +105,6 @@ function App() {
         {/* partner route */}
         <Route path="/login-partner" element={<LoginPartner />} />
         <Route path="/register-partner" element={<RegisterPartner />} />
-        <Route path="/form-register" element={<FormRegisterUser />} />
 
         {/* Not found route */}
         <Route path="*" element={<NotFoundPage />} />

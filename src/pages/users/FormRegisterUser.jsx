@@ -6,13 +6,13 @@ import Logo from "../../assets/images/logowhite.svg";
 import { userService } from "../../services/userService";
 import { fetchEvents } from "../../services/eventService";
 
-const FormPendaftaran = () => {
+const FormRegisterUser = () => {
   const navigate = useNavigate();
   const { eventId } = useParams();
   const location = useLocation();
 
   const eventIdFromState = location.state?.eventId;
-  const effectiveEventId = eventId || eventIdFromState;
+const effectiveEventId = eventId || eventIdFromState;
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -206,54 +206,85 @@ const FormPendaftaran = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    // Validasi form terlebih dahulu
-    if (!validateForm()) {
+ // Mengubah hanya bagian handleSubmit pada komponen FormRegisterUser
+const handleSubmit = async () => {
+  if (!validateForm()) {
+    return;
+  }
+  
+  try {
+    if (!effectiveEventId) {
+      Swal.fire({
+        title: 'Peringatan',
+        text: 'ID Event tidak ditemukan',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#0A3E54'
+      });
       return;
     }
     
-    try {
-      if (!effectiveEventId) {
-        Swal.fire({
-          title: 'Peringatan',
-          text: 'ID Event tidak ditemukan',
-          icon: 'warning',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#0A3E54'
-        });
-        return;
-      }
-      
-      if (!formId) {
-        Swal.fire({
-          title: 'Peringatan',
-          text: 'ID Form tidak ditemukan',
-          icon: 'warning',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#0A3E54'
-        });
-        return;
-      }
-
-      // Konfirmasi pendaftaran
-      const result = await Swal.fire({
-        title: 'Konfirmasi Pendaftaran',
-        text: 'Pastikan data yang Anda masukkan sudah benar. Lanjutkan pendaftaran?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Ya, Daftar Sekarang',
-        cancelButtonText: 'Periksa Kembali',
-        confirmButtonColor: '#0A3E54',
-        cancelButtonColor: '#d33',
+    if (!formId) {
+      Swal.fire({
+        title: 'Peringatan',
+        text: 'ID Form tidak ditemukan',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#0A3E54'
       });
+      return;
+    }
 
-      if (!result.isConfirmed) {
+    // Konfirmasi pendaftaran
+    const result = await Swal.fire({
+      title: 'Konfirmasi Pendaftaran',
+      text: 'Pastikan data yang Anda masukkan sudah benar. Lanjutkan pendaftaran?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Daftar Sekarang',
+      cancelButtonText: 'Periksa Kembali',
+      confirmButtonColor: '#0A3E54',
+      cancelButtonColor: '#d33',
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Log data yang akan dikirim untuk debugging
+    console.log("Sending registration data:", {
+      eventId: effectiveEventId,
+      formId,
+      formData
+    });
+    
+    try {
+      // Periksa token di local storage
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      if (!token) {
+        console.warn('No authentication token found! User may need to log in again.');
+        Swal.fire({
+          title: 'Sesi Habis',
+          text: 'Silakan login kembali untuk melanjutkan pendaftaran',
+          icon: 'warning',
+          confirmButtonText: 'Login',
+          confirmButtonColor: '#0A3E54'
+        }).then(() => {
+          navigate('/auth', { state: { returnUrl: `/events/${effectiveEventId}/register` } });
+        });
         return;
       }
-
-      setIsSubmitting(true);
       
-      await userService.submitVolunteerRegistration(effectiveEventId, formId, formData);
+      // Panggil API untuk mengirim data pendaftaran
+      const response = await userService.submitVolunteerRegistration(
+        effectiveEventId,
+        formId,
+        formData
+      );
+      
+      console.log("Registration response:", response);
       
       setIsSubmitted(true);
 
@@ -261,7 +292,7 @@ const FormPendaftaran = () => {
         position: 'center',
         icon: 'success',
         title: 'Pendaftaran Berhasil!',
-        text: 'Terima kasih telah mendaftar sebagai relawan',
+        text: response?.message || 'Terima kasih telah mendaftar sebagai relawan',
         showConfirmButton: false,
         timer: 3000
       });
@@ -276,19 +307,24 @@ const FormPendaftaran = () => {
         setFileName("");
         setCurrentStep(1);
         navigate("/regis-event", { replace: true });
-      }, 5000);
-    } catch (error) {
-      Swal.fire({
-        title: 'Error',
-        text: error.message || "Gagal mengirim formulir. Silakan coba lagi.",
-        icon: 'error',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#0A3E54'
-      });
-    } finally {
-      setIsSubmitting(false);
+      }, 3000);
+    } catch (apiError) {
+      console.error('API error:', apiError);
+      throw apiError; // Re-throw untuk ditangkap oleh catch di luar
     }
-  };
+  } catch (error) {
+    console.error("Registration error:", error);
+    Swal.fire({
+      title: 'Error',
+      text: error.message || "Gagal mengirim formulir. Silakan coba lagi.",
+      icon: 'error',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#0A3E54'
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleEventSelection = () => {
     if (!selectedEventId) {
@@ -718,4 +754,4 @@ const FormPendaftaran = () => {
   );
 };
 
-export default FormPendaftaran;
+export default FormRegisterUser;
