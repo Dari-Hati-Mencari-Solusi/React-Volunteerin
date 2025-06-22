@@ -32,10 +32,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("user"); // Clear user data from local storage
+  const logout = (navigate) => {
+    // Simpan role pengguna sebelum menghapus data
+    const userRole = user?.role;
+    
+    // Hapus data user dan token
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setUser(null);
     setIsAuthenticated(false);
+    
+    // Redirect ke halaman login yang sesuai jika navigate tersedia
+    if (navigate) {
+      switch(userRole) {
+        case 'ADMIN':
+          navigate('/login-admin');
+          break;
+        case 'PARTNER':
+          navigate('/login-partner');
+          break;
+        default:
+          // Untuk USER atau VOLUNTEER
+          navigate('/login');
+          break;
+      }
+    }
   };
 
   const value = {
