@@ -1,55 +1,64 @@
 import axios from 'axios';
 
-/**
- * Konfigurasi instance Axios
- * Client HTTP untuk melakukan requests ke API
- */
+// Create an axios instance with custom configuration
 const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_FE_BASE_URL,
+  timeout: 30000, // 30 seconds
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // Timeout 10 detik
 });
 
-/**
- * Interceptor Request
- * Menambahkan token otentikasi ke header requests
- */
+// Add a request interceptor
 httpClient.interceptors.request.use(
   (config) => {
-    // Tambahkan token ke header jika tersedia
-    const token = localStorage.getItem('token');
+    // Add token to request headers if available
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-/**
- * Interceptor Response
- * Menangani error dan mengatur logika global untuk responses
- */
+// Add a response interceptor
 httpClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
-    // Handle unauthorized errors (401)
-    if (error.response?.status === 401) {
-      // Hapus token dan redirect ke login
+    // Log the error for debugging
+    console.error('[HTTP Client] Error', error.response?.status, 'from', error.config?.url + ':', error);
+
+    // Handle unauthorized errors (401) - redirect to login
+    if (error.response && error.response.status === 401) {
+      // If the response includes a specific message, log it
+      if (error.response.data && error.response.data.message) {
+        console.warn('Authentication error:', error.response.data.message);
+      }
+      
+      // Clear any existing auth tokens
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      localStorage.removeItem('authToken');
+      
+      // Redirect to login page if not already there
+      if (!window.location.pathname.includes('/auth')) {
+        window.location.href = '/auth';
+      }
     }
     
-    // Penanganan error lainnya
-    const errorMessage = error.response?.data?.message || 'Terjadi kesalahan pada server';
-    console.error('Response error:', errorMessage);
-    
+    // Handle not found errors (404)
+    if (error.response && error.response.status === 404) {
+      // Special handling for user registrations endpoint
+      if (error.config.url.includes('/users/registrations')) {
+        console.warn('User registrations endpoint not found, will use localStorage fallback');
+        
+        // Don't reject here - let the userService handle this specifically
+      }
+    }
+
     return Promise.reject(error);
   }
 );

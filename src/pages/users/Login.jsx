@@ -66,7 +66,8 @@ const Login = () => {
    */
   const processLogin = async () => {
     try {
-      const response = await authService.login(formData.email, formData.password);
+      const response = await authService.loginUser(formData.email, formData.password);
+
       
       // Check for email verification status if returned by the API
       if (response.requiresVerification) {

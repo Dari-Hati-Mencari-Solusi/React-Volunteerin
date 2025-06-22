@@ -52,12 +52,13 @@ const LoginPageAdmin = () => {
    */
   const processLogin = async () => {
     try {
-      const response = await authService.login(formData.email, formData.password);
+      // Gunakan loginAdmin khusus untuk admin
+      const response = await authService.loginAdmin(formData.email, formData.password);
       authLogin(response.user);
       setStatus('success', 'Login berhasil!');
       
       // Redirect after successful login
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => navigate('/admin/dashboard'), 1500);
     } catch (err) {
       setStatus('error', err.message || 'Email atau kata sandi salah!');
     }
