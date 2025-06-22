@@ -19,7 +19,7 @@ const ResponsiblePartner = () => {
   const [existingData, setExistingData] = useState(null);
   const [ktpFile, setKtpFile] = useState(null);
 
-  // Posisi options for dropdown
+  // Position options for dropdown
   const posisiOptions = [
     { value: "ceo", label: "CEO / Direktur Utama" },
     { value: "leader", label: "Ketua / Pemimpin" },
@@ -35,7 +35,6 @@ const ResponsiblePartner = () => {
         setLoading(true);
         
         const responsiblePersonData = await partnerService.getResponsiblePerson();
-        console.log("Responsible person data:", responsiblePersonData);
         
         if (responsiblePersonData && responsiblePersonData.data) {
           setExistingData(responsiblePersonData.data);
@@ -49,12 +48,9 @@ const ResponsiblePartner = () => {
             ktpUrl: responsiblePersonData.data.ktpUrl || "",
             ktpImageId: responsiblePersonData.data.ktpImageId || ""
           });
-        } else {
-          console.log("No existing responsible person data");
         }
       } catch (error) {
-        console.error("Error fetching responsible person:", error);
-        toast.error("Gagal memuat data penanggung jawab");
+        toast.error("Failed to load responsible person data");
       } finally {
         setLoading(false);
       }
@@ -106,7 +102,6 @@ const ResponsiblePartner = () => {
 
   // Handle KTP upload callback
   const handleKtpUpload = (file, url, imageId) => {
-    console.log("KTP upload callback:", { file, url, imageId });
     setKtpFile(file);
     
     setFormData(prev => ({
@@ -119,46 +114,42 @@ const ResponsiblePartner = () => {
   // Form submission handler
   const handleSubmit = async () => {
     try {
-      console.log("=== SUBMIT FORM ===");
-      console.log("Current formData:", formData);
-      console.log("Current ktpFile:", ktpFile);
-      
       // Basic validation for required fields
       if (!formData.namaPenanggungJawab.trim()) {
-        toast.error("Nama penanggung jawab wajib diisi");
+        toast.error("Name is required");
         return;
       }
       
       if (!formData.nomorKTP.trim()) {
-        toast.error("Nomor KTP wajib diisi");
+        toast.error("ID number is required");
         return;
       } else if (formData.nomorKTP.trim().length !== 16) {
-        toast.error("Nomor KTP harus terdiri dari 16 digit");
+        toast.error("ID number must be 16 digits");
         return;
       }
       
       if (!formData.noTelephone.trim()) {
-        toast.error("Nomor telepon wajib diisi");
+        toast.error("Phone number is required");
         return;
       } else if (!formData.noTelephone.trim().startsWith('62')) {
-        toast.error("Nomor telepon harus dimulai dengan kode negara 62");
+        toast.error("Phone number must start with country code 62");
         return;
       }
       
       if (!formData.posisiPenanggungJawab) {
-        toast.error("Posisi penanggung jawab wajib dipilih");
+        toast.error("Position is required");
         return;
       }
       
-      // Validasi KTP: Harus ada file KTP baru atau URL KTP yang sudah ada
+      // ID card validation: Must have either a new ID card file or existing ID card URL
       if (!ktpFile && !formData.ktpImageId) {
-        toast.error("Foto KTP wajib diunggah");
+        toast.error("ID card image must be uploaded");
         return;
       }
       
       setSaving(true);
       
-      // Prepare data for API sesuai dokumentasi BE
+      // Prepare data for API according to BE documentation
       const responsiblePersonData = {
         fullName: formData.namaPenanggungJawab.trim(),
         nik: formData.nomorKTP.trim(),
@@ -170,16 +161,13 @@ const ResponsiblePartner = () => {
         ktpUrl: formData.ktpUrl
       };
       
-      console.log("Submitting data:", responsiblePersonData);
-      console.log("KTP file to upload:", ktpFile);
-      
       try {
         const API_URL = import.meta.env.VITE_BE_BASE_URL;
         
-        // PENDEKATAN DIRECT FETCH: Mencoba POST kemudian PUT jika gagal
-        toast.info("Menyimpan data penanggung jawab...");
+        // DIRECT FETCH APPROACH: Try POST then PUT if it fails
+        toast.info("Saving responsible person data...");
         
-        // Persiapkan FormData
+        // Prepare FormData
         const responsibleFormData = new FormData();
         responsibleFormData.append('nik', responsiblePersonData.nik);
         responsibleFormData.append('fullName', responsiblePersonData.fullName);
@@ -193,18 +181,17 @@ const ResponsiblePartner = () => {
           responsibleFormData.append('ktpImageId', formData.ktpImageId);
         }
         
-        // Cek token
+        // Check token
         const token = localStorage.getItem('token');
         if (!token) {
-          throw new Error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+          throw new Error("Authentication token not found. Please login again.");
         }
         
-        // COBA POST TERLEBIH DAHULU
+        // TRY POST FIRST
         let success = false;
         let responseData = null;
         
         try {
-          console.log("Trying POST first...");
           const postResponse = await fetch(`${API_URL}/partners/me/responsible-person`, {
             method: 'POST',
             headers: {
@@ -215,20 +202,17 @@ const ResponsiblePartner = () => {
           
           if (postResponse.ok) {
             responseData = await postResponse.json();
-            console.log("POST successful:", responseData);
             success = true;
           } else {
             const errorData = await postResponse.json();
-            console.log("POST failed:", errorData);
           }
         } catch (postError) {
-          console.error("POST error:", postError);
+          // Continue to PUT if POST fails
         }
         
-        // JIKA POST GAGAL, COBA PUT
+        // IF POST FAILS, TRY PUT
         if (!success) {
           try {
-            console.log("Trying PUT...");
             const putResponse = await fetch(`${API_URL}/partners/me/responsible-person`, {
               method: 'PUT',
               headers: {
@@ -238,24 +222,20 @@ const ResponsiblePartner = () => {
             });
             
             responseData = await putResponse.json();
-            console.log("PUT response:", responseData);
             
             if (putResponse.ok) {
-              console.log("PUT successful");
               success = true;
             } else {
-              console.log("PUT failed");
-              throw new Error(responseData.message || `Gagal update! Status: ${putResponse.status}`);
+              throw new Error(responseData.message || `Update failed! Status: ${putResponse.status}`);
             }
           } catch (putError) {
-            console.error("PUT error:", putError);
             throw putError;
           }
         }
         
         if (success) {
           // Success! Toast and update UI
-          toast.success("Data penanggung jawab berhasil disimpan");
+          toast.success("Responsible person data saved successfully");
           
           // Re-fetch to get updated data
           const refreshedData = await partnerService.getResponsiblePerson();
@@ -272,15 +252,13 @@ const ResponsiblePartner = () => {
             setKtpFile(null);
           }
         } else {
-          throw new Error("Kedua metode POST dan PUT gagal. Silakan coba lagi.");
+          throw new Error("Both POST and PUT methods failed. Please try again.");
         }
       } catch (error) {
-        console.error("Error saving responsible person:", error);
-        toast.error(error.message || "Gagal menyimpan data penanggung jawab");
+        toast.error(error.message || "Failed to save responsible person data");
       }
     } catch (error) {
-      console.error("Unexpected error during submission:", error);
-      toast.error("Terjadi kesalahan tak terduga. Silakan coba lagi.");
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setSaving(false);
     }

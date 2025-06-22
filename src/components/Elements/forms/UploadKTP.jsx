@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { AlertTriangle as AlertIcon, Upload as UploadIcon, X } from 'lucide-react';
 
-// Info icon
+// Info icon component
 const InfoIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-500">
     <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -28,12 +28,8 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
       
       // Try to load image to verify URL
       const img = new Image();
-      img.onload = () => {
-        console.log("Initial KTP image loaded successfully");
-      };
       img.onerror = () => {
-        console.error("Failed to load initial KTP image");
-        // Don't set error here, just log it
+        // Just log error, don't display it
       };
       img.src = initialImageUrl;
     }
@@ -50,7 +46,7 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
         // Get original dimensions
         const { width, height } = img;
         
-        // Set target dimensions - larger for KTP to maintain readability
+        // Set target dimensions - larger for ID card to maintain readability
         const maxWidth = 1200;
         const maxHeight = 800;
         
@@ -78,17 +74,17 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
         canvas.width = newWidth;
         canvas.height = newHeight;
         
-        // Use white background (better for KTP)
+        // Use white background (better for ID card)
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Draw image
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
         
-        // Convert to JPEG with higher quality since KTP needs to be readable
+        // Convert to JPEG with higher quality since ID card needs to be readable
         canvas.toBlob((blob) => {
           if (!blob) {
-            reject(new Error('Gagal memproses gambar KTP'));
+            reject(new Error('Failed to process ID card image'));
             return;
           }
           
@@ -107,11 +103,11 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
             resizedSize,
             finalDimensions: `${newWidth}x${newHeight}`
           });
-        }, 'image/jpeg', 0.90); // Use higher quality (0.90) for KTP
+        }, 'image/jpeg', 0.90); // Use higher quality (0.90) for ID card
       };
       
       img.onerror = () => {
-        reject(new Error('Gagal memuat gambar KTP'));
+        reject(new Error('Failed to load ID card image'));
       };
       
       const reader = new FileReader();
@@ -119,7 +115,7 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
         img.src = e.target.result;
       };
       reader.onerror = () => {
-        reject(new Error('Gagal membaca file KTP'));
+        reject(new Error('Failed to read ID card file'));
       };
       reader.readAsDataURL(file);
     });
@@ -138,14 +134,14 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
     try {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setError('Hanya file gambar (JPG, PNG) yang diperbolehkan');
+        setError('Only image files (JPG, PNG) are allowed');
         setLoading(false);
         return;
       }
       
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('Ukuran file tidak boleh lebih dari 5MB');
+        setError('File size cannot exceed 5MB');
         setLoading(false);
         return;
       }
@@ -155,17 +151,14 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
       setPreview(tempPreviewUrl);
       
       // Resize and compress image
-      setCompressionStatus('Memproses gambar KTP...');
-      console.log('Processing KTP image...');
+      setCompressionStatus('Processing ID card image...');
       
       const { file: optimizedFile, originalSize, resizedSize, finalDimensions } = await resizeImage(file);
       
       // Update compression status
       setCompressionStatus(
-        `Optimalisasi berhasil: ${finalDimensions}, ${resizedSize.toFixed(1)}KB (${Math.round((1 - resizedSize/originalSize) * 100)}% lebih kecil)`
+        `Optimization successful: ${finalDimensions}, ${resizedSize.toFixed(1)}KB (${Math.round((1 - resizedSize/originalSize) * 100)}% smaller)`
       );
-      
-      console.log(`KTP optimized: ${originalSize.toFixed(1)}KB → ${resizedSize.toFixed(1)}KB`);
       
       // Save optimized file
       setKtpFile(optimizedFile);
@@ -186,12 +179,10 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
         onUploadSuccess(optimizedFile, optimizedPreviewUrl, tempImageId);
       }
       
-      console.log('KTP processing complete');
-      toast.success('KTP berhasil diproses dan siap untuk diunggah');
+      toast.success('ID card processed successfully and ready for upload');
       
     } catch (error) {
-      console.error('Error processing KTP:', error);
-      setError(`Gagal memproses gambar: ${error.message}`);
+      setError(`Failed to process image: ${error.message}`);
       
       // Revert to initial image if processing fails
       if (preview && preview !== initialImageUrl) {
@@ -218,7 +209,7 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
     }
   };
 
-  // Remove the selected KTP image
+  // Remove the selected ID card image
   const removeKTP = () => {
     if (preview && preview !== initialImageUrl) {
       URL.revokeObjectURL(preview);
@@ -252,9 +243,8 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
               alt="KTP Preview" 
               className="w-full rounded object-contain max-h-64"
               onError={(e) => {
-                console.error('Error loading KTP image');
-                e.target.src = 'https://placehold.co/800x500?text=Gambar+KTP+tidak+tersedia';
-                setError('Gagal memuat gambar KTP. Silakan upload ulang.');
+                e.target.src = 'https://placehold.co/800x500?text=ID+Card+Image+Unavailable';
+                setError('Failed to load ID card image. Please upload again.');
               }}
             />
             
@@ -263,7 +253,7 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
                 type="button"
                 onClick={removeKTP}
                 className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 shadow"
-                aria-label="Hapus KTP"
+                aria-label="Remove ID Card"
               >
                 <X size={16} />
               </button>
@@ -272,8 +262,8 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
           
           <p className="text-xs text-gray-500 mt-1">
             {preview === initialImageUrl ? 
-              "KTP sudah terunggah sebelumnya" : 
-              "KTP siap untuk diunggah"}
+              "ID card already uploaded" : 
+              "ID card ready for upload"}
           </p>
         </div>
       ) : (
@@ -284,10 +274,10 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
           <div className="flex flex-col items-center justify-center">
             <UploadIcon size={48} className="text-gray-400 mb-4" />
             <p className="text-sm text-gray-600 text-center mb-1 font-medium">
-              Klik untuk upload foto KTP
+              Click to upload ID card photo
             </p>
             <p className="text-xs text-gray-500 text-center">
-              Format JPG, JPEG, PNG (max 5MB)
+              Format: JPG, JPEG, PNG (max 5MB)
             </p>
           </div>
         </div>
@@ -304,7 +294,7 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
       {loading && (
         <div className="w-full flex justify-center py-2">
           <div className="w-5 h-5 border-t-2 border-b-2 border-[#0A3E54] rounded-full animate-spin mr-2"></div>
-          <p className="text-sm text-gray-600">Memproses KTP...</p>
+          <p className="text-sm text-gray-600">Processing ID card...</p>
         </div>
       )}
       
@@ -326,7 +316,7 @@ const UploadKTP = ({ onUploadSuccess, initialImageUrl }) => {
         <div className="flex items-start space-x-2">
           <InfoIcon />
           <div>
-            <p className="text-xs text-blue-700 font-medium">Panduan Upload KTP:</p>
+          <p className="text-xs text-blue-700 font-medium">Panduan Upload KTP:</p>
             <ul className="text-xs text-blue-600 list-disc list-inside space-y-1 mt-1">
               <li>KTP harus terlihat jelas dan tidak terpotong</li>
               <li>Semua informasi pada KTP harus terbaca dengan jelas</li>

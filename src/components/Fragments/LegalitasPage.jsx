@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { partnerService } from "../../services/partnerService";
 import UploadDoc from '../Elements/forms/UploadDoc';
 
-// PERBAIKAN: Ganti semua lucide-react dengan custom SVG icons
+// Custom SVG icons to replace lucide-react dependency
 const FileIcon = ({ size = 24, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path d="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -44,20 +44,17 @@ const LegalitasPage = () => {
     fetchDocuments();
   }, []);
 
-  // Define fetchDocuments function outside useEffect to reuse it
   const fetchDocuments = async () => {
     try {
       setLoading(true);
       const response = await partnerService.getLegalDocuments();
       console.log("Fetched documents:", response);
       
-      // PERBAIKAN: Handle response structure sesuai dokumentasi BE
+      // Handle different response structures from backend
       if (response?.data) {
-        // Jika data adalah array
         if (Array.isArray(response.data)) {
           setDocuments(response.data);
         } 
-        // Jika data adalah single object (satu dokumen)
         else if (typeof response.data === 'object') {
           setDocuments([response.data]);
         } 
@@ -65,15 +62,14 @@ const LegalitasPage = () => {
           setDocuments([]);
         }
       } else {
-        // Jika response.data null atau undefined
         setDocuments([]);
       }
     } catch (error) {
       console.error("Error fetching legal documents:", error);
       
-      // Jangan tampilkan error untuk 404 (belum ada dokumen)
+      // Don't show error for 404 (no documents yet)
       if (error.response?.status !== 404) {
-        toast.error("Gagal memuat dokumen legalitas");
+        toast.error("Failed to load legal documents");
       }
       setDocuments([]);
     } finally {
@@ -103,27 +99,26 @@ const LegalitasPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Jika sudah ada dokumen legalitas, berikan pesan dan batalkan upload
+    // If legal documents already exist, show warning and cancel upload
     if (documents.length > 0) {
-      toast.warning("Dokumen legalitas sudah tersedia dan tidak dapat diubah");
+      toast.warning("Legal documents already exist and cannot be changed");
       return;
     }
     
     console.log("=== SUBMIT FORM ===");
     console.log("Current formData:", formData);
     
-    // Validate all form inputs
+    // Form validation
     const errors = [];
     
     if (!formData.namaDocument.trim()) {
-      errors.push("Nama dokumen tidak boleh kosong");
+      errors.push("Document name cannot be empty");
     }
 
     if (!formData.document) {
-      errors.push("Anda belum mengunggah dokumen");
+      errors.push("No document has been uploaded");
     }
 
-    // If there are errors, show them in toast and return
     if (errors.length > 0) {
       errors.forEach(error => toast.error(error));
       return;
@@ -133,18 +128,19 @@ const LegalitasPage = () => {
       setSaving(true);
       console.log("Preparing to upload document...");
 
-      // PERBAIKAN: Create FormData sesuai dokumentasi BE
+      // Create FormData according to backend specifications
       const fileFormData = new FormData();
       
-      // Sesuai dokumentasi BE: documentName, document, information (optional)
+      // Required fields: documentName, document, information (optional)
       fileFormData.append('documentName', formData.namaDocument.trim());
       fileFormData.append('document', formData.document);
       
-      // Information adalah optional, hanya tambahkan jika ada
+      // Only add information if provided
       if (formData.keterangan.trim()) {
         fileFormData.append('information', formData.keterangan.trim());
       }
-      // Debug: Log what's being sent
+      
+      // Log form data for debugging
       console.log("Sending to API:");
       for (let [key, value] of fileFormData.entries()) {
         if (value instanceof File) {
@@ -154,24 +150,24 @@ const LegalitasPage = () => {
         }
       }
       
-      // Upload the document - PERBAIKAN: Wrap dalam try-catch terpisah
+      // Upload document with separate error handling
       let response;
       try {
         response = await partnerService.uploadLegalDocument(fileFormData);
         console.log("Upload response:", response);
       } catch (uploadError) {
         console.error("Upload API Error:", uploadError);
-        throw new Error(uploadError.message || "Gagal mengunggah dokumen ke server");
+        throw new Error(uploadError.message || "Failed to upload document to server");
       }
       
-      // PERBAIKAN: Handle response sesuai dokumentasi BE
+      // Handle successful response
       if (response && response.data) {
-        // Show success message dari BE
-        const successMessage = response.message || "Dokumen legalitas berhasil disimpan";
+        // Show success message from backend
+        const successMessage = response.message || "Legal document saved successfully";
         toast.success(successMessage);
         
         // Add new document to list
-        setDocuments([response.data]); // Set sebagai array dengan satu dokumen
+        setDocuments([response.data]);
         
         // Reset form
         setFormData({
@@ -181,16 +177,16 @@ const LegalitasPage = () => {
           keterangan: "",
         });
         
-        // Optional: Refresh documents untuk memastikan data terbaru
+        // Refresh documents to ensure latest data
         setTimeout(() => {
           fetchDocuments();
         }, 1000);
       } else {
-        throw new Error("Response tidak sesuai format yang diharapkan");
+        throw new Error("Response does not match expected format");
       }
     } catch (error) {
       console.error("Error uploading document:", error);
-      toast.error(error.message || "Gagal mengunggah dokumen");
+      toast.error(error.message || "Failed to upload document");
     } finally {
       setSaving(false);
     }
@@ -211,7 +207,7 @@ const LegalitasPage = () => {
             <h2 className="text-lg font-semibold">Dokumen Legalitas yang Tersimpan</h2>
           </div>
           <div className="bg-[#F7F7F7] p-6 rounded-b">
-            {/* Notification that document can't be changed */}
+            {/* Document immutability notification */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <div className="flex items-center space-x-3">
                 <InfoIcon size={20} className="text-blue-500" />
@@ -250,7 +246,7 @@ const LegalitasPage = () => {
               ))}
             </div>
             
-            {/* Status submission info */}
+            {/* Submission status info */}
             <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-start space-x-3">
                 <AlertCircleIcon size={20} className="text-yellow-500 mt-0.5" />
@@ -284,7 +280,7 @@ const LegalitasPage = () => {
             <h2 className="text-lg font-semibold">Unggah Dokumen Legalitas</h2>
           </div>
           <div className="bg-[#F7F7F7] p-6 rounded-b">
-            {/* Warning about one-time upload */}
+            {/* One-time upload warning */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <div className="flex items-center space-x-3">
                 <AlertCircleIcon size={20} className="text-yellow-500" />
@@ -313,7 +309,7 @@ const LegalitasPage = () => {
                 </p>
               </div>
 
-              {/* Use the UploadDoc component */}
+              {/* Document upload component */}
               <UploadDoc onUploadSuccess={handleDocUpload} />
 
               <div>
@@ -351,25 +347,12 @@ const LegalitasPage = () => {
                   )}
                 </button>
               </div>
-              
-              {/* Debug info untuk development */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs">
-                  <p className="font-medium mb-2">Debug Info:</p>
-                  <p>Document Name: {formData.namaDocument || 'Kosong'}</p>
-                  <p>Document File: {formData.document ? formData.document.name : 'Tidak ada'}</p>
-                  <p>Information: {formData.keterangan || 'Kosong'}</p>
-                  <p>Form Valid: {
-                    formData.namaDocument.trim() && formData.document ? 'Ya' : 'Tidak'
-                  }</p>
-                </div>
-              )}
             </form>
           </div>
         </div>
       )}
       
-      {/* Informative section when document already exists */}
+      {/* Informative section when document exists */}
       {!loading && documents.length > 0 && (
         <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-start space-x-4">

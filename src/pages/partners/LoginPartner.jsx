@@ -13,7 +13,7 @@ import { usePasswordVisibility } from '../../hooks/usePasswordVisibility';
 
 const LoginPartner = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Tambahkan ini untuk mendapatkan state dari halaman registrasi
+  const location = useLocation(); // Get state from registration page
   const { login: authLogin } = useAuth();
   const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
   
@@ -30,11 +30,11 @@ const LoginPartner = () => {
     password: '',
   });
 
-  // Tambahkan useEffect untuk menampilkan pesan dari halaman registrasi
+  // Display registration success message if coming from registration page
   useEffect(() => {
     if (location.state?.message) {
       setStatus('success', location.state.message);
-      // Hapus state untuk menghindari pesan muncul kembali saat refresh
+      // Remove state to prevent message showing again on refresh
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setStatus]);
@@ -71,13 +71,13 @@ const LoginPartner = () => {
         navigate('/partner/dashboard');
       }, 1500);
     } catch (err) {
-      // Cek pesan error terkait verifikasi email
+      // Check error messages related to email verification
       if (err.message?.toLowerCase().includes('verifikasi') || 
           err.message?.toLowerCase().includes('verify') || 
           err.message?.toLowerCase().includes('aktif')) {
         setStatus('error', 'Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
         
-        // Tambahkan opsi kirim ulang email verifikasi
+        // Add option to resend verification email
         setTimeout(() => {
           const shouldResend = window.confirm('Apakah Anda ingin mengirim ulang email verifikasi?');
           if (shouldResend && formData.email) {

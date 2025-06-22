@@ -12,7 +12,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
   const fileInputRef = useRef(null);
   const [localLogoDataUrl, setLocalLogoDataUrl] = useState(null);
   
-  // Tambahkan definisi reverseOrganizationTypeMap di sini
+  // Define mapping for organization types
   const reverseOrganizationTypeMap = {
     'komunitas': 'COMMUNITY',
     'pemerintah': 'GOVERNMENT', 
@@ -20,10 +20,10 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
     'individu': 'INDIVIDUAL'
   };
 
-  // Effect untuk memuat avatar dari initialAvatarUrl jika tersedia
+  // Load avatar from initialAvatarUrl if available
   useEffect(() => {
     if (initialAvatarUrl) {
-      // Coba ambil dari localStorage terlebih dahulu untuk mencegah CORS
+      // Try to load from localStorage first to prevent CORS issues
       const savedLogo = localStorage.getItem('partnerLogoPreview');
       if (savedLogo) {
         setPreview(savedLogo);
@@ -33,7 +33,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
       }
       setError(null);
     } else {
-      // Jika tidak ada initialAvatarUrl, coba cari di localStorage
+      // If no initialAvatarUrl, try to find in localStorage
       const savedLogo = localStorage.getItem('partnerLogoPreview');
       if (savedLogo) {
         setPreview(savedLogo);
@@ -42,7 +42,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
     }
   }, [initialAvatarUrl]);
 
-  // Helper function untuk mengambil data form saat ini
+  // Helper function to get current form data
   const getCurrentFormData = () => {
     if (currentFormData) {
       return currentFormData;
@@ -64,6 +64,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
     return null;
   };
 
+  // Resize and optimize image
   const resizeImage = (file) => {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
@@ -73,7 +74,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
       img.onload = () => {
         const { width, height } = img;
         
-        // Resize dengan maksimum 300px dimensions
+        // Resize with maximum 300px dimensions
         const maxDimension = 300;
         let newWidth, newHeight;
         
@@ -88,17 +89,17 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
         canvas.width = newWidth;
         canvas.height = newHeight;
   
-        // Latar belakang putih
+        // White background
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Gambar
+        // Draw image
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
   
-        // Gunakan kualitas 85% secara konsisten
+        // Use 85% quality consistently
         canvas.toBlob((blob) => {
           if (!blob) {
-            reject(new Error('Gagal memproses gambar'));
+            reject(new Error('Failed to process image'));
             return;
           }
           
@@ -119,7 +120,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
       };
   
       img.onerror = () => {
-        reject(new Error('Gagal memuat gambar'));
+        reject(new Error('Failed to load image'));
       };
   
       const reader = new FileReader();
@@ -127,7 +128,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
         img.src = e.target.result;
       };
       reader.onerror = () => {
-        reject(new Error('Gagal membaca file gambar'));
+        reject(new Error('Failed to read image file'));
       };
       reader.readAsDataURL(file);
     });
@@ -144,55 +145,54 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
     const maxOriginalSize = 5 * 1024 * 1024; // 5MB
   
     if (!validTypes.includes(file.type)) {
-      setError('Format file harus JPG, JPEG, atau PNG');
-      toast.error('Format file harus JPG, JPEG, atau PNG');
+      setError('File format must be JPG, JPEG, or PNG');
+      toast.error('File format must be JPG, JPEG, or PNG');
       return;
     }
   
     if (file.size > maxOriginalSize) {
-      setError(`File terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 5MB`);
-      toast.error('File terlalu besar. Maksimal 5MB');
+      setError(`File too large (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maximum 5MB`);
+      toast.error('File too large. Maximum 5MB');
       return;
     }
   
     try {
       setLoading(true);
       
-      // SIMPAN PREVIEW LOKAL DARI FILE ASLI
+      // Save local preview from original file
       const fileReader = new FileReader();
       fileReader.onloadend = () => {
         const localPreviewUrl = fileReader.result;
-        // Simpan preview lokal di localStorage untuk mencegah masalah CORS
+        // Save local preview in localStorage to prevent CORS issues
         try {
           localStorage.setItem('partnerLogoPreview', localPreviewUrl);
           setLocalLogoDataUrl(localPreviewUrl);
         } catch (e) {
-          console.log("Error menyimpan logo ke localStorage:", e);
+          console.log("Error saving logo to localStorage:", e);
         }
         
-        // Set preview lokal
+        // Set local preview
         setPreview(localPreviewUrl);
       };
       fileReader.readAsDataURL(file);
   
-      setCompressionStatus('Mengoptimalkan gambar...');
+      setCompressionStatus('Optimizing image...');
       
       // Resize image
       const resizeResult = await resizeImage(file);
       const processedFile = resizeResult.file;
       
-      console.log('Resize result:', resizeResult);
-      setCompressionStatus(`Optimasi selesai: ${resizeResult.originalDimensions} → ${resizeResult.finalDimensions}, ${resizeResult.resizedSize.toFixed(1)}KB`);
+      setCompressionStatus(`Optimization complete: ${resizeResult.originalDimensions} → ${resizeResult.finalDimensions}, ${resizeResult.resizedSize.toFixed(1)}KB`);
       
-      // Validasi ukuran akhir
+      // Validate final size
       if (processedFile.size > 200 * 1024) {
-        setError(`Gambar masih terlalu besar: ${(processedFile.size / 1024).toFixed(1)}KB. Maksimal 200KB.`);
-        toast.error("Gambar terlalu besar setelah kompresi. Coba gambar lain yang lebih sederhana.");
+        setError(`Image still too large: ${(processedFile.size / 1024).toFixed(1)}KB. Maximum 200KB.`);
+        toast.error("Image too large after compression. Try another simpler image.");
         setLoading(false);
         return;
       }
       
-      // SIMPAN PREVIEW DARI FILE TERKOMPRESI KE LOCALSTORAGE
+      // Save preview from compressed file to localStorage
       const processedReader = new FileReader();
       processedReader.onloadend = () => {
         const processedDataUrl = processedReader.result;
@@ -200,10 +200,10 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
           localStorage.setItem('partnerLogoPreview', processedDataUrl);
           setLocalLogoDataUrl(processedDataUrl);
           
-          // Update preview dengan hasil kompresi
+          // Update preview with compressed result
           setPreview(processedDataUrl);
         } catch (e) {
-          console.log("Error menyimpan logo terkompresi ke localStorage:", e);
+          console.log("Error saving compressed logo to localStorage:", e);
         }
       };
       processedReader.readAsDataURL(processedFile);
@@ -214,30 +214,30 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
       const token = localStorage.getItem('token');
       
       if (!token) {
-        throw new Error('Token autentikasi tidak ditemukan');
+        throw new Error('Authentication token not found');
       }
       
-      // PENDEKATAN BARU: Coba buat profil terlebih dahulu tanpa peduli apakah sudah ada atau belum
+      // New approach: Try to create profile first regardless of whether it exists or not
       try {
-        setCompressionStatus('Mempersiapkan profil...');
+        setCompressionStatus('Preparing profile...');
         
-        // Ambil data profil yang diperlukan
+        // Get required profile data
         const currentData = getCurrentFormData();
         const organizationType = currentData?.jenisPenyelenggara 
           ? (reverseOrganizationTypeMap[currentData.jenisPenyelenggara] || 'COMMUNITY') 
           : 'COMMUNITY';
-        const organizationAddress = currentData?.organizationAddress || 'Alamat Penyelenggara';
+        const organizationAddress = currentData?.organizationAddress || 'Organization Address';
         const instagram = currentData?.usernameInstagram || 'instagram_handle';
         
-        // PERBAIKAN: Gunakan FormData untuk POST & PUT (bukan JSON)
+        // Fix: Use FormData for POST & PUT (not JSON)
         
-        // Buat FormData untuk operasi create/update profil
+        // Create FormData for create/update profile operation
         const profileFormData = new FormData();
         profileFormData.append('organizationType', organizationType);
         profileFormData.append('organizationAddress', organizationAddress);
         profileFormData.append('instagram', instagram);
         
-        // Tambahkan dummy file untuk memenuhi persyaratan backend
+        // Add dummy file to meet backend requirements
         const pngData = new Uint8Array([
           0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
           0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
@@ -249,11 +249,10 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
         const pngBlob = new Blob([pngData], {type: 'image/png'});
         const dummyFile = new File([pngBlob], 'dummy.png', {type: 'image/png'});
         
-        // PENDEKATAN BARU: Coba POST untuk membuat profil baru terlebih dahulu
-        console.log("Mencoba membuat profil baru dengan POST...");
-        setCompressionStatus('Mencoba membuat profil baru...');
+        // New approach: Try POST to create new profile first
+        setCompressionStatus('Trying to create new profile...');
         try {
-          // FormData untuk POST (tambahkan logo dummy)
+          // FormData for POST (add dummy logo)
           const postFormData = new FormData();
           postFormData.append('organizationType', organizationType);
           postFormData.append('organizationAddress', organizationAddress);
@@ -268,22 +267,18 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
           
           const createData = await createResponse.json();
           if (createResponse.ok) {
-            console.log("Profil berhasil dibuat:", createData);
-            setCompressionStatus('Profil berhasil dibuat, mengupload logo...');
+            setCompressionStatus('Profile created successfully, uploading logo...');
           } else {
-            console.log("Pembuatan profil gagal:", createData);
-            // Lanjutkan ke metode PUT (kemungkinan profil sudah ada)
+            // Continue to PUT method (profile might already exist)
           }
         } catch (createError) {
-          console.log("Error saat mencoba membuat profil:", createError);
-          // Tetap lanjutkan ke metode PUT
+          // Continue to PUT method
         }
         
-        // PERBAIKAN: Sekarang upload logo yang sesungguhnya dengan PUT
-        console.log("Mengupload logo dengan PUT...");
-        setCompressionStatus('Mengunggah logo ke server...');
+        // Fix: Now upload the real logo with PUT
+        setCompressionStatus('Uploading logo to server...');
         
-        // FormData untuk upload logo
+        // FormData for logo upload
         const logoFormData = new FormData();
         logoFormData.append('logo', processedFile);
         logoFormData.append('organizationType', organizationType);
@@ -294,41 +289,40 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
           method: 'PUT',
           headers: { 
             'Authorization': `Bearer ${token}`
-            // JANGAN set Content-Type untuk multipart/form-data
+            // Don't set Content-Type for multipart/form-data
           },
           body: logoFormData
         });
         
         if (!uploadResponse.ok) {
           const errorData = await uploadResponse.json();
-          throw new Error(errorData.message || `Gagal upload logo! Status: ${uploadResponse.status}`);
+          throw new Error(errorData.message || `Failed to upload logo! Status: ${uploadResponse.status}`);
         }
         
         const uploadData = await uploadResponse.json();
-        console.log("Logo berhasil diupload:", uploadData);
         
-        setCompressionStatus('✅ Logo berhasil diunggah ke server!');
-        toast.success("Logo berhasil diunggah!");
+        setCompressionStatus('✅ Logo uploaded successfully to server!');
+        toast.success("Logo uploaded successfully!");
         
-        // PERBAIKAN: Gunakan server URL untuk metadata tetapi tetap tampilkan logo lokal
-        // untuk menghindari masalah CORS
+        // Fix: Use server URL for metadata but still display local logo
+        // to avoid CORS issues
         const serverLogoUrl = `${API_URL}/partners/me/logo?t=${Date.now()}`;
         
-        // Panggil callback jika ada
+        // Call callback if available
         if (onAvatarUpload && typeof onAvatarUpload === 'function') {
-          // PENTING: Kirim preview lokal sebagai parameter ketiga untuk digunakan tampilan
+          // Important: Send local preview as third parameter for display
           onAvatarUpload(processedFile, serverLogoUrl, localLogoDataUrl || processedReader.result);
         }
         
       } catch (profileError) {
-        console.error("Error saat memeriksa/membuat profil:", profileError);
+        console.error("Error checking/creating profile:", profileError);
         throw profileError;
       }
       
     } catch (error) {
       console.error("Error uploading logo:", error);
       
-      // Coba gunakan preview lokal yang tersimpan jika ada
+      // Try to use saved local preview if available
       const savedPreview = localStorage.getItem('partnerLogoPreview');
       if (savedPreview) {
         setPreview(savedPreview);
@@ -336,7 +330,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
         setPreview(initialAvatarUrl || null);
       }
       
-      const errorMessage = error.message || "Gagal mengunggah logo";
+      const errorMessage = error.message || "Failed to upload logo";
       setError(errorMessage);
       toast.error(errorMessage);
       
@@ -361,28 +355,28 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
   };
 
   const removeAvatar = async () => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus logo?')) {
+    if (window.confirm('Are you sure you want to remove the logo?')) {
       try {
         setLoading(true);
-        setCompressionStatus('Menghapus logo...');
+        setCompressionStatus('Removing logo...');
         
-        // Hapus dari localStorage
+        // Remove from localStorage
         localStorage.removeItem('partnerLogoPreview');
         setLocalLogoDataUrl(null);
         
-        // Panggil API untuk menghapus avatar jika ada
+        // Call API to remove avatar if it exists
         if (initialAvatarUrl) {
           try {
             await partnerService.removeAvatar();
-            toast.success("Logo berhasil dihapus");
+            toast.success("Logo removed successfully");
           } catch (error) {
             console.error("Error removing avatar:", error);
-            toast.error("Gagal menghapus logo dari server");
+            toast.error("Failed to remove logo from server");
             throw error;
           }
         }
         
-        // Reset state lokal
+        // Reset local state
         setPreview(null);
         setAvatar(null);
         setError(null);
@@ -392,13 +386,13 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
           fileInputRef.current.value = '';
         }
         
-        // Panggil callback
+        // Call callback
         if (onAvatarUpload && typeof onAvatarUpload === 'function') {
           onAvatarUpload(null, null);
         }
       } catch (error) {
         console.error("Error in removeAvatar:", error);
-        toast.error(error.message || "Gagal menghapus logo");
+        toast.error(error.message || "Failed to remove logo");
       } finally {
         setLoading(false);
         setCompressionStatus('');
@@ -410,7 +404,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
     <div className="space-y-2">
       <label className="block text-sm font-medium mb-2">
         Logo/Avatar Penyelenggara 
-        <span className="text-xs text-gray-500 ml-2">(Disesuaikan otomatis ke ukuran yang tepat)</span>
+        <span className="text-xs text-gray-500 ml-2">(Automatically adjusted to proper size)</span>
       </label>
       
       <div className="flex justify-center">
@@ -423,29 +417,29 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
               onError={(e) => {
                 console.error("Error loading image");
                 
-                // Coba ambil dari localStorage jika gambar gagal load
+                // Try to get from localStorage if image fails to load
                 const savedPreview = localStorage.getItem('partnerLogoPreview');
                 if (savedPreview) {
-                  console.log("Using saved logo from localStorage");
                   e.target.src = savedPreview;
                   return;
                 }
                 
-                // Fallback ke error placeholder
-                setError("Gagal memuat gambar. Coba upload logo baru.");
+                // Fallback to error placeholder
+                setError("Failed to load image. Try uploading a new logo.");
                 e.target.src = 'https://placehold.co/200x200?text=Logo';
               }}
             />
-            {!loading && (
-              <button 
-                type="button"
-                onClick={removeAvatar}
-                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                aria-label="Hapus logo"
-              >
-                <X size={16} />
-              </button>
-            )}
+{!loading && (
+  <button 
+    type="button"
+    onClick={removeAvatar}
+    className="absolute bottom-0 left-0 right-0 bg-red-500 bg-opacity-80 text-white py-1.5 hover:bg-red-600 flex items-center justify-center transition-all"
+    aria-label="Remove logo"
+  >
+    <X size={16} className="mr-1" />
+    <span className="text-xs font-medium">Remove</span>
+  </button>
+)}
           </div>
         ) : (
           <div 
@@ -453,7 +447,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
             className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
           >
             <User size={32} className="text-gray-400 mb-2" />
-            <p className="text-xs text-gray-500 text-center px-2">Klik untuk unggah logo</p>
+            <p className="text-xs text-gray-500 text-center px-2">Click to upload logo</p>
           </div>
         )}
         
@@ -470,7 +464,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
       {loading && (
         <div className="w-full flex justify-center py-2">
           <div className="w-6 h-6 border-t-2 border-b-2 border-[#0A3E54] rounded-full animate-spin mr-2"></div>
-          <p className="text-sm text-gray-600 ml-2">Memproses logo...</p>
+          <p className="text-sm text-gray-600 ml-2">Processing logo...</p>
         </div>
       )}
 
@@ -489,7 +483,7 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
       )}
       
       <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg mt-2">
-        <p className="text-xs text-blue-700 font-medium mb-1">Panduan Upload Logo:</p>
+      <p className="text-xs text-blue-700 font-medium mb-1">Panduan Upload Logo:</p>
         <ul className="text-xs text-blue-600 list-disc list-inside space-y-1">
           <li>📏 Ukuran optimal: 300x300 piksel (dioptimasi otomatis)</li>
           <li>✅ Format: JPG, JPEG, atau PNG</li>
