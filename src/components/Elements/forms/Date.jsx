@@ -133,7 +133,7 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
               <div>
                 <label
                   htmlFor="end-date"
-                  className="block text-sm font-medium mb-2 flex justify-between"
+                  className="block text-sm font-medium mb-2 md:flex justify-between"
                 >
                   <span>Tanggal Penutupan</span>
                 </label>
@@ -156,7 +156,7 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
               <div>
                 <label
                   htmlFor="end-time"
-                  className="block text-sm font-medium mb-2 flex justify-between"
+                  className="block text-sm font-medium mb-2 md:flex justify-between"
                 >
                   <span>Waktu Penutupan</span>
                 </label>

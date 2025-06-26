@@ -90,7 +90,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/event/:id" element={<EventPage />} />
         <Route path="/events/:eventId/register-user" element={<FormRegisterUser />} />
-        
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
