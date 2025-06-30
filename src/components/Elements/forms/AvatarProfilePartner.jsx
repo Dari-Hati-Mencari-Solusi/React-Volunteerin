@@ -429,17 +429,6 @@ const AvatarProfilePartner = ({ onAvatarUpload, initialAvatarUrl, currentFormDat
                 e.target.src = 'https://placehold.co/200x200?text=Logo';
               }}
             />
-{!loading && (
-  <button 
-    type="button"
-    onClick={removeAvatar}
-    className="absolute bottom-0 left-0 right-0 bg-red-500 bg-opacity-80 text-white py-1.5 hover:bg-red-600 flex items-center justify-center transition-all"
-    aria-label="Remove logo"
-  >
-    <X size={16} className="mr-1" />
-    <span className="text-xs font-medium">Remove</span>
-  </button>
-)}
           </div>
         ) : (
           <div 

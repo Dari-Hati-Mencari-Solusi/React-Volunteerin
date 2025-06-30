@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LogoHero from "../assets/images/logo-hero.png";
 import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
@@ -9,7 +9,29 @@ import Banner from "../assets/images/banner1.jpg";
 import { Icon } from "@iconify/react";
 import CountUp from "react-countup";
 
+import ReactGA from 'react-ga4';
+
 const Service = () => {
+   const navigate = useNavigate();
+     const handleBuatEventClick = () => {
+    ReactGA.event({
+      category: "Tombol CTA", 
+      action: "Klik Tombol 'Buat Event Kamu'", 
+      label: "Halaman Layanan - Hero Section" 
+    });
+    navigate('/auth');
+  };
+
+  const handleJadiVolunteerClick = () => {
+    ReactGA.event({
+      category: "Tombol CTA",
+      action: "Klik Tombol 'Jadi Volunteer'",
+      label: "Halaman Layanan - Hero Section"
+    });
+    // 
+    navigate('/');
+  };
+
   const stats = [
     { number: 10, label: "Partner" },
     { number: 50, label: "Pengguna" },
@@ -104,11 +126,17 @@ const Service = () => {
               Daftar, temukan, dan mulai aksi sosialmu bareng komunitas hebat.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <button className="bg-[#0A3E54] text-white px-5 py-3 rounded-xl hover:bg-[#164D63] transition-colors w-full sm:w-auto">
-                <Link to="/auth">Buat Event Kamu</Link>
+              <button
+                onClick={handleBuatEventClick}
+                className="bg-[#0A3E54] text-white px-5 py-3 rounded-xl hover:bg-[#164D63] transition-colors w-full sm:w-auto"
+              >
+                Buat Event Kamu
               </button>
-              <button className="border-[1.5px] border-[#0A3E54] text-slate-800 px-5 py-3 rounded-xl hover:bg-slate-50 transition-colors w-full sm:w-auto">
-                <Link to="/">Jadi Volunteer</Link>
+             <button
+                onClick={handleJadiVolunteerClick}
+                className="border-[1.5px] border-[#0A3E54] text-slate-800 px-5 py-3 rounded-xl hover:bg-slate-50 transition-colors w-full sm:w-auto"
+              >
+                Jadi Volunteer
               </button>
             </div>
             <div className="flex justify-center md:justify-start gap-6 md:gap-12 pt-4 md:pt-8">
