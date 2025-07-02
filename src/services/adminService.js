@@ -59,45 +59,88 @@ export const adminService = {
     }
   },
   
-  /**
-   * Review Partner Profile
-   * @param {string} partnerId - ID partner
+/**
+   * Review Partner User - Endpoint yang benar sesuai dokumentasi
+   * @param {string} userId - ID user yang akan direview (bukan partnerId)
+   * @param {string} reviewResult - Hasil review (ACCEPTED_PROFILE, ACCEPTED_LEGALITY, REJECTED_PROFILE, REJECTED_LEGALITY)
+   * @param {string} information - Pesan/informasi review (wajib jika ditolak)
+   * @returns {Promise<Object>} Response data
+   * @throws {Object} Objek error dengan pesan
+   */
+  reviewPartnerUser: async (userId, reviewResult, information = "") => {
+    try {
+      console.log('Reviewing partner user:', { userId, reviewResult, information });
+      
+      const requestBody = {
+        reviewResult: reviewResult
+      };
+
+      // Tambahkan information jika ada (wajib untuk penolakan)
+      if (information && information.trim()) {
+        requestBody.information = information.trim();
+      }
+
+      // Gunakan PATCH method sesuai dokumentasi
+      const response = await httpClient.patch(`${API_URL}/admins/me/users/${userId}/review`, requestBody);
+      
+      console.log('Review partner user response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error reviewing partner user:", error);
+      handleApiError(error, 'Terjadi kesalahan saat mereview partner user');
+    }
+  },
+
+/**
+   * Review Partner Profile - Wrapper method untuk kemudahan penggunaan
+   * @param {string} userId - ID user
    * @param {string} status - Status review ("accepted" atau "rejected")
    * @param {string} message - Pesan review
    * @returns {Promise<Object>} Response data
    */
-  reviewPartnerProfile: async (partnerId, status, message = "") => {
+  reviewPartnerProfile: async (userId, status, message = "") => {
     try {
-      const response = await httpClient.post(`${API_URL}/admins/me/partners/${partnerId}/profile/review`, {
-        status: status,
-        message: message
-      });
-      return response.data;
+      const reviewResult = status === "accepted" ? "ACCEPTED_PROFILE" : "REJECTED_PROFILE";
+      return await adminService.reviewPartnerUser(userId, reviewResult, message);
     } catch (error) {
       console.error("Error reviewing partner profile:", error);
-      handleApiError(error, 'Terjadi kesalahan saat mereview profil partner');
+      throw error;
+    }
+  },
+
+   /**
+   * Review Partner Legality Documents - Wrapper method untuk kemudahan penggunaan
+   * @param {string} userId - ID user
+   * @param {string} status - Status review ("accepted" atau "rejected")
+   * @param {string} message - Pesan review
+   * @returns {Promise<Object>} Response data
+   */
+  reviewPartnerLegality: async (userId, status, message = "") => {
+    try {
+      const reviewResult = status === "accepted" ? "ACCEPTED_LEGALITY" : "REJECTED_LEGALITY";
+      return await adminService.reviewPartnerUser(userId, reviewResult, message);
+    } catch (error) {
+      console.error("Error reviewing partner legality:", error);
+      throw error;
     }
   },
 
   /**
-   * Review Partner Legality Documents
-   * @param {string} partnerId - ID partner
-   * @param {string} status - Status review ("accepted" atau "rejected")
-   * @param {string} message - Pesan review
+   * Review Partner Status - Metode wrapper untuk kompatibilitas dengan kode existing
+   * @param {string} userId - ID user
+   * @param {string} reviewResult - Hasil review langsung (ACCEPTED_PROFILE, ACCEPTED_LEGALITY, etc.)
+   * @param {string} information - Informasi/pesan review
    * @returns {Promise<Object>} Response data
    */
-  reviewPartnerLegality: async (partnerId, status, message = "") => {
+  reviewPartnerStatus: async (userId, reviewResult, information = "") => {
     try {
-      const response = await httpClient.post(`${API_URL}/admins/me/partners/${partnerId}/legality/review`, {
-        status: status,
-        message: message
-      });
-      return response.data;
+      return await adminService.reviewPartnerUser(userId, reviewResult, information);
     } catch (error) {
-      console.error("Error reviewing partner legality:", error);
-      handleApiError(error, 'Terjadi kesalahan saat mereview legalitas partner');
+      console.error("Error updating partner status:", error);
+      throw error;
     }
   },
+
 
   /**
    * Generic Partner Review - sesuaikan dengan endpoint API yang tersedia
@@ -114,25 +157,5 @@ export const adminService = {
       console.error("Error reviewing partner:", error);
       handleApiError(error, 'Terjadi kesalahan saat mereview partner');
     }
-  },
-
-  /**
-   * Review Partner Status - metode alternatif jika API menggunakan endpoint yang berbeda
-   * @param {string} partnerId - ID partner
-   * @param {string} reviewResult - Hasil review (ACCEPTED_PROFILE, ACCEPTED_LEGALITY, etc.)
-   * @param {string} information - Informasi/pesan review
-   * @returns {Promise<Object>} Response data
-   */
-  reviewPartnerStatus: async (partnerId, reviewResult, information = "") => {
-    try {
-      const response = await httpClient.put(`${API_URL}/admins/me/partners/${partnerId}`, {
-        status: reviewResult,
-        information: information
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error updating partner status:", error);
-      handleApiError(error, 'Terjadi kesalahan saat mengupdate status partner');
-    }
   }
-};
+}
