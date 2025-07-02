@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import ktp from "../../assets/images/ktp.jpg";
 import { adminService } from "../../services/adminService";
+import { authService } from "../../services/authService";
 import Swal from "sweetalert2";
+import { partnerService } from "../../services/partnerService";
 
 const UserManagement = () => {
   // Constants & State
@@ -36,6 +38,12 @@ const UserManagement = () => {
     limit: 10,
     sort: "desc",
   });
+
+
+  // State tambahan untuk membedakan jenis review
+  const [reviewType, setReviewType] = useState('partner'); // 'partner' atau 'registrant'
+  const [eventId, setEventId] = useState(null);
+  const [registrantId, setRegistrantId] = useState(null);
 
   // Screen Size Detection
   useEffect(() => {
@@ -381,16 +389,24 @@ const UserManagement = () => {
     }
   };
 
+
   const handleViewDetail = async (user) => {
     try {
       setLoading(true);
+      
+      // Tentukan jenis review berdasarkan data user
+      // Untuk sekarang, fokus pada partner review karena registrant review perlu data tambahan
+      setReviewType('partner');
+      setEventId(null);
+      setRegistrantId(null);
+      
       const detailResponse = await adminService.getUserDetail(user.id);
 
       if (detailResponse?.data) {
         const detailData = detailResponse.data;
         const partnerData = detailData.partner;
 
-        // Process legal documents
+        // Process legal documents (kode existing tidak berubah)
         let legalDocuments = [];
 
         if (partnerData?.legality) {
@@ -447,7 +463,7 @@ const UserManagement = () => {
         // Determine updated status
         const updatedStatus = determineStatusLegalitas(partnerData);
 
-        // Process responsible person data
+        // Process responsible person data (kode existing tidak berubah)
         let responsiblePerson = null;
         const possibleResponsiblePersonSources = [
           partnerData?.responsiblePersons?.[0],
@@ -559,24 +575,35 @@ const UserManagement = () => {
     if (!selectedUser) return;
 
     try {
+      // PERBAIKAN: Gunakan endpoint yang benar
       const currentStatus = selectedUser.rawPartnerData?.status;
       let reviewResult, newStatus, successMessage;
 
-      if (currentStatus === "ACCEPTED_PROFILE") {
+      // Tentukan review result berdasarkan status saat ini
+      if (currentStatus === "ACCEPTED_PROFILE" || currentStatus === "PENDING_LEGALITY") {
+        // Jika profil sudah diterima, approve legalitas
         reviewResult = "ACCEPTED_LEGALITY";
         newStatus = "Lengkap";
         successMessage = "Dokumen Legalitas Disetujui";
       } else {
+        // Jika profil belum diterima, approve profil
         reviewResult = "ACCEPTED_PROFILE";
         newStatus = "Profil Lengkap";
         successMessage = "Profil Disetujui";
       }
 
-      // Menggunakan method reviewPartnerStatus
-      await adminService.reviewPartnerStatus(
-        selectedUser.id,
+      console.log('Approving partner:', {
+        userId: selectedUser.id,
+        currentStatus,
         reviewResult,
-        reviewMessage
+        message: reviewMessage
+      });
+
+      // Gunakan method yang benar dengan USER ID (bukan partner ID)
+      await adminService.reviewPartnerUser(
+        selectedUser.id, // USER ID, bukan partner ID
+        reviewResult,
+        reviewMessage || ""
       );
 
       // Update local state
@@ -607,60 +634,62 @@ const UserManagement = () => {
       Swal.fire({
         icon: "success",
         title: successMessage,
-        timer: 3000,
+        text: "Email notifikasi telah dikirim ke partner",
+        timer: 4000,
         showConfirmButton: false,
       });
     } catch (error) {
-      console.error("Error approving:", error);
+      console.error("Error approving partner:", error);
       Swal.fire({
         icon: "error",
         title: "Gagal Menyetujui",
-        text: error.message || "Terjadi kesalahan saat menyetujui.",
+        text: error.message || "Terjadi kesalahan saat menyetujui partner.",
       });
     }
   };
 
-  const handleReject = async () => {
+   const handleReject = async () => {
     if (!selectedUser) return;
 
     if (!reviewMessage.trim()) {
       Swal.fire({
         icon: "warning",
         title: "Pesan Diperlukan",
-        text: "Silakan berikan alasan penolakan untuk partner",
+        text: "Silakan berikan alasan penolakan untuk partner (wajib untuk penolakan)",
       });
       return;
     }
 
     try {
-      // Determine the review action based on current partner status
+      // PERBAIKAN: Tentukan review result berdasarkan status saat ini
       const currentStatus = selectedUser.rawPartnerData?.status;
-      let reviewResult, apiCall;
+      let reviewResult, newStatus, successTitle;
 
-      if (currentStatus === "ACCEPTED_PROFILE") {
-        // If profile is already accepted, reject the legality documents
+      if (currentStatus === "ACCEPTED_PROFILE" || currentStatus === "PENDING_LEGALITY") {
+        // Jika profil sudah diterima, tolak legalitas
         reviewResult = "REJECTED_LEGALITY";
-        apiCall = adminService.reviewPartnerLegality(
-          selectedUser.id,
-          "rejected",
-          reviewMessage
-        );
+        newStatus = "Tidak Lengkap";
+        successTitle = "Dokumen Legalitas Ditolak";
       } else {
-        // If profile is not yet accepted, reject the profile
+        // Jika profil belum diterima, tolak profil
         reviewResult = "REJECTED_PROFILE";
-        apiCall = adminService.reviewPartnerProfile(
-          selectedUser.id,
-          "rejected",
-          reviewMessage
-        );
+        newStatus = "Profil Ditolak";
+        successTitle = "Profil Ditolak";
       }
 
-      await apiCall;
+      console.log('Rejecting partner:', {
+        userId: selectedUser.id,
+        currentStatus,
+        reviewResult,
+        message: reviewMessage
+      });
 
-      const newStatus =
-        reviewResult === "REJECTED_LEGALITY"
-          ? "Tidak Lengkap"
-          : "Profil Ditolak";
+      // Gunakan method yang benar dengan USER ID (bukan partner ID)
+      await adminService.reviewPartnerUser(
+        selectedUser.id, // USER ID, bukan partner ID
+        reviewResult,
+        reviewMessage
+      );
 
       // Update local state
       const updatedUsers = users.map((user) =>
@@ -681,27 +710,17 @@ const UserManagement = () => {
 
       Swal.fire({
         icon: "success",
-        title:
-          reviewResult === "REJECTED_LEGALITY"
-            ? "Dokumen Ditolak"
-            : "Profil Ditolak",
-        text: `${selectedUser.namaPendaftar} telah ${
-          reviewResult === "REJECTED_LEGALITY"
-            ? "dokumen legalitasnya"
-            : "profilnya"
-        } ditolak`,
-        timer: 3000,
+        title: successTitle,
+        text: `${selectedUser.namaPendaftar} telah ditolak. Email notifikasi dengan alasan penolakan telah dikirim.`,
+        timer: 4000,
         showConfirmButton: false,
       });
     } catch (error) {
-      console.error("Error rejecting:", error);
+      console.error("Error rejecting partner:", error);
       Swal.fire({
         icon: "error",
         title: "Gagal Menolak",
-        text:
-          error.response?.data?.message ||
-          error.message ||
-          "Terjadi kesalahan saat menolak.",
+        text: error.message || "Terjadi kesalahan saat menolak partner.",
       });
     }
   };
