@@ -253,7 +253,6 @@ const handleSubmit = async () => {
 
     setIsSubmitting(true);
     
-    // Log data yang akan dikirim untuk debugging
     console.log("Sending registration data:", {
       eventId: effectiveEventId,
       formId,
@@ -261,7 +260,6 @@ const handleSubmit = async () => {
     });
     
     try {
-      // Periksa token di local storage
       const token = localStorage.getItem('token') || localStorage.getItem('authToken');
       if (!token) {
         console.warn('No authentication token found! User may need to log in again.');
@@ -277,7 +275,6 @@ const handleSubmit = async () => {
         return;
       }
       
-      // Panggil API untuk mengirim data pendaftaran
       const response = await userService.submitVolunteerRegistration(
         effectiveEventId,
         formId,
@@ -306,11 +303,20 @@ const handleSubmit = async () => {
         setFormData(resetData);
         setFileName("");
         setCurrentStep(1);
-        navigate("/regis-event", { replace: true });
+        
+        // Redirect ke halaman registered event dengan parameter untuk refresh data
+        navigate("/regis-event", { 
+          replace: true,
+          state: { 
+            justRegistered: true, 
+            eventId: effectiveEventId,
+            refreshData: true
+          }
+        });
       }, 3000);
     } catch (apiError) {
       console.error('API error:', apiError);
-      throw apiError; // Re-throw untuk ditangkap oleh catch di luar
+      throw apiError;
     }
   } catch (error) {
     console.error("Registration error:", error);
