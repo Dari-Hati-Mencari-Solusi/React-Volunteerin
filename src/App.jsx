@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
 import "./App.css";
 import RegisterPage from "./pages/users/RegisterPage";
 import Login from "./pages/users/Login";
@@ -21,9 +22,21 @@ import FormRegisterUser from "./pages/users/FormRegisterUser";
 import Gamification from "./components/Fragments/Gamification";
 import LayoutAdmin from "./pages/admin/LayoutAdmin";
 import LoginPageAdmin from "./pages/admin/LoginPageAdmin";
+import FormPendaftaran from "./pages/users/FormRegisterUser";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ReactGA from "react-ga4";
 // import EventDashboard from "./pages/partners/CreateEvent";
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    ReactGA.send({
+      hitType: "pageview",
+      page: location.pathname + location.search,
+      title: document.title,
+    });
+  }, [location]);
   return (
     <ThemeProvider storageKey="theme">
       <Routes>
@@ -35,21 +48,51 @@ function App() {
 
         {/* dashboard partner route */}
         <Route path="/partner/dashboard" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/analytics" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/buat-event" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/create-event" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/create-formulir" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/pendaftar" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/pencairan-dana" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/profile-partner" element={<LayoutPartner />} />
+        <Route
+          path="/partner/dashboard/analytics"
+          element={<LayoutPartner />}
+        />
+        <Route
+          path="/partner/dashboard/buat-event"
+          element={<LayoutPartner />}
+        />
+        <Route
+          path="/partner/dashboard/create-event"
+          element={<LayoutPartner />}
+        />
+        <Route
+          path="/partner/dashboard/create-formulir"
+          element={<LayoutPartner />}
+        />
+        <Route
+          path="/partner/dashboard/pendaftar"
+          element={<LayoutPartner />}
+        />
+        <Route
+          path="/partner/dashboard/pencairan-dana"
+          element={<LayoutPartner />}
+        />
+        <Route
+          path="/partner/dashboard/profile-partner"
+          element={<LayoutPartner />}
+        />
         <Route
           path="/partner/dashboard/penanggung-jawab"
           element={<LayoutPartner />}
         />
-        <Route path="/partner/dashboard/legalitas" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/media-sosial" element={<LayoutPartner />} />
+        <Route
+          path="/partner/dashboard/legalitas"
+          element={<LayoutPartner />}
+        />
+        <Route
+          path="/partner/dashboard/media-sosial"
+          element={<LayoutPartner />}
+        />
         <Route path="/partner/dashboard/faq" element={<LayoutPartner />} />
-        <Route path="/partner/dashboard/cs-partner" element={<LayoutPartner />} />
+        <Route
+          path="/partner/dashboard/cs-partner"
+          element={<LayoutPartner />}
+        />
         <Route path="/partner/dashboard/panduan" element={<LayoutPartner />} />
 
         {/* user route */}
@@ -57,6 +100,11 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/event/:id" element={<EventPage />} />
+        <Route
+          path="/events/:eventId/register-user"
+          element={<FormRegisterUser />}
+        />
+
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
@@ -64,14 +112,13 @@ function App() {
         <Route path="/auth" element={<VolunteerinAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-pw" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/layanan" element={<Service />} />
         <Route path="/misi-kamu" element={<Gamification />} />
 
         {/* partner route */}
         <Route path="/login-partner" element={<LoginPartner />} />
         <Route path="/register-partner" element={<RegisterPartner />} />
-        <Route path="/form-register" element={<FormRegisterUser />} />
-
 
         {/* Not found route */}
         <Route path="*" element={<NotFoundPage />} />

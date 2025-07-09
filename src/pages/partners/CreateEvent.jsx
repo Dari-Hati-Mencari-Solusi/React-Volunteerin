@@ -23,7 +23,6 @@ const STATIC_CATEGORY_IDS = {
   sosial: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13",
 };
 
-// API utilities
 const apiUtils = {
   getApiUrl: () => {
     const savedApiUrl = localStorage.getItem("api_url");
@@ -36,13 +35,11 @@ const apiUtils = {
   },
 };
 
-// Form utilities
 const formUtils = {
   validateForm: (formData, refs) => {
     let errors = [];
 
     try {
-      // Event form validation
       if (
         refs.eventFormRef.current &&
         typeof refs.eventFormRef.current.validate === "function"
@@ -60,7 +57,6 @@ const formUtils = {
           errors.push("Minimal pilih satu manfaat event");
       }
 
-      // Date validation
       if (
         refs.dateFormRef.current &&
         typeof refs.dateFormRef.current.validate === "function"
@@ -74,7 +70,6 @@ const formUtils = {
           errors.push("Tanggal & jam pembukaan pendaftaran harus diisi");
       }
 
-      // Location validation
       if (
         refs.locationFormRef.current &&
         typeof refs.locationFormRef.current.validate === "function"
@@ -88,7 +83,6 @@ const formUtils = {
           errors.push("Provinsi dan kabupaten/kota harus diisi");
       }
 
-      // Banner validation
       if (!formData.banner) {
         errors.push("Banner event harus diunggah");
       }
@@ -104,32 +98,27 @@ const formUtils = {
     try {
       const apiFormData = new FormData();
 
-      // Basic event data validation
       if (!formData.title) {
         throw new Error("Judul event harus diisi");
       }
 
-      // Basic event data
       apiFormData.append("title", formData.title || "");
       apiFormData.append("type", formData.type || "OPEN");
       apiFormData.append("description", formData.description || "");
-
-      // Volunteer data
       apiFormData.append("requirement", formData.requirement || "");
       apiFormData.append("contactPerson", formData.contactPerson || "");
+      
       if (formData.maxApplicant)
         apiFormData.append("maxApplicant", formData.maxApplicant);
       if (formData.acceptedQuota)
         apiFormData.append("acceptedQuota", formData.acceptedQuota);
 
-      // Date data
       if (!formData.startAt) {
         throw new Error("Tanggal dan waktu mulai harus diisi");
       }
       apiFormData.append("startAt", formData.startAt);
       if (formData.endAt) apiFormData.append("endAt", formData.endAt);
 
-      // Location data
       if (!formData.province || !formData.regency) {
         throw new Error("Provinsi dan kota/kabupaten harus diisi");
       }
@@ -141,14 +130,10 @@ const formUtils = {
       if (formData.longitude)
         apiFormData.append("longitude", formData.longitude);
 
-      // Fee data
       apiFormData.append("isPaid", formData.isPaid);
       apiFormData.append("price", formData.price || "0");
-
-      // Release status
       apiFormData.append("isRelease", isReadyToPublish);
 
-      // Append categoryIds
       if (
         formData.categoryIds &&
         Array.isArray(formData.categoryIds) &&
@@ -160,11 +145,9 @@ const formUtils = {
           }
         });
       } else {
-        // Use fallback if no valid categories
         apiFormData.append("categoryIds[]", STATIC_CATEGORY_IDS.pendidikan);
       }
 
-      // Append benefitIds
       if (
         formData.benefitIds &&
         Array.isArray(formData.benefitIds) &&
@@ -176,11 +159,9 @@ const formUtils = {
           }
         });
       } else {
-        // Use fallback if no valid benefits
         apiFormData.append("benefitIds[]", STATIC_BENEFIT_IDS.sertifikat);
       }
 
-      // Add banner file
       if (!formData.banner) {
         throw new Error("Banner event harus diunggah");
       }
@@ -196,7 +177,7 @@ const formUtils = {
   saveFormToLocalStorage: (formData) => {
     try {
       const formCopy = { ...formData };
-      // Remove the file object which can't be serialized
+      // File objects can't be serialized
       formCopy.banner = formCopy.banner
         ? {
             name: formCopy.banner.name,
@@ -257,8 +238,6 @@ const CreateEvent = ({ onBack }) => {
   const volunteerFormRef = useRef(null);
   const feeFormRef = useRef(null);
   const bannerUploadRef = useRef(null);
-
-  // Form data state for backup
   const [formBackup, setFormBackup] = useState(null);
 
   // Fetch valid IDs and apply them directly to formData
@@ -277,13 +256,11 @@ const CreateEvent = ({ onBack }) => {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
 
-      // Fetch valid benefits
       const benefitResponse = await fetch(`${API_URL}/benefits`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const benefitData = await benefitResponse.json();
 
-      // Fetch valid categories
       const categoryResponse = await fetch(`${API_URL}/categories?type=EVENT`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -292,11 +269,9 @@ const CreateEvent = ({ onBack }) => {
       Swal.close();
 
       if (benefitData.data?.length > 0 && categoryData.data?.length > 0) {
-        // Get valid IDs
         const validBenefitIds = benefitData.data.slice(0, 2).map((b) => b.id);
         const validCategoryIds = categoryData.data.slice(0, 1).map((c) => c.id);
 
-        // Apply directly to form data
         setFormData((prev) => ({
           ...prev,
           benefitIds: validBenefitIds,
@@ -325,7 +300,6 @@ const CreateEvent = ({ onBack }) => {
   useEffect(() => {
     const initializeComponent = async () => {
       try {
-        // Check authentication
         if (!authService.isAuthenticated()) {
           setAuthError("not_authenticated");
           setAuthChecked(true);
@@ -341,7 +315,6 @@ const CreateEvent = ({ onBack }) => {
           return;
         }
 
-        // Check if user is a partner
         if (!authService.isPartner()) {
           setAuthError("not_partner");
           setAuthChecked(true);
@@ -357,14 +330,11 @@ const CreateEvent = ({ onBack }) => {
           return;
         }
 
-        // User is authenticated and a partner
         setAuthChecked(true);
 
         try {
-          // Check partner profile
           const profileData = await partnerService.getPartnerProfile();
 
-          // Store the partner ID for event creation
           if (
             profileData?.data?.id ||
             profileData?.data?.partner?.id ||
@@ -377,7 +347,6 @@ const CreateEvent = ({ onBack }) => {
             localStorage.setItem("partnerId", partnerId);
           }
 
-          // Fetch valid IDs automatically and apply them directly to formData
           await fetchValidIdsAndApply();
         } catch (profileError) {
           console.warn("Failed to load partner profile:", profileError);
@@ -404,7 +373,6 @@ const CreateEvent = ({ onBack }) => {
     initializeComponent();
   }, [navigate]);
 
-  // Handle toggle for isReadyToPublish
   const handleToggle = () => {
     setIsReadyToPublish(!isReadyToPublish);
   };
@@ -540,7 +508,6 @@ const CreateEvent = ({ onBack }) => {
           isReadyToPublish
         );
 
-        // Add partnerId to formData after it's created
         if (partnerId) {
           apiFormData.append("partnerId", partnerId);
         }
@@ -582,7 +549,6 @@ const CreateEvent = ({ onBack }) => {
       } catch (serviceError) {
         console.error("partnerService.createEvent failed:", serviceError);
 
-        // Handle specific error types based on the message
         if (
           serviceError.message &&
           serviceError.message.includes("tidak ditemukan")
@@ -593,7 +559,6 @@ const CreateEvent = ({ onBack }) => {
           const success = await fetchValidIdsAndApply();
 
           if (success) {
-            // Try again with the newly applied IDs
             try {
               Swal.fire({
                 title: "Mencoba Ulang...",
@@ -646,7 +611,6 @@ const CreateEvent = ({ onBack }) => {
             }
           }
 
-          // If retry fails or no valid IDs, show error
           Swal.fire({
             icon: "error",
             title: "ID Tidak Valid",
@@ -675,7 +639,6 @@ const CreateEvent = ({ onBack }) => {
           return;
         }
 
-        // Show error message for other errors
         Swal.close();
         Swal.fire({
           icon: "error",
@@ -712,8 +675,6 @@ const CreateEvent = ({ onBack }) => {
     );
   }
 
-  // If auth error other than check_failed, the redirect happens in useEffect
-  // For check_failed, we show a message but still render the form
   if (authError === "check_failed") {
     return (
       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
@@ -747,25 +708,13 @@ const CreateEvent = ({ onBack }) => {
     <section className="space-y-6">
       <h1 className="title">Buat Event Baru</h1>
 
-      {/* Event info section */}
       <EventForm ref={eventFormRef} onUpdate={handleEventFormUpdate} />
-
-      {/* Date/schedule section */}
       <EventDate ref={dateFormRef} onUpdate={handleDateFormUpdate} />
-
-      {/* Location section */}
       <Location ref={locationFormRef} onUpdate={handleLocationFormUpdate} />
-
-      {/* Volunteer requirements section */}
       <Volunteer ref={volunteerFormRef} onUpdate={handleVolunteerFormUpdate} />
-
-      {/* Registration fee section */}
       <RegistrationFee ref={feeFormRef} onUpdate={handleFeeFormUpdate} />
-
-      {/* Banner upload section */}
       <BannerUpload ref={bannerUploadRef} onUpdate={handleBannerUpdate} />
 
-      {/* Toggle Switch for publish status */}
       <div className="flex items-center space-x-2">
         <label
           htmlFor="publish-toggle"
@@ -797,7 +746,6 @@ const CreateEvent = ({ onBack }) => {
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="flex flex-wrap gap-4">
         <button
           type="button"

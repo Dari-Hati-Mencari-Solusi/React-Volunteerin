@@ -51,15 +51,16 @@ export const authService = {
   getFacebookOAuthUrl: () => `${API_URL}/auth/facebook`,
 
   /**
-   * Authenticate user with email and password
+   * Authenticate user with email and password, with role validation
    * @param {string} email - User email
    * @param {string} password - User password
+   * @param {string} expectedRole - Expected user role (optional)
    * @returns {Promise<Object>} User data with token
    * @throws {Object} Error object with message
    */
-  login: async (email, password) => {
+  login: async (email, password, expectedRole = null) => {
     try {
-      console.log("Logging in with email:", email);
+      console.log("Logging in with email:", email, "Expected role:", expectedRole);
       const response = await httpClient.post(`${API_URL}/auth/login`, {
         email,
         password,
@@ -70,6 +71,20 @@ export const authService = {
       }
       
       const { token, user } = response.data.data;
+      
+      // Role validation if expectedRole is provided
+      if (expectedRole && user.role !== expectedRole) {
+        // Throw role-specific error messages
+        if (expectedRole === 'ADMIN') {
+          throw new Error("Akun ini bukan akun admin. Silakan login dengan akun admin.");
+        } else if (expectedRole === 'PARTNER') {
+          throw new Error("Akun ini bukan akun partner. Silakan login di halaman volunteer.");
+        } else if (expectedRole === 'VOLUNTEER') {
+          throw new Error("Akun ini adalah akun " + user.role.toLowerCase() + ". Silakan login di halaman yang sesuai.");
+        } else {
+          throw new Error("Akun ini adalah akun " + user.role.toLowerCase() + ". Silakan login di halaman yang sesuai.");
+        }
+      }
       
       // Store login response in sessionStorage for fallback access
       sessionStorage.setItem('loginResponse', JSON.stringify(response.data));
@@ -90,23 +105,42 @@ export const authService = {
    */
   loginPartner: async (email, password) => {
     try {
-      const response = await httpClient.post(`${API_URL}/auth/login`, {
-        email,
-        password,
-      });
-      
-      const { token, user } = response.data.data;
-      
-      // Store token in both locations
-      localStorage.setItem('token', token);
-      localStorage.setItem('authToken', token);
-      
-      // Store login response in sessionStorage for fallback access
-      sessionStorage.setItem('loginResponse', JSON.stringify(response.data));
-      
-      return storeUserData(token, user);
+      // Use the generic login but require PARTNER role
+      return await authService.login(email, password, 'PARTNER');
     } catch (error) {
-      handleApiError(error, 'An error occurred during login. Please check your credentials.');
+      throw error;
+    }
+  },
+
+  /**
+   * Admin login with email and password
+   * @param {string} email - Admin email
+   * @param {string} password - Admin password
+   * @returns {Promise<Object>} Authentication data
+   * @throws {Object} Error object with message
+   */
+  loginAdmin: async (email, password) => {
+    try {
+      // Use the generic login but require ADMIN role
+      return await authService.login(email, password, 'ADMIN');
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * User/Volunteer login with email and password
+   * @param {string} email - User email
+   * @param {string} password - User password
+   * @returns {Promise<Object>} Authentication data
+   * @throws {Object} Error object with message
+   */
+  loginUser: async (email, password) => {
+    try {
+      // Use the generic login but require VOLUNTEER role
+      return await authService.login(email, password, 'VOLUNTEER');
+    } catch (error) {
+      throw error;
     }
   },
 
@@ -307,6 +341,24 @@ export const authService = {
   },
 
   /**
+   * Check if user is an admin
+   * @returns {boolean} True if user is an admin, false otherwise
+   */
+  isAdmin: () => {
+    const user = authService.getStoredUser();
+    return user && user.role === 'ADMIN';
+  },
+
+  /**
+   * Check if user is a volunteer
+   * @returns {boolean} True if user is a volunteer, false otherwise
+   */
+  isVolunteer: () => {
+    const user = authService.getStoredUser();
+    return user && user.role === 'VOLUNTEER';
+  },
+
+  /**
    * Request password reset email
    * @param {string} email - User email
    * @returns {Promise<Object>} Reset request response
@@ -452,6 +504,38 @@ export const authService = {
     } catch (e) {
       console.error("Error decoding token:", e);
       return null;
+    }
+  },
+
+  /**
+   * Verify user email with verification token
+   * @param {string} token - Email verification token
+   * @returns {Promise<Object>} Verification response
+   * @throws {Object} Error object with message
+   */
+  verifyEmail: async (token) => {
+    try {
+      // Opsi 1: Mengirim token sebagai parameter di body request POST
+      const response = await httpClient.post(`${API_URL}/auth/verify-email`, { token });
+      return response.data;
+    } catch (error) {
+      console.error("Verification error detail:", error);
+      handleApiError(error, 'Terjadi kesalahan saat verifikasi email');
+    }
+  },
+
+  /**
+   * Resend verification email
+   * @param {string} email - User email address
+   * @returns {Promise<Object>} Response from resend request
+   * @throws {Object} Error object with message
+   */
+  resendVerificationEmail: async (email) => {
+    try {
+      const response = await httpClient.post(`${API_URL}/auth/resend-verification`, { email });
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'An error occurred while resending verification email');
     }
   }
 };

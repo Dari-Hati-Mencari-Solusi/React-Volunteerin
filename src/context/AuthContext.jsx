@@ -1,40 +1,62 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
 
-  console.log(context, 'log')
+  console.log(context, "log");
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null); // Retrieve user data from local storage
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("user")) || null
+  ); // Retrieve user data from local storage
   const [isAuthenticated, setIsAuthenticated] = useState(!!user); // Set initial authentication state based on user data
   const [loading, setLoading] = useState(false);
 
-    const login = (userData) => {
-        setLoading(true); // Set loading to true when starting the login process
-        try {
-            localStorage.setItem('user', JSON.stringify(userData)); // Store user data in local storage
-            setUser(userData);
-            setIsAuthenticated(true);
-        } catch (error) {
-            console.error("Login failed:", error); // Log the error
-        } finally {
-            setLoading(false); // Set loading to false when the process is complete
-        }
-
+  const login = (userData) => {
+    setLoading(true); // Set loading to true when starting the login process
+    try {
+      localStorage.setItem("user", JSON.stringify(userData)); // Store user data in local storage
+      setUser(userData);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error("Login failed:", error); // Log the error
+    } finally {
+      setLoading(false); // Set loading to false when the process is complete
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user'); // Clear user data from local storage
+  const logout = (navigate) => {
+    // Simpan role pengguna sebelum menghapus data
+    const userRole = user?.role;
+    
+    // Hapus data user dan token
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setUser(null);
     setIsAuthenticated(false);
+    
+    // Redirect ke halaman login yang sesuai jika navigate tersedia
+    if (navigate) {
+      switch(userRole) {
+        case 'ADMIN':
+          navigate('/login-admin');
+          break;
+        case 'PARTNER':
+          navigate('/login-partner');
+          break;
+        default:
+          // Untuk USER atau VOLUNTEER
+          navigate('/login');
+          break;
+      }
+    }
   };
 
   const value = {
@@ -43,55 +65,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     setLoading,
     login,
-    logout
+    logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-
-// Tambahkan ini di AuthContext.jsx
-const refreshToken = async () => {
-  try {
-    // Jika ada token refresh
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    // Panggil endpoint refresh token
-    const response = await axios.post(`${import.meta.env.VITE_BE_BASE_URL}/auth/refresh`, {
-      refreshToken
-    });
-
-    if (response.data && response.data.data && response.data.data.accessToken) {
-      // Simpan token baru
-      const newToken = response.data.data.accessToken;
-      localStorage.setItem('authToken', newToken);
-      return newToken;
-    } else {
-      throw new Error('Invalid response from refresh token endpoint');
-    }
-  } catch (error) {
-    console.error('Failed to refresh token:', error);
-    // Logout user jika refresh gagal
-    logout();
-    throw error;
-  }
-};
-
-// Tambahkan refreshToken ke dalam value yang disediakan context
-value = {
-  currentUser,
-  isAuthenticated,
-  userRole,
-  loading,
-  login,
-  logout,
-  register,
-  refreshToken // Tambahkan ini
-};
-
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Icon } from "@iconify/react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Logo from "../../assets/images/logo_volunteerin.jpg";
 import ErrorAlert from "../../components/Elements/Alert/ErrorAlert";
 import SuccessAlert from "../../components/Elements/Alert/SuccesAlert";
@@ -13,6 +13,7 @@ import { usePasswordVisibility } from '../../hooks/usePasswordVisibility';
 
 const LoginPartner = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Get state from registration page
   const { login: authLogin } = useAuth();
   const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
   
@@ -28,6 +29,15 @@ const LoginPartner = () => {
     email: '',
     password: '',
   });
+
+  // Display registration success message if coming from registration page
+  useEffect(() => {
+    if (location.state?.message) {
+      setStatus('success', location.state.message);
+      // Remove state to prevent message showing again on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, setStatus]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,13 +57,38 @@ const LoginPartner = () => {
 
     try {
       const response = await authService.loginPartner(formData.email, formData.password);
+      
+      // Check for email verification status if returned by the API
+      if (response.requiresVerification) {
+        setStatus('error', 'Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
+        setIsSubmitting(false);
+        return;
+      }
+      
       authLogin(response.user);
       setStatus('success', 'Login berhasil!');
       setTimeout(() => {
         navigate('/partner/dashboard');
       }, 1500);
     } catch (err) {
-      setStatus('error', err.message || 'Email atau kata sandi salah!');
+      // Check error messages related to email verification
+      if (err.message?.toLowerCase().includes('verifikasi') || 
+          err.message?.toLowerCase().includes('verify') || 
+          err.message?.toLowerCase().includes('aktif')) {
+        setStatus('error', 'Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
+        
+        // Add option to resend verification email
+        setTimeout(() => {
+          const shouldResend = window.confirm('Apakah Anda ingin mengirim ulang email verifikasi?');
+          if (shouldResend && formData.email) {
+            authService.resendVerificationEmail(formData.email)
+              .then(() => setStatus('success', 'Email verifikasi telah dikirim ulang.'))
+              .catch(e => setStatus('error', e.message || 'Gagal mengirim ulang email verifikasi.'));
+          }
+        }, 1000);
+      } else {
+        setStatus('error', err.message || 'Email atau kata sandi salah!');
+      }
     } finally {
       setIsSubmitting(false);
     }

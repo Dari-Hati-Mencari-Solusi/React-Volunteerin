@@ -112,10 +112,13 @@ const RegisterPage = () => {
         role: 'VOLUNTEER'
       });
       
-      setStatus('success', 'Registrasi berhasil! Silakan login.');
       setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+        navigate('/login', { 
+          state: { 
+            message: 'Link verifikasi telah dikirim ke email Anda. Silakan verifikasi email sebelum login.' 
+          } 
+        });
+      }, 2000);
     } catch (err) {
       setStatus('error', err.message || 'Terjadi kesalahan saat registrasi');
     } finally {
