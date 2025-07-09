@@ -87,107 +87,92 @@ const RegisteredEvent = () => {
   };
 
   const EventCard = ({ registration }) => {
-    const { form, answers, status, submittedAt } = registration;
-    const event = form.event;
-    return (
-      <div className='bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300'>
-        <div className="relative">
-          <img
-            src={event.bannerUrl}
-            alt={event.title}
-            className="w-full h-48 object-cover"
-            onError={(e) => {
-              e.target.src = IconVolunteer; // Fallback image
-            }}
-          />
-          <div className="absolute top-4 right-4">{getStatusBadge(status)}</div>
-          
-          {/* Badge untuk tipe event */}
-          <div className="absolute top-4 left-4">
-            <span
-              className={`px-2 py-1 rounded text-xs font-medium ${
-                event.type === "OPEN"
-                  ? "bg-green-300 text-green-800"
-                  : "bg-orange-100 text-orange-800"
-              }`}
-            >
-              {event.type}
+  const { form, answers, status, submittedAt } = registration;
+  const event = form.event;
+  
+  return (
+    <div className='bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full'>
+      <div className="relative">
+        <img
+          src={event.bannerUrl}
+          alt={event.title}
+          className="w-full h-48 object-cover"
+          onError={(e) => {
+            e.target.src = IconVolunteer; // Fallback image
+          }}
+        />
+        <div className="absolute top-4 right-4">{getStatusBadge(status)}</div>
+        
+        {/* Badge untuk tipe event */}
+        <div className="absolute top-4 left-4">
+          <span
+            className={`px-2 py-1 rounded text-xs font-medium ${
+              event.type === "OPEN"
+                ? "bg-green-300 text-green-800"
+                : "bg-orange-100 text-orange-800"
+            }`}
+          >
+            {event.type}
+          </span>
+        </div>
+      </div>
+
+      <div className="p-6 flex flex-col flex-1">
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="text-xl font-semibold text-[#0A3E54] line-clamp-2">
+            {event.title}
+          </h3>
+        </div>
+
+        <div className="space-y-3 mb-4 flex-1">
+          <div className="flex items-center text-sm text-gray-600">
+            <Icon icon="lets-icons:date-today-light" className="w-5 h-5 mr-2 text-[#0A3E54] flex-shrink-0" />
+            <span>
+              {formatDate(event.startAt)} - {formatDate(event.endAt)}
             </span>
+          </div>
+
+          <div className="flex items-center text-sm text-gray-600">
+            <Icon icon="tdesign:location" className="w-5 h-5 mr-2 text-[#0A3E54] flex-shrink-0" />
+            <span className="line-clamp-2">{event.address}</span>
+          </div>
+
+          <div className="flex items-center text-sm text-gray-600">
+            <Icon icon="mdi:account-group" className="w-5 h-5 mr-2 text-[#0A3E54] flex-shrink-0" />
+            <span>Max {event.maxApplicant} peserta</span>
+          </div>
+
+          <div className="flex items-center text-sm text-gray-600">
+            <Icon icon="mdi:clock-outline" className="w-5 h-5 mr-2 text-[#0A3E54] flex-shrink-0" />
+            <span>Didaftar: {formatDate(submittedAt)}</span>
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="flex items-start justify-between mb-3">
-            <h3 className="text-xl font-semibold text-[#0A3E54] line-clamp-2">
-              {event.title}
-            </h3>
-          </div>
-
-          {/* <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-            {event.description}
-          </p> */}
-
-         <div className="space-y-3 mb-4">
-            <div className="flex items-center text-sm text-gray-600">
-              <Icon icon="lets-icons:date-today-light" className="w-5 h-5 mr-2 text-[#0A3E54] flex-shrink-0" />
-              <span className="truncate">
-                {formatDate(event.startAt)} - {formatDate(event.endAt)}
-              </span>
-            </div>
-
-            <div className="flex items-center text-sm text-gray-600">
-              <Icon icon="tdesign:location" className="w-5 h-5 mr-2 text-[#0A3E54] flex-shrink-0" />
-              <span className="truncate">{event.address}</span>
-            </div>
-
-            <div className="flex items-center text-sm text-gray-600">
-              <Icon icon="mdi:account-group" className="w-5 h-5 mr-2 text-[#0A3E54] flex-shrink-0" />
-              <span>Max {event.maxApplicant} peserta</span>
-            </div>
-
-            <div className="flex items-center text-sm text-gray-600">
-              <Icon icon="mdi:clock-outline" className="w-5 h-5 mr-2 text-[#0A3E54] flex-shrink-0" />
-              <span>Didaftar: {formatDate(submittedAt)}</span>
-            </div>
-          </div>
-
-          {/* Informasi pendaftar */}
-          {/* <div className="border-t pt-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Data Pendaftaran:</h4>
-            <div className="space-y-1">
-              <p className="text-sm text-gray-600">
-                <strong>Nama:</strong> {answers.fullName}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Email:</strong> {answers.emailAddress}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Telepon:</strong> {answers.phoneNumber}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Institusi:</strong> {answers.institution}
-              </p>
-              {answers.expectation && (
-                <p className="text-sm text-gray-600">
-                  <strong>Harapan:</strong> {answers.expectation}
-                </p>
-              )}
-            </div>
-          </div> */}
-
-          {/* Action buttons */}
-          <div className="pt-4 mt-4">
+        {/* Action buttons - Fixed at bottom */}
+        <div className="pt-4 mt-auto border-t">
+          <div className="flex gap-2">
             <Link
-              to={`/events/${event.id}`}
-              className="w-full bg-[#0A3E54] text-white text-center py-2 px-4 rounded-lg text-sm hover:bg-[#0A3E54]/90 transition-colors block"
+              to='/status-pendaftaran'
+              className="flex-1 bg-[#0A3E54] text-white text-center py-2 px-4 rounded-lg text-sm hover:bg-[#0A3E54]/90 transition-colors"
             >
-              Lihat Detail Daftar
+              Lihat Status Daftar
             </Link>
+            
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white border-2 border-[#0A3E54] text-[#0A3E54] p-2 rounded-lg hover:bg-[#0A3E54] hover:text-white transition-colors flex items-center justify-center"
+              title="Lihat di Google Maps"
+            >
+              <Icon icon="tdesign:location" className="w-5 h-5" />
+            </a>
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   if (loading) {
     return (
