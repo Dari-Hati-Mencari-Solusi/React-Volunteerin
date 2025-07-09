@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
 import "./App.css";
 import RegisterPage from "./pages/users/RegisterPage";
 import Login from "./pages/users/Login";
@@ -23,9 +24,19 @@ import LayoutAdmin from "./pages/admin/LayoutAdmin";
 import LoginPageAdmin from "./pages/admin/LoginPageAdmin";
 import FormPendaftaran from "./pages/users/FormRegisterUser";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ReactGA from "react-ga4";
 // import EventDashboard from "./pages/partners/CreateEvent";
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    ReactGA.send({
+      hitType: "pageview",
+      page: location.pathname + location.search,
+      title: document.title,
+    });
+  }, [location]);
   return (
     <ThemeProvider storageKey="theme">
       <Routes>
@@ -89,8 +100,11 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/event/:id" element={<EventPage />} />
-        <Route path="/events/:eventId/register-user" element={<FormRegisterUser />} />
-        
+        <Route
+          path="/events/:eventId/register-user"
+          element={<FormRegisterUser />}
+        />
+
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
