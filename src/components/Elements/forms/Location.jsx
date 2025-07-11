@@ -37,14 +37,20 @@ const Location = forwardRef(({ onUpdate }, ref) => {
       if (!selectedCity) errors.push("Kota/kabupaten harus dipilih");
       return errors;
     },
+    validateForPublish: () => {
+      const errors = [];
+      if (!selectedProvince) errors.push("Provinsi harus dipilih untuk publikasi");
+      if (!selectedCity) errors.push("Kota/kabupaten harus dipilih untuk publikasi");
+      if (!address || address.trim().length < 10) errors.push("Alamat detail minimal 10 karakter untuk publikasi");
+      if (!latitude || !longitude) errors.push("Koordinat lokasi (latitude & longitude) wajib diisi untuk publikasi");
+      return errors;
+    },
     getData: () => {
-      // Pastikan nilai yang dikembalikan sudah divalidasi dan tidak undefined
       const validatedData = {
         province: selectedProvince || "",
         regency: selectedCity || "",
         address: address || "",
         gmaps: googleMapsUrl || "",
-        // Konversi latitude dan longitude ke string
         latitude: latitude ? String(latitude).trim() : "",
         longitude: longitude ? String(longitude).trim() : ""
       };
@@ -54,9 +60,8 @@ const Location = forwardRef(({ onUpdate }, ref) => {
     }
   }));
 
-  // Update parent component when data changes - WITH DEBOUNCE AND DEPENDENCY ARRAY
+  // Update parent component when data changes
   useEffect(() => {
-    // Pastikan gmaps, address, longitude dan latitude tidak undefined atau null
     const data = {
       province: selectedProvince || "",
       regency: selectedCity || "",
@@ -66,11 +71,7 @@ const Location = forwardRef(({ onUpdate }, ref) => {
       longitude: longitude || ""
     };
     
-    // Log data untuk debugging
     console.log("Location data yang akan diupdate:", data);
-    
-    // Selalu update parent dengan data yang ada, bahkan jika tidak lengkap
-    // Ini memastikan bahwa field opsional seperti latitude/longitude tetap terkirim
     debouncedUpdate(data);
     
   }, [selectedProvince, selectedCity, address, googleMapsUrl, latitude, longitude, debouncedUpdate]);
@@ -86,11 +87,9 @@ const Location = forwardRef(({ onUpdate }, ref) => {
   useEffect(() => {
     if (googleMapsUrl) {
       try {
-        // Coba berbagai format URL Google Maps
         let matches = googleMapsUrl.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
         
         if (!matches) {
-          // Coba format lain
           matches = googleMapsUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
         }
         
@@ -121,7 +120,6 @@ const Location = forwardRef(({ onUpdate }, ref) => {
         setProvinces(data);
       } catch (error) {
         console.error("Error fetching provinces:", error);
-        // Fallback provinces if API fails
         setProvinces([
           { id: "11", nama: "ACEH" },
           { id: "12", nama: "SUMATERA UTARA" },
@@ -147,7 +145,7 @@ const Location = forwardRef(({ onUpdate }, ref) => {
     const fetchCities = async () => {
       if (!selectedProvince) return;
       setLoading((prev) => ({ ...prev, cities: true }));
-      setCities([]); // Reset cities when province changes
+      setCities([]);
       
       try {
         const province = provinces.find((p) => p.nama === selectedProvince);
@@ -160,7 +158,6 @@ const Location = forwardRef(({ onUpdate }, ref) => {
         setCities(data);
       } catch (error) {
         console.error("Error fetching cities:", error);
-        // Fallback cities if API fails
         if (selectedProvince === "DKI JAKARTA") {
           setCities([
             { id: "3171", nama: "KOTA JAKARTA PUSAT" },
@@ -242,6 +239,7 @@ const Location = forwardRef(({ onUpdate }, ref) => {
           }`}
         >
           <div className="p-6 space-y-6">
+            {/* Province Selection */}
             <div ref={provinceRef} className="relative">
               <label className="block text-sm font-medium mb-2">
                 Provinsi <span className="text-red-500">*</span>
@@ -257,7 +255,9 @@ const Location = forwardRef(({ onUpdate }, ref) => {
                     setIsProvinceDropdownOpen(true);
                   }}
                   onFocus={() => setIsProvinceDropdownOpen(true)}
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white cursor-pointer"
+                  className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white cursor-pointer ${
+                    !selectedProvince ? "border-red-300" : ""
+                  }`}
                   disabled={loading.provinces}
                 />
                 <div
@@ -283,7 +283,6 @@ const Location = forwardRef(({ onUpdate }, ref) => {
                           setSelectedProvince(province.nama);
                           setSearchProvince("");
                           setIsProvinceDropdownOpen(false);
-                          // Reset city when province changes
                           setSelectedCity("");
                           setSearchCity("");
                         }}
@@ -332,6 +331,8 @@ const Location = forwardRef(({ onUpdate }, ref) => {
                   }}
                   className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
                     !selectedProvince || loading.cities ? "bg-gray-100 cursor-not-allowed" : "cursor-pointer"
+                  } ${
+                    selectedProvince && !selectedCity ? "border-red-300" : ""
                   }`}
                   disabled={!selectedProvince || loading.cities}
                 />
@@ -380,22 +381,31 @@ const Location = forwardRef(({ onUpdate }, ref) => {
               )}
             </div>
 
+            {/* Address Detail - Updated with Required for Publish */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Alamat Detail
+                Alamat Detail <span className="text-red-500">* (Wajib untuk Publish)</span>
               </label>
               <input
                 type="text"
-                placeholder="Masukkan detail alamat event (opsional)"
+                placeholder="Masukkan detail alamat event (wajib untuk publikasi)"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
+                className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
+                  !address || address.length < 10 ? "border-red-300" : ""
+                }`}
               />
+              {(!address || address.length < 10) && (
+                <p className="text-xs text-red-500 mt-1">
+                  Alamat detail minimal 10 karakter wajib diisi untuk publikasi event
+                </p>
+              )}
             </div>
 
+            {/* Google Maps URL */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                URL Google Maps
+                URL Google Maps <span className="text-orange-500">(Opsional tapi disarankan)</span>
               </label>
               <input
                 type="text"
@@ -409,11 +419,11 @@ const Location = forwardRef(({ onUpdate }, ref) => {
               </p>
             </div>
 
+            {/* Quick Action Buttons */}
             <div className="mt-2 flex gap-2">
               <button
                 type="button"
                 onClick={() => {
-                  // Set contoh koordinat Jakarta
                   setLatitude("-6.200000");
                   setLongitude("106.816666");
                   setGoogleMapsUrl("https://maps.google.com/?q=-6.200000,106.816666");
@@ -425,7 +435,6 @@ const Location = forwardRef(({ onUpdate }, ref) => {
               <button
                 type="button"
                 onClick={() => {
-                  // Coba dapatkan lokasi saat ini
                   if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                       (position) => {
@@ -450,30 +459,66 @@ const Location = forwardRef(({ onUpdate }, ref) => {
               </button>
             </div>
 
+            {/* Coordinates - Updated with Required for Publish */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Latitude
+                  Latitude <span className="text-red-500">* (Wajib untuk Publish)</span>
                 </label>
                 <input
                   type="text"
                   placeholder="Contoh: -6.914744"
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
+                  className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
+                    !latitude ? "border-red-300" : ""
+                  }`}
                 />
+                {!latitude && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Latitude wajib diisi untuk publikasi
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Longitude
+                  Longitude <span className="text-red-500">* (Wajib untuk Publish)</span>
                 </label>
                 <input
                   type="text"
                   placeholder="Contoh: 107.609810"
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
+                  className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
+                    !longitude ? "border-red-300" : ""
+                  }`}
                 />
+                {!longitude && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Longitude wajib diisi untuk publikasi
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Coordinates Status Indicator */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Status Koordinat untuk Publikasi:</h4>
+              <div className="flex items-center space-x-4 text-sm">
+                <div className={`flex items-center ${latitude && longitude ? 'text-green-600' : 'text-red-600'}`}>
+                  <Icon 
+                    icon={latitude && longitude ? "mdi:check-circle" : "mdi:alert-circle"} 
+                    className="mr-1" 
+                  />
+                  {latitude && longitude ? "Koordinat lengkap" : "Koordinat belum lengkap"}
+                </div>
+                <div className={`flex items-center ${address && address.length >= 10 ? 'text-green-600' : 'text-red-600'}`}>
+                  <Icon 
+                    icon={address && address.length >= 10 ? "mdi:check-circle" : "mdi:alert-circle"} 
+                    className="mr-1" 
+                  />
+                  {address && address.length >= 10 ? "Alamat detail lengkap" : "Alamat detail kurang"}
+                </div>
               </div>
             </div>
           </div>
@@ -484,11 +529,5 @@ const Location = forwardRef(({ onUpdate }, ref) => {
 });
 
 Location.displayName = "Location";
-
-console.log("Location component loaded");
-console.log("Location component ref:", Location);
-// Add a console log to confirm data is being sent
-console.log("Location component is ready to send data.");
-
 
 export default Location;
