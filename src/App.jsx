@@ -109,7 +109,7 @@ function App() {
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
-        <Route path="/status-pendaftaran" element={<RegistrationStatus />} />
+         <Route path="/status-pendaftaran/:eventId" element={<RegistrationStatus />} />
         <Route path="/notification" element={<NotificationUser />} />
         <Route path="/auth" element={<VolunteerinAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

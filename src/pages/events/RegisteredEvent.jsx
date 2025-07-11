@@ -46,45 +46,45 @@ const RegisteredEvent = () => {
     });
   };
 
-  const getStatusBadge = (status) => {
-    const statusMap = {
-      PENDING: {
-        bg: "bg-yellow-100",
-        text: "text-yellow-800",
-        label: "Menunggu",
-        icon: "mdi:clock-outline"
-      },
-      REVIEWED: { 
-        bg: "bg-blue-100", 
-        text: "text-blue-800", 
-        label: "Direview",
-        icon: "mdi:eye-outline"
-      },
-      ACCEPTED: {
-        bg: "bg-green-100",
-        text: "text-green-800",
-        label: "Diterima",
-        icon: "mdi:check-circle-outline"
-      },
-      REJECTED: { 
-        bg: "bg-red-100", 
-        text: "text-red-800", 
-        label: "Ditolak",
-        icon: "mdi:close-circle-outline"
-      },
-    };
-
-    const statusInfo = statusMap[status] || statusMap["PENDING"];
-
-    return (
-      <span
-        className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${statusInfo.bg} ${statusInfo.text}`}
-      >
-        <Icon icon={statusInfo.icon} className="w-4 h-4" />
-        {statusInfo.label}
-      </span>
-    );
+ const getStatusBadge = (status) => {
+  const statusMap = {
+    PENDING: {
+      bg: "bg-blue-100",
+      text: "text-blue-800",
+      label: "Direview",
+      icon: "mdi:eye-outline"
+    },
+    REVIEWED: { 
+      bg: "bg-blue-100", 
+      text: "text-blue-800", 
+      label: "Direview",
+      icon: "mdi:eye-outline"
+    },
+    ACCEPTED: {
+      bg: "bg-green-100",
+      text: "text-green-800",
+      label: "Diterima",
+      icon: "mdi:check-circle-outline"
+    },
+    REJECTED: { 
+      bg: "bg-red-100", 
+      text: "text-red-800", 
+      label: "Ditolak",
+      icon: "mdi:close-circle-outline"
+    },
   };
+
+  const statusInfo = statusMap[status] || statusMap["REVIEWED"];
+
+  return (
+    <span
+      className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${statusInfo.bg} ${statusInfo.text}`}
+    >
+      <Icon icon={statusInfo.icon} className="w-4 h-4" />
+      {statusInfo.label}
+    </span>
+  );
+};
 
   const EventCard = ({ registration }) => {
   const { form, answers, status, submittedAt } = registration;
@@ -151,12 +151,12 @@ const RegisteredEvent = () => {
         {/* Action buttons - Fixed at bottom */}
         <div className="pt-4 mt-auto border-t">
           <div className="flex gap-2">
-            <Link
-              to='/status-pendaftaran'
-              className="flex-1 bg-[#0A3E54] text-white text-center py-2 px-4 rounded-lg text-sm hover:bg-[#0A3E54]/90 transition-colors"
-            >
-              Lihat Status Daftar
-            </Link>
+       <Link
+  to={`/status-pendaftaran/${event.id}`}
+  className="flex-1 bg-[#0A3E54] text-white text-center py-2 px-4 rounded-lg text-sm hover:bg-[#0A3E54]/90 transition-colors"
+>
+  Lihat Status Daftar
+</Link>
             
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`}
