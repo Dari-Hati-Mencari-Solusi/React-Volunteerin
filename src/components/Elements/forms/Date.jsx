@@ -9,7 +9,6 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   
-  // Buat versi debounced dari onUpdate dengan useRef agar tidak berubah setiap render
   const debouncedUpdate = useRef(
     debounce((data) => {
       if (onUpdate) {
@@ -19,12 +18,18 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
     }, 500)
   ).current;
 
-  // Validasi dan ambil data
   useImperativeHandle(ref, () => ({
     validate: () => {
       const errors = [];
       if (!startDate) errors.push("Tanggal pembukaan harus diisi");
       if (!startTime) errors.push("Waktu pembukaan harus diisi");
+      return errors;
+    },
+    validateForPublish: () => {
+      const errors = [];
+      if (!startDate) errors.push("Tanggal mulai event wajib diisi untuk publikasi");
+      if (!startTime) errors.push("Waktu mulai event wajib diisi untuk publikasi");
+      if (!endDate) errors.push("Tanggal selesai event wajib diisi untuk publikasi");
       return errors;
     },
     getData: () => {
@@ -36,7 +41,6 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
     }
   }));
 
-  // useEffect untuk mengirim data ke parent component
   useEffect(() => {
     if (startDate && startTime) {
       const startAt = `${startDate}T${startTime}:00Z`;
@@ -46,7 +50,6 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
     }
   }, [startDate, startTime, endDate, endTime, debouncedUpdate]);
   
-  // Clean up effect saat komponen unmount
   useEffect(() => {
     return () => {
       if (debouncedUpdate && debouncedUpdate.cancel) {
@@ -55,7 +58,6 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
     };
   }, [debouncedUpdate]);
 
-  // Handler untuk tanggal end date minimal sama dengan start date
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
     setStartDate(newStartDate);
@@ -86,6 +88,7 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
           }`}
         >
           <div className="p-6 space-y-6">
+            {/* Start Date and Time */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label
@@ -99,7 +102,9 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
                   id="start-date"
                   value={startDate}
                   onChange={handleStartDateChange}
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
+                  className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
+                    !startDate ? "border-red-300" : ""
+                  }`}
                 />
                 {!startDate && (
                   <p className="text-xs text-red-500 mt-1">
@@ -119,7 +124,9 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
                   id="start-time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white"
+                  className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
+                    !startTime ? "border-red-300" : ""
+                  }`}
                 />
                 {!startTime && (
                   <p className="text-xs text-red-500 mt-1">
@@ -129,13 +136,14 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
               </div>
             </div>
 
+            {/* End Date and Time - Updated with Publish Indicator */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label
                   htmlFor="end-date"
-                  className="block text-sm font-medium mb-2 flex justify-between"
+                  className="block text-sm font-medium mb-2"
                 >
-                  <span>Tanggal Penutupan</span>
+                  Tanggal Penutupan <span className="text-red-500">* (Wajib untuk Publish)</span>
                 </label>
                 <input
                   type="date"
@@ -144,21 +152,22 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
                   min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#0a3e54]/20 focus:border-[#0a3e54] bg-white ${
-                    endDate && !endTime ? "border-yellow-300" : ""
+                    !endDate ? "border-red-300" : ""
                   }`}
                 />
-                {endDate && !endTime && (
-                  <p className="text-xs text-yellow-600 mt-1">
-                    Jangan lupa isi waktu penutupan juga
+                {!endDate && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Tanggal penutupan wajib diisi untuk publikasi event
                   </p>
                 )}
               </div>
+
               <div>
                 <label
                   htmlFor="end-time"
-                  className="block text-sm font-medium mb-2 flex justify-between"
+                  className="block text-sm font-medium mb-2"
                 >
-                  <span>Waktu Penutupan</span>
+                  Waktu Penutupan <span className="text-orange-500">(Opsional)</span>
                 </label>
                 <input
                   type="time"
@@ -169,32 +178,78 @@ const DateForm = forwardRef(({ onUpdate }, ref) => {
                     endDate && !endTime ? "border-yellow-300" : ""
                   }`}
                 />
-                {endTime && !endDate && (
+                {endDate && !endTime && (
                   <p className="text-xs text-yellow-600 mt-1">
-                    Jangan lupa isi tanggal penutupan juga
+                    Waktu penutupan disarankan diisi jika ada tanggal penutupan
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="text-sm mt-2">
-              <p className="text-gray-600">
-                {startDate && startTime ? (
-                  <>
-                    <span className="font-medium">Event akan dimulai pada: </span>
-                    {new Date(`${startDate}T${startTime}:00`).toLocaleString('id-ID')}
-                  </>
-                ) : (
-                  <span className="text-gray-400">Silakan isi tanggal dan waktu pembukaan</span>
-                )}
-              </p>
-              
-              {endDate && endTime && (
-                <p className="text-gray-600 mt-1">
-                  <span className="font-medium">Event akan berakhir pada: </span>
-                  {new Date(`${endDate}T${endTime}:00`).toLocaleString('id-ID')}
+            {/* Event Schedule Preview */}
+            <div className="text-sm mt-4 p-3 bg-gray-50 rounded-lg">
+              <h4 className="font-medium text-gray-700 mb-2">Preview Jadwal Event:</h4>
+              <div className="space-y-1">
+                <p className="text-gray-600">
+                  {startDate && startTime ? (
+                    <>
+                      <span className="font-medium">Pembukaan: </span>
+                      {new Date(`${startDate}T${startTime}:00`).toLocaleString('id-ID', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </>
+                  ) : (
+                    <span className="text-gray-400">Silakan isi tanggal dan waktu pembukaan</span>
+                  )}
                 </p>
-              )}
+                
+                {endDate && (
+                  <p className="text-gray-600">
+                    <span className="font-medium">Penutupan: </span>
+                    {new Date(`${endDate}T${endTime || '23:59'}:00`).toLocaleString('id-ID', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Publish Status Indicator */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Status Jadwal untuk Publikasi:</h4>
+              <div className="space-y-1 text-sm">
+                <div className={`flex items-center ${startDate && startTime ? 'text-green-600' : 'text-red-600'}`}>
+                  <Icon 
+                    icon={startDate && startTime ? "mdi:check-circle" : "mdi:alert-circle"} 
+                    className="mr-1" 
+                  />
+                  {startDate && startTime ? "Jadwal pembukaan sudah lengkap" : "Jadwal pembukaan belum lengkap"}
+                </div>
+                <div className={`flex items-center ${endDate ? 'text-green-600' : 'text-red-600'}`}>
+                  <Icon 
+                    icon={endDate ? "mdi:check-circle" : "mdi:alert-circle"} 
+                    className="mr-1" 
+                  />
+                  {endDate ? "Tanggal penutupan sudah diset" : "Tanggal penutupan wajib untuk publikasi"}
+                </div>
+                <div className={`flex items-center ${endTime ? 'text-green-600' : 'text-yellow-600'}`}>
+                  <Icon 
+                    icon={endTime ? "mdi:check-circle" : "mdi:information"} 
+                    className="mr-1" 
+                  />
+                  {endTime ? "Waktu penutupan sudah diset" : "Waktu penutupan opsional (default: 23:59)"}
+                </div>
+              </div>
             </div>
           </div>
         </div>

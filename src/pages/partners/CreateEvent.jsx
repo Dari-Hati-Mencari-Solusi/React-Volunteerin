@@ -94,9 +94,42 @@ const formUtils = {
     return errors;
   },
 
+  validateForPublish: (formData) => {
+    let errors = [];
+
+    if (!formData.title || formData.title.trim().length < 5) {
+      errors.push("Judul event minimal 5 karakter untuk publikasi");
+    }
+
+    if (!formData.description || formData.description.trim().length < 20) {
+      errors.push("Deskripsi event minimal 20 karakter untuk publikasi");
+    }
+
+    if (!formData.banner) {
+      errors.push("Banner event wajib diupload untuk publikasi");
+    }
+
+    if (!formData.contactPerson || formData.contactPerson.trim().length < 5) {
+      errors.push("Kontak person wajib diisi untuk publikasi");
+    }
+
+    if (!formData.requirement || formData.requirement.trim().length < 10) {
+      errors.push("Requirement minimal 10 karakter untuk publikasi");
+    }
+
+    if (!formData.maxApplicant || parseInt(formData.maxApplicant) < 1) {
+      errors.push("Maksimal pendaftar harus diisi minimal 1 orang untuk publikasi");
+    }
+
+    return errors;
+  },
+
   prepareFormDataForSubmit: (formData, isReadyToPublish) => {
     try {
       const apiFormData = new FormData();
+
+      console.log("🔍 Preparing form data for submit:");
+      console.log("📝 isReadyToPublish:", isReadyToPublish);
 
       if (!formData.title) {
         throw new Error("Judul event harus diisi");
@@ -132,7 +165,11 @@ const formUtils = {
 
       apiFormData.append("isPaid", formData.isPaid);
       apiFormData.append("price", formData.price || "0");
-      apiFormData.append("isRelease", isReadyToPublish);
+      
+      // Ensure isRelease is properly set
+      apiFormData.append("isRelease", isReadyToPublish ? "true" : "false");
+      
+      console.log("📤 isRelease value being sent:", isReadyToPublish ? "true" : "false");
 
       if (
         formData.categoryIds &&
@@ -374,7 +411,34 @@ const CreateEvent = ({ onBack }) => {
   }, [navigate]);
 
   const handleToggle = () => {
-    setIsReadyToPublish(!isReadyToPublish);
+    const newPublishStatus = !isReadyToPublish;
+    
+    if (newPublishStatus) {
+      // Show confirmation dialog when enabling publish
+      Swal.fire({
+        title: 'Konfirmasi Publikasi',
+        text: 'Event akan dipublikasikan dan dapat dilihat oleh pengguna. Pastikan semua data sudah benar.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10B981',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Ya, Siap Publish',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setIsReadyToPublish(true);
+          Swal.fire({
+            icon: 'success',
+            title: 'Siap Publish!',
+            text: 'Event akan dipublikasikan setelah Anda klik "Buat & Publikasikan Event"',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+      });
+    } else {
+      setIsReadyToPublish(false);
+    }
   };
 
   // Form update handlers
@@ -485,10 +549,29 @@ const CreateEvent = ({ onBack }) => {
         return;
       }
 
+      // Additional validation for publish
+      if (isReadyToPublish) {
+        const publishErrors = formUtils.validateForPublish(formData);
+        
+        if (publishErrors.length > 0) {
+          Swal.fire({
+            icon: "error",
+            title: "Tidak Bisa Dipublikasikan",
+            html: `<p>Event tidak dapat dipublikasikan karena:</p><ul class="text-left mt-2">${publishErrors
+              .map((err) => `<li>• ${err}</li>`)
+              .join("")}</ul>`,
+            confirmButtonText: "OK",
+          });
+          return;
+        }
+      }
+
       // Show loading state
       Swal.fire({
         title: "Memproses...",
-        text: "Sedang membuat event, harap tunggu.",
+        text: isReadyToPublish 
+          ? "Sedang membuat dan mempublikasikan event..." 
+          : "Sedang menyimpan event sebagai draft...",
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
@@ -539,11 +622,12 @@ const CreateEvent = ({ onBack }) => {
           icon: "success",
           title: "Berhasil!",
           text: isReadyToPublish
-            ? "Event berhasil dibuat dan dipublish!"
-            : "Event berhasil dibuat tetapi belum dipublish.",
+            ? "Event berhasil dibuat dan dipublikasikan! Pengguna sekarang dapat melihat event Anda."
+            : "Event berhasil disimpan sebagai draft. Anda dapat mempublikasikannya nanti dari halaman daftar event.",
           confirmButtonText: "OK",
+          confirmButtonColor: isReadyToPublish ? "#10B981" : "#0A3E54"
         }).then(() => {
-          navigate("/partner/events");
+          navigate("/partner/dashboard/buat-event");
         });
         return;
       } catch (serviceError) {
@@ -586,11 +670,12 @@ const CreateEvent = ({ onBack }) => {
                 icon: "success",
                 title: "Berhasil!",
                 text: isReadyToPublish
-                  ? "Event berhasil dibuat dan dipublish!"
-                  : "Event berhasil dibuat tetapi belum dipublish.",
+                  ? "Event berhasil dibuat dan dipublikasikan!"
+                  : "Event berhasil disimpan sebagai draft.",
                 confirmButtonText: "OK",
+                confirmButtonColor: isReadyToPublish ? "#10B981" : "#0A3E54"
               }).then(() => {
-                navigate("/partner/events");
+                navigate("/partner/dashboard/buat-event");
               });
               return;
             } catch (retryError) {
@@ -715,37 +800,48 @@ const CreateEvent = ({ onBack }) => {
       <RegistrationFee ref={feeFormRef} onUpdate={handleFeeFormUpdate} />
       <BannerUpload ref={bannerUploadRef} onUpdate={handleBannerUpdate} />
 
-      <div className="flex items-center space-x-2">
-        <label
-          htmlFor="publish-toggle"
-          className="text-sm font-medium text-gray-700"
-        >
-          Siap dipublish?
-        </label>
-        <div className="relative inline-block w-12 align-middle select-none transition duration-200 ease-in">
-          <input
-            type="checkbox"
-            id="publish-toggle"
-            checked={isReadyToPublish}
-            onChange={handleToggle}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={handleToggle}
-            className={`w-12 h-6 rounded-full flex items-center transition-colors duration-200 focus:outline-none ${
-              isReadyToPublish ? "bg-blue-600" : "bg-gray-200"
-            }`}
-          >
-            <div
-              className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
-                isReadyToPublish ? "translate-x-7" : "translate-x-1"
-              }`}
-            ></div>
-          </button>
+      {/* Enhanced Publish Toggle Section */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Status Publikasi</h3>
+            <p className="text-sm text-gray-600">
+              {isReadyToPublish 
+                ? "Event akan dipublikasikan dan dapat dilihat oleh pengguna setelah dibuat" 
+                : "Event akan disimpan sebagai draft dan tidak dapat dilihat oleh pengguna"}
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className={`text-sm font-medium ${isReadyToPublish ? 'text-green-600' : 'text-yellow-600'}`}>
+              {isReadyToPublish ? '✓ Siap Publish' : '○ Draft'}
+            </span>
+            <div className="relative inline-block w-12 align-middle select-none transition duration-200 ease-in">
+              <input
+                type="checkbox"
+                id="publish-toggle"
+                checked={isReadyToPublish}
+                onChange={handleToggle}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={handleToggle}
+                className={`w-12 h-6 rounded-full flex items-center transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  isReadyToPublish ? "bg-green-600" : "bg-gray-300"
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                    isReadyToPublish ? "translate-x-7" : "translate-x-1"
+                  }`}
+                ></div>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Action Buttons */}
       <div className="flex flex-wrap gap-4">
         <button
           type="button"
@@ -759,14 +855,16 @@ const CreateEvent = ({ onBack }) => {
           type="button"
           onClick={handleCreateEvent}
           disabled={loading}
-          className={`bg-[#0A3E54] py-2 px-4 text-white rounded-lg flex items-center ${
-            loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#072a39]"
+          className={`py-2 px-4 text-white rounded-lg flex items-center transition-colors ${
+            loading ? "opacity-70 cursor-not-allowed bg-gray-400" : 
+            isReadyToPublish ? "bg-green-600 hover:bg-green-700" : "bg-[#0A3E54] hover:bg-[#072a39]"
           }`}
         >
           {loading && (
             <div className="mr-2 w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
           )}
-          Buat Event
+          {loading ? "Memproses..." : 
+           isReadyToPublish ? "Buat & Publikasikan Event" : "Simpan sebagai Draft"}
         </button>
       </div>
     </section>
