@@ -6,7 +6,7 @@ import { Header } from "../partners/layouts/Header";
 
 import { cn } from "../../utils/cn";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import DashboardPartner from "./DashboardPartner";
 import Analytics from "../../components/Fragments/AnalyticPage";
@@ -23,6 +23,7 @@ const Layout = () => {
   const isDesktopDevice = useMediaQuery("(min-width: 768px)");
   const [collapsed, setCollapsed] = useState(!isDesktopDevice);
   const location = useLocation();
+  const params = useParams();
   const sidebarRef = useRef(null);
 
   useEffect(() => {
@@ -36,12 +37,20 @@ const Layout = () => {
   });
 
   const renderContent = () => {
-    // Extract the current path and use it to determine which content to display
     const path = location.pathname;
-    const contentKey = path.split("/").pop(); // Get the last segment of the path
+    console.log("Layout - Current path:", path);
+    console.log("Layout - URL params:", params);
+    
+    // Handle route dengan parameter eventId ATAU route pendaftar biasa
+    if (path.includes("/pendaftar")) {
+      console.log("Layout - Rendering VolunteerPage (with or without eventId)");
+      return <VolunteerPage />;
+    }
+    
+    const contentKey = path.split("/").pop();
+    console.log("Layout - Content key:", contentKey);
 
     switch (contentKey) {
-      // partner
       case "dashboard":
         return <DashboardPartner />;
       case "analytics":
@@ -52,8 +61,6 @@ const Layout = () => {
         return <CreateEvent />;
       case "create-formulir":
         return <CreateFormulirPage />;
-      case "pendaftar":
-        return <VolunteerPage />;
       case "pencairan-dana":
         return <WithDrawPage />;
       case "profile-partner":
@@ -62,13 +69,22 @@ const Layout = () => {
         return <ResponsiblePartnerPage />;
       case "legalitas":
         return <LegalitasPage />;
+      case "media-sosial":
+        return <div>Media Sosial Page</div>;
+      case "faq":
+        return <div>FAQ Page</div>;
+      case "cs-partner":
+        return <div>CS Partner Page</div>;
+      case "panduan":
+        return <div>Panduan Page</div>;
       default:
+        console.log("Layout - Rendering default dashboard");
         return <DashboardPartner />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-white transition-colors ">
+    <div className="min-h-screen bg-white transition-colors">
       <div
         className={cn(
           "pointer-events-none fixed inset-0 -z-10 bg-black opacity-0 transition-opacity",

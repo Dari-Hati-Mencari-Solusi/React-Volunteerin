@@ -7,7 +7,7 @@ import PropTypes from "prop-types";
 import { authService } from "../../../services/authService";
 import { partnerService } from "../../../services/partnerService";
 import { toast } from "react-toastify";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export const Header = ({ collapsed, setCollapsed }) => {
   const { theme, setTheme } = useTheme();
@@ -24,6 +24,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
   const [role, setRole] = useState("PARTNER");
   
   const navigate = useNavigate();
+  const location = useLocation();
   const profileMenuRef = useRef(null);
 
   // Close profile menu when clicking outside
@@ -115,9 +116,15 @@ export const Header = ({ collapsed, setCollapsed }) => {
     const eventId = e.target.value;
     setSelectedOption(eventId);
     
-    // Disini bisa ditambahkan navigasi ke halaman event yang dipilih
-    // atau tindakan lain yang diperlukan
     console.log("Selected event:", eventId);
+    console.log("Current location:", location.pathname);
+    
+    // Navigasi ke halaman pendaftar dengan eventId
+    if (eventId) {
+      const targetPath = `/partner/dashboard/pendaftar/${eventId}`;
+      console.log("Navigating to:", targetPath);
+      navigate(targetPath);
+    }
   };
 
   // Handle logout

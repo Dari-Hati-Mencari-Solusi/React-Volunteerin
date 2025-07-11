@@ -796,12 +796,35 @@ export const partnerService = {
    */
   getEventRegistrants: async (eventId, params = {}) => {
     try {
+      console.log(`🔍 API Call: GET /partners/me/events/${eventId}/registrants`);
+      console.log('📋 Parameters:', params);
+      
+      // Log token untuk memastikan autentikasi
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      console.log('🔑 Token exists:', !!token);
+      if (token) {
+        console.log('🔑 Token preview:', token.substring(0, 50) + '...');
+      }
+      
       const response = await httpClient.get(
         `${API_URL}/partners/me/events/${eventId}/registrants`, 
         { params }
       );
+      
+      console.log('✅ API Response Status:', response.status);
+      console.log('📦 API Response Data:', response.data);
+      console.log('🏗️ Response Structure:', {
+        hasRegistrants: !!response.data.registrants,
+        registrantsKeys: response.data.registrants ? Object.keys(response.data.registrants) : [],
+        totalItems: response.data.registrants?.totalItems,
+        dataLength: response.data.registrants?.data?.length
+      });
+      
       return response.data;
     } catch (error) {
+      console.error('❌ API Error:', error);
+      console.error('❌ Error Response:', error.response?.data);
+      console.error('❌ Error Status:', error.response?.status);
       handleApiError(error, 'Failed to get registrant data');
     }
   },

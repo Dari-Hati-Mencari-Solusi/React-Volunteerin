@@ -22,11 +22,21 @@ const ListVolunteer = () => {
   const [selectedRegistrant, setSelectedRegistrant] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   
-  // Fetch registrants from API
+  // Tambahkan state untuk tracking review process
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewingRegistrantId, setReviewingRegistrantId] = useState(null);
+
+  // ... existing fetchRegistrants function ...
+
   const fetchRegistrants = useCallback(async () => {
-    if (!eventId) return;
+    if (!eventId) {
+      console.error("❌ Event ID tidak ditemukan di ListVolunteer");
+      return;
+    }
     
     setLoading(true);
+    console.log("🔄 ListVolunteer: Fetching registrants for event:", eventId);
+    
     try {
       const params = {
         page: searchParams.get("page") || 1,
@@ -34,26 +44,55 @@ const ListVolunteer = () => {
         sort: searchParams.get("sort") || "desc",
       };
       
-      // Add search term if exists
       if (searchTerm) {
         params.s = searchTerm;
       }
       
-      // Add status filter if selected
-      if (selectedStatus) {
-        params.status = selectedStatus;
+      if (selectedStatus && selectedStatus !== 'pending') {
+        params.status = selectedStatus.toLowerCase();
       }
       
-      const response = await partnerService.getEventRegistrants(eventId, params);
+      console.log("📋 Using params:", params);
       
-      if (response && response.registrants) {
-        setRegistrants(response.registrants.data || []);
+      const response = await partnerService.getEventRegistrants(eventId, params);
+      console.log("📦 ListVolunteer response:", response);
+      
+      if (response?.registrants?.data) {
+        let filteredData = response.registrants.data;
+        
+        // Handle pending filter client-side
+        if (selectedStatus === 'pending') {
+          filteredData = filteredData.filter(r => 
+            r.status !== "ACCEPTED" && r.status !== "REJECTED"
+          );
+          console.log("🔄 Filtered pending data:", filteredData);
+        }
+        
+        console.log("✅ Setting registrants data:", filteredData.length, "items");
+        setRegistrants(filteredData);
         setPagination({
           currentPage: response.registrants.currentPage || 1,
           totalPages: response.registrants.totalPages || 1,
           totalItems: response.registrants.totalItems || 0
         });
+        
+        // Log sample data structure
+        if (filteredData.length > 0) {
+          console.log("📝 Sample registrant data:", {
+            id: filteredData[0].id,
+            status: filteredData[0].status,
+            hasAnswers: !!filteredData[0].answers,
+            hasUser: !!filteredData[0].user,
+            answersKeys: filteredData[0].answers ? Object.keys(filteredData[0].answers) : [],
+            userKeys: filteredData[0].user ? Object.keys(filteredData[0].user) : []
+          });
+        }
+        
       } else {
+        console.error("❌ Unexpected response structure:", response);
+        console.error("❌ Response keys:", response ? Object.keys(response) : 'null response');
+        
+        toast.error("Format respons server tidak sesuai");
         setRegistrants([]);
         setPagination({
           currentPage: 1,
@@ -62,16 +101,30 @@ const ListVolunteer = () => {
         });
       }
     } catch (error) {
-      console.error("Error fetching registrants:", error);
-      toast.error("Gagal memuat data pendaftar");
+      console.error("❌ Error fetching registrants:", error);
+      
+      if (error.response?.status === 401) {
+        toast.error("Sesi login telah berakhir. Silakan login ulang.");
+        window.location.href = '/login-partner';
+      } else if (error.response?.status === 404) {
+        toast.error("Data pendaftar tidak ditemukan.");
+      } else if (error.response?.status === 403) {
+        toast.error("Anda tidak memiliki akses ke data ini.");
+      } else {
+        toast.error("Gagal memuat data pendaftar: " + (error.message || "Terjadi kesalahan"));
+      }
+      
       setRegistrants([]);
     } finally {
       setLoading(false);
     }
   }, [eventId, searchParams, searchTerm, selectedStatus]);
-  
+
+  // ... existing useEffect hooks ...
+
   // Initial fetch and on dependency changes
   useEffect(() => {
+    console.log("Effect triggered, fetching registrants...");
     fetchRegistrants();
   }, [fetchRegistrants]);
   
@@ -141,7 +194,10 @@ const ListVolunteer = () => {
   const handleViewRegistrant = async (registrantId) => {
     setDetailLoading(true);
     try {
+      console.log(`Fetching detail for registrant: ${registrantId}`);
       const response = await partnerService.getRegistrantDetail(eventId, registrantId);
+      console.log("Registrant detail response:", response);
+      
       if (response && response.data) {
         setSelectedRegistrant(response.data);
       } else {
@@ -158,15 +214,39 @@ const ListVolunteer = () => {
   // Close registrant detail
   const handleCloseDetail = () => {
     setSelectedRegistrant(null);
+    setReviewLoading(false);
+    setReviewingRegistrantId(null);
   };
   
-  // Review registrant
+  // Review registrant - IMPROVED VERSION
   const handleReviewRegistrant = async (status) => {
     if (!selectedRegistrant || !selectedRegistrant.id) return;
     
+    setReviewLoading(true);
+    setReviewingRegistrantId(selectedRegistrant.id);
+    
+    // Show loading toast
+    const loadingToast = toast.loading(
+      `Sedang memproses ${status === 'accepted' ? 'penerimaan' : 'penolakan'} pendaftar...`
+    );
+    
     try {
-      await partnerService.reviewRegistrant(eventId, selectedRegistrant.id, status);
-      toast.success(`Pendaftar berhasil ${status === 'accepted' ? 'diterima' : 'ditolak'}`);
+      console.log(`Reviewing registrant ${selectedRegistrant.id} with status: ${status}`);
+      
+      const response = await partnerService.reviewRegistrant(eventId, selectedRegistrant.id, status);
+      console.log("Review response:", response);
+      
+      // Update loading toast to success
+      toast.update(loadingToast, {
+        render: `Pendaftar berhasil ${status === 'accepted' ? 'diterima' : 'ditolak'}!`,
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       
       // Update selectedRegistrant status
       setSelectedRegistrant({
@@ -174,14 +254,42 @@ const ListVolunteer = () => {
         status: status === 'accepted' ? 'ACCEPTED' : 'REJECTED'
       });
       
-      // Refresh registrant list
-      fetchRegistrants();
+      // Update registrants list locally untuk immediate feedback
+      setRegistrants(prevRegistrants => 
+        prevRegistrants.map(registrant => 
+          registrant.id === selectedRegistrant.id 
+            ? { ...registrant, status: status === 'accepted' ? 'ACCEPTED' : 'REJECTED' }
+            : registrant
+        )
+      );
+      
+      // Refresh registrant list in background
+      setTimeout(() => {
+        fetchRegistrants();
+      }, 1000);
+      
     } catch (error) {
       console.error("Error reviewing registrant:", error);
-      toast.error("Gagal memproses status pendaftar");
+      
+      // Update loading toast to error
+      toast.update(loadingToast, {
+        render: `Gagal memproses status pendaftar: ${error.response?.data?.message || error.message || 'Terjadi kesalahan'}`,
+        type: "error",
+        isLoading: false,
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setReviewLoading(false);
+      setReviewingRegistrantId(null);
     }
   };
   
+  // ... existing helper functions ...
+
   // Format date
   const formatDate = (dateString) => {
     const options = { 
@@ -194,12 +302,20 @@ const ListVolunteer = () => {
     return new Date(dateString).toLocaleDateString('id-ID', options);
   };
   
-  // Get name from answers or user
+  // Get name from answers or user (sesuai dengan struktur response BE)
   const getRegistrantName = (registrant) => {
     if (registrant.answers && registrant.answers.fullName) {
       return registrant.answers.fullName;
     }
     return registrant.user?.name || 'Tidak tersedia';
+  };
+  
+  // Get email from answers or user (sesuai dengan struktur response BE)
+  const getRegistrantEmail = (registrant) => {
+    if (registrant.answers && registrant.answers.emailAddress) {
+      return registrant.answers.emailAddress;
+    }
+    return registrant.user?.email || 'Tidak tersedia';
   };
   
   // Generate pages array for pagination
@@ -304,7 +420,7 @@ const ListVolunteer = () => {
                           {getRegistrantName(registrant)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {registrant.user?.email || 'No email'}
+                          {getRegistrantEmail(registrant)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -313,7 +429,13 @@ const ListVolunteer = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {registrant.status === "ACCEPTED" ? (
+                        {/* Show loading spinner if this registrant is being reviewed */}
+                        {reviewingRegistrantId === registrant.id ? (
+                          <div className="flex items-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-[#0A3E54] mr-2"></div>
+                            <span className="text-sm text-gray-600">Memproses...</span>
+                          </div>
+                        ) : registrant.status === "ACCEPTED" ? (
                           <span className="px-2 inline-flex text-xs leading-5 p-1 font-semibold rounded-full bg-green-100 text-green-800">
                             <Icon
                               icon="mdi:check-circle"
@@ -349,7 +471,12 @@ const ListVolunteer = () => {
                         <div className="flex items-center gap-x-2">
                           <button 
                             onClick={() => handleViewRegistrant(registrant.id)}
-                            className="inline-flex items-center px-3 py-1.5 bg-[#0A3E54] text-white rounded-lg hover:bg-[#072A3A] transition-colors"
+                            disabled={reviewingRegistrantId === registrant.id}
+                            className={`inline-flex items-center px-3 py-1.5 text-white rounded-lg transition-colors ${
+                              reviewingRegistrantId === registrant.id 
+                                ? 'bg-gray-400 cursor-not-allowed' 
+                                : 'bg-[#0A3E54] hover:bg-[#072A3A]'
+                            }`}
                           >
                             <Icon
                               icon="mdi:eye"
@@ -425,6 +552,7 @@ const ListVolunteer = () => {
           registrant={selectedRegistrant}
           onClose={handleCloseDetail}
           onReview={handleReviewRegistrant}
+          reviewLoading={reviewLoading}
         />
       )}
       
