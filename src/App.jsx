@@ -25,6 +25,8 @@ import LoginPageAdmin from "./pages/admin/LoginPageAdmin";
 import FormPendaftaran from "./pages/users/FormRegisterUser";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ReactGA from "react-ga4";
+import RegistrationStatus from "./components/Fragments/RegistrationStatus";
+// import EventDashboard from "./pages/partners/CreateEvent";
 
 function App() {
   const location = useLocation();
@@ -73,6 +75,7 @@ function App() {
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
+         <Route path="/status-pendaftaran/:eventId" element={<RegistrationStatus />} />
         <Route path="/notification" element={<NotificationUser />} />
         <Route path="/auth" element={<VolunteerinAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
