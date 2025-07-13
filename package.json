@@ -24,6 +24,7 @@
     "react-dom": "^18.3.1",
     "react-fast-marquee": "^1.6.5",
     "react-ga4": "^2.1.0",
+    "react-helmet": "^6.1.0",
     "react-hook-form": "^7.54.2",
     "react-loading-skeleton": "^3.5.0",
     "react-quill": "^0.0.2",
