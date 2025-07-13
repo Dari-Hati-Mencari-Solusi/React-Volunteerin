@@ -302,7 +302,7 @@ const RegisteredEvent = () => {
                 </h2>
                 <Link
                   to="/"
-                  className="bg-[#0A3E54] text-white px-8 py-3 rounded-full hover:bg-[#0A3E54]/90 transition-colors"
+                  className="bg-[#0A3E54] text-white px-8 py-2 rounded-xl hover:bg-[#0A3E54]/90 transition-colors"
                 >
                   Cari Volunteer
                 </Link>

@@ -183,9 +183,9 @@ const EventPage = () => {
                     {eventDetails.title}
                   </h1>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center text-center font-medium bg-[#22D0EE] text-[#0A3E54] px-5 py-[5px] rounded-full">
-                      <Icon icon="mdi:users" className="w-10 h-10 mr-1" />
-                      <span className="text-sm sm:text-md">
+                    <div className="flex text-center items-center font-medium bg-[#2196F3] text-white px-5 py-[5px] rounded-full">
+                      <Icon icon="mdi:users" className="w-8 h-8 mr-1" />
+                      <span className="text-md whitespace-nowrap">
                         {eventDetails.quota}
                       </span>
                     </div>
@@ -208,7 +208,7 @@ const EventPage = () => {
                     >
                       <Icon
                         icon="meteor-icons:share"
-                        className="w-7 h-7 text-[#0A3E54]"
+                        className="w-7 h-7 text-[#164D63]"
                       />
                     </button>
                   </div>
@@ -225,7 +225,7 @@ const EventPage = () => {
                     event.categories.map((category) => (
                       <span
                         key={category.id}
-                        className="font-medium bg-[#22D0EE] text-[#0A3E54] px-4 sm:px-7 py-[6px] rounded-full text-sm sm:text-md"
+                        className="font-medium bg-[#2196F3] text-white px-4 sm:px-7 py-[6px] rounded-full text-sm sm:text-md"
                       >
                         {category.name}
                       </span>
@@ -262,14 +262,14 @@ const EventPage = () => {
                         </p>
                       </div>
                     </div>
-                    <button className="flex items-center justify-center bg-[#22D0EE] px-4 py-2 rounded-full text-[#0A3E54] sm:hidden">
+                    <button className="flex items-center justify-center bg-[#2196F3] px-4 py-2 rounded-full text-white sm:hidden">
                       <Icon icon="ph:instagram-logo-bold" className="w-5 h-5" />
                     </button>
                   </div>
                   <div className="hidden md:block md:ml-auto">
-                    <button className="flex items-center gap-1 bg-[#22D0EE] px-4 py-2 rounded-full text-[#0A3E54]">
+                    <button className="flex items-center gap-1 bg-[#2196F3] px-4 py-2 rounded-full text-white">
                       <Icon icon="ph:instagram-logo-bold" className="w-5 h-5" />
-                      <span className="text-[#0A3E54] font-medium">
+                      <span className="text-text-white font-medium">
                         {eventDetails.organizer.instagram}
                       </span>
                     </button>

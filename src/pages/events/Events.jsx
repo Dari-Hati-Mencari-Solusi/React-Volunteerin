@@ -37,16 +37,18 @@ const EventCard = ({ event, isLoading, showSaveButton = true }) => {
     const savedEvents = JSON.parse(localStorage.getItem("savedEvents") || "[]");
 
     if (isSaved) {
+      // Hapus dari saved events
       const updatedSavedEvents = savedEvents.filter(
         (savedEvent) => savedEvent.id !== event.id
       );
       localStorage.setItem("savedEvents", JSON.stringify(updatedSavedEvents));
 
+      // Trigger storage event untuk sinkronisasi
       window.dispatchEvent(new Event("storage"));
 
-      setIsSaved(false);
-      showNotification("Event dihapus dari daftar tersimpan");
+    
     } else {
+      // Tambah ke saved events
       const eventToSave = {
         id: event.id,
         title: event.title,
@@ -63,10 +65,10 @@ const EventCard = ({ event, isLoading, showSaveButton = true }) => {
       savedEvents.push(eventToSave);
       localStorage.setItem("savedEvents", JSON.stringify(savedEvents));
 
+      // Trigger storage event untuk sinkronisasi
       window.dispatchEvent(new Event("storage"));
 
-      setIsSaved(true);
-      showNotification("Event disimpan!");
+     
     }
   };
 
@@ -94,26 +96,47 @@ const EventCard = ({ event, isLoading, showSaveButton = true }) => {
   //   }
   // };
 
-const formatEventDate = (dateString) => {
-  if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    
-    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-    
-    const dayName = days[date.getDay()];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    
-    return `${dayName}, ${day} ${month} ${year}`;
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return "";
-  }
-};
+  const formatEventDate = (dateString) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+
+      const days = [
+        "Minggu",
+        "Senin",
+        "Selasa",
+        "Rabu",
+        "Kamis",
+        "Jumat",
+        "Sabtu",
+      ];
+
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mei",
+        "Jun",
+        "Jul",
+        "Ags",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Des",
+      ];
+
+      const dayName = days[date.getDay()];
+      const day = date.getDate();
+      const month = months[date.getMonth()];
+      const year = date.getFullYear();
+
+      return `${dayName}, ${day} ${month} ${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "";
+    }
+  };
 
   if (isLoading) {
     return <EventCardSkeleton />;
@@ -173,33 +196,35 @@ const formatEventDate = (dateString) => {
           <div className="flex justify-between items-center">
             <CategoryBadge categories={event.categories} />
 
-            {showSaveButton && (
-              <button
-                className={`${
-                  isSaved ? "text-[#16A1CB]" : "text-[#0A3E54]"
-                } hover:text-[#16A1CB] transition-colors focus:outline-none relative group p-2 z-30`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  toggleSaveEvent(e);
-                }}
-                aria-label={isSaved ? "Hapus dari tersimpan" : "Simpan event"}
-                type="button"
-              >
-                <Icon
-                  icon={
-                    isSaved ? "akar-icons:ribbon-fill" : "akar-icons:ribbon"
-                  }
-                  width="20"
-                  height="20"
-                  className="pointer-events-none"
-                />
+           {showSaveButton && (
+  <button
+    className={`${
+      isSaved ? "text-[#16A1CB]" : "text-[#0A3E54]"
+    } hover:text-[#16A1CB] transition-colors focus:outline-none relative group p-2 z-30`}
+    onClick={(e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleSaveEvent(e);
+    }}
+    aria-label={isSaved ? "Hapus dari tersimpan" : "Simpan event"}
+    type="button"
+  >
+    <Icon
+      icon={
+        isSaved ? "gravity-ui:bookmark-fill" : "akar-icons:ribbon"
+      }
+      width="24"
+      height="24"
+      className={`pointer-events-none transition-all duration-300 ${
+        isSaved ? "scale-110" : "scale-100"
+      }`}
+    />
 
-                <span className="absolute -top-10 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-40">
-                  {isSaved ? "Hapus dari tersimpan" : "Simpan event"}
-                </span>
-              </button>
-            )}
+    <span className="absolute -top-10 right-0 bg-[#0A3E54] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-40 shadow-lg">
+      {isSaved ? "Hapus dari tersimpan" : "Simpan event"}
+    </span>
+  </button>
+)}
           </div>
         </div>
       </div>
@@ -283,7 +308,7 @@ const EmptyEventMessage = () => (
 );
 
 const CategoryBadge = ({ categories }) => (
-  <div className="text-[#0A3E54] bg-[#22D0EE] p-2 rounded-full px-4 font-semibold text-xs">
+  <div className="bg-[#2196F3] text-white p-2 rounded-full px-4 font-semibold text-xs">
     {categories && categories.length > 0
       ? categories[0].name
       : "Event Berjalan"}
