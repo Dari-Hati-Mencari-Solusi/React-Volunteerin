@@ -26,13 +26,19 @@ const Volunteer = forwardRef(({ onUpdate }, ref) => {
       if (!contactPerson) errors.push("Contact person harus diisi");
       return errors;
     },
-    validateForPublish: () => {
-      const errors = [];
-      if (!requirement || requirement.trim().length < 10) errors.push("Persyaratan volunteer minimal 10 karakter untuk publikasi");
-      if (!contactPerson || contactPerson.trim().length < 5) errors.push("Kontak person minimal 5 karakter untuk publikasi");
-      if (!maxApplicant || parseInt(maxApplicant) < 1) errors.push("Batas maksimal volunteer wajib diisi minimal 1 orang untuk publikasi");
-      return errors;
-    },
+validateForPublish: () => {
+  const errors = [];
+  if (!requirement || requirement.trim().length < 10) errors.push("Persyaratan volunteer minimal 10 karakter untuk publikasi");
+  if (!contactPerson || contactPerson.trim().length < 5) errors.push("Kontak person minimal 5 karakter untuk publikasi");
+  if (!maxApplicant || parseInt(maxApplicant) < 1) errors.push("Batas maksimal volunteer wajib diisi minimal 1 orang untuk publikasi");
+  
+  // Validasi tambahan untuk acceptedQuota
+  if (acceptedQuota && maxApplicant && parseInt(acceptedQuota) > parseInt(maxApplicant)) {
+    errors.push("Kuota yang diterima tidak boleh melebihi jumlah pendaftar maksimal");
+  }
+  
+  return errors;
+},
     getData: () => {
       return {
         requirement,
@@ -43,19 +49,20 @@ const Volunteer = forwardRef(({ onUpdate }, ref) => {
     }
   }));
 
-  useEffect(() => {
-    const formattedAcceptedQuota = acceptedQuota.trim() !== "" ? parseInt(acceptedQuota, 10) : "";
-    const formattedMaxApplicant = maxApplicant.trim() !== "" ? parseInt(maxApplicant, 10) : "";
-    
-    const data = {
-      requirement: requirement || "",
-      contactPerson: contactPerson || "",
-      maxApplicant: formattedMaxApplicant || "",
-      acceptedQuota: formattedAcceptedQuota || ""
-    };
-    
-    debouncedUpdate(data);
-  }, [requirement, contactPerson, maxApplicant, acceptedQuota, debouncedUpdate]);
+useEffect(() => {
+  // Ensure numbers are properly formatted as strings
+  const formattedMaxApplicant = maxApplicant ? String(maxApplicant) : "";
+  const formattedAcceptedQuota = acceptedQuota ? String(acceptedQuota) : "";
+  
+  const data = {
+    requirement: requirement || "",
+    contactPerson: contactPerson || "",
+    maxApplicant: formattedMaxApplicant,
+    acceptedQuota: formattedAcceptedQuota
+  };
+  
+  debouncedUpdate(data);
+}, [requirement, contactPerson, maxApplicant, acceptedQuota, debouncedUpdate]);
 
   // Cleanup debounce on component unmount
   useEffect(() => {

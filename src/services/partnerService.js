@@ -855,19 +855,19 @@ export const partnerService = {
    * @returns {Promise<Object>} Updated registrant data
    * @throws {Object} Error object with message
    */
-  reviewRegistrant: async (eventId, registrantId, status) => {
-    try {
-      if (!['accepted', 'rejected'].includes(status.toLowerCase())) {
-        throw new Error('Status must be "accepted" or "rejected"');
-      }
-      
-      const response = await httpClient.post(
-        `${API_URL}/partners/me/events/${eventId}/registrants/${registrantId}`,
-        { status: status.toLowerCase() }
-      );
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Failed to review registrant');
+reviewRegistrant: async (eventId, registrantId, status) => {
+  try {
+    if (!['accepted', 'rejected'].includes(status.toLowerCase())) {
+      throw new Error('Status must be "accepted" or "rejected"');
     }
-  },
+    
+    const response = await httpClient.post(
+      `${API_URL}/partners/me/events/${eventId}/registrants/${registrantId}`,
+      { status: status.toLowerCase() }
+    );
+    return response.data;
+  } catch (error) {
+    handleApiError(error, 'Failed to review registrant');
+  }
+},
 };
