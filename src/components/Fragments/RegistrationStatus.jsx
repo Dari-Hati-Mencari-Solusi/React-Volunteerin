@@ -16,54 +16,63 @@ const RegistrationStatus = () => {
     const fetchRegistrationStatus = async () => {
       try {
         setLoading(true);
-        
-        console.log('Starting fetch with eventId:', eventId);
-        
+
+        console.log("Starting fetch with eventId:", eventId);
+
         // Fetch user registrations to find the specific event
         const response = await userService.getEventHistories();
-        
-        console.log('Full API Response:', response);
-        
+
+        console.log("Full API Response:", response);
+
         if (response && response.data && response.data.length > 0) {
-          console.log('All registrations:', response.data.map(reg => ({
-            eventId: reg.form.event.id,
-            eventTitle: reg.form.event.title,
-            status: reg.status,
-            eventIdType: typeof reg.form.event.id
-          })));
-          
+          console.log(
+            "All registrations:",
+            response.data.map((reg) => ({
+              eventId: reg.form.event.id,
+              eventTitle: reg.form.event.title,
+              status: reg.status,
+              eventIdType: typeof reg.form.event.id,
+            }))
+          );
+
           // Convert eventId to number for comparison
           const eventIdNumber = parseInt(eventId, 10);
-          
-          console.log('Looking for eventId:', eventId, 'as number:', eventIdNumber);
-          
+
+          console.log(
+            "Looking for eventId:",
+            eventId,
+            "as number:",
+            eventIdNumber
+          );
+
           // Find the registration for this specific event
-          const eventRegistration = response.data.find(reg => {
-            const match = reg.form.event.id === eventIdNumber || 
-                         reg.form.event.id === eventId ||
-                         String(reg.form.event.id) === eventId;
-            
-            console.log('Checking registration:', {
+          const eventRegistration = response.data.find((reg) => {
+            const match =
+              reg.form.event.id === eventIdNumber ||
+              reg.form.event.id === eventId ||
+              String(reg.form.event.id) === eventId;
+
+            console.log("Checking registration:", {
               regEventId: reg.form.event.id,
               regEventIdType: typeof reg.form.event.id,
               paramEventId: eventId,
               paramEventIdNumber: eventIdNumber,
-              match: match
+              match: match,
             });
-            
+
             return match;
           });
-          
-          console.log('Found registration:', eventRegistration);
-          
+
+          console.log("Found registration:", eventRegistration);
+
           if (eventRegistration) {
             setRegistrationData(eventRegistration);
           } else {
-            console.log('No matching registration found');
+            console.log("No matching registration found");
             setError("Data pendaftaran tidak ditemukan untuk event ini");
           }
         } else {
-          console.log('No data or empty data from API');
+          console.log("No data or empty data from API");
           setError("Tidak ada data pendaftaran ditemukan");
         }
       } catch (err) {
@@ -75,16 +84,23 @@ const RegistrationStatus = () => {
     };
 
     if (eventId) {
-      console.log('eventId exists:', eventId);
+      console.log("eventId exists:", eventId);
       fetchRegistrationStatus();
     } else {
-      console.log('No eventId provided');
+      console.log("No eventId provided");
       setError("Event ID tidak valid");
       setLoading(false);
     }
   }, [eventId]);
 
-  const StatusCard = ({ icon, title, isActive, bgColor, iconColor, textColor }) => (
+  const StatusCard = ({
+    icon,
+    title,
+    isActive,
+    bgColor,
+    iconColor,
+    textColor,
+  }) => (
     <div
       className={`${bgColor} rounded-2xl p-8 flex flex-col items-center justify-center min-h-[200px] transition-all duration-300`}
     >
@@ -93,11 +109,7 @@ const RegistrationStatus = () => {
       >
         {icon}
       </div>
-      <h3
-        className={`text-lg font-semibold ${textColor}`}
-      >
-        {title}
-      </h3>
+      <h3 className={`text-lg font-semibold ${textColor}`}>{title}</h3>
     </div>
   );
 
@@ -109,8 +121,9 @@ const RegistrationStatus = () => {
         textColor: "text-blue-800",
         label: "Direview",
         icon: "streamline-plump:file-search",
-        message: "Pendaftaran Anda sedang dalam tahap review akhir. Tim kami sedang mengevaluasi aplikasi Anda. Hasil akan diumumkan dalam waktu dekat.",
-        messageColor: "text-blue-700"
+        message:
+          "Pendaftaran Anda sedang dalam tahap review akhir. Tim kami sedang mengevaluasi aplikasi Anda. Hasil akan diumumkan dalam waktu dekat.",
+        messageColor: "text-blue-700",
       },
       REVIEWED: {
         bg: "bg-blue-100",
@@ -118,8 +131,9 @@ const RegistrationStatus = () => {
         textColor: "text-blue-800",
         label: "Direview",
         icon: "streamline-plump:file-search",
-        message: "Pendaftaran Anda sedang dalam tahap review akhir. Tim kami sedang mengevaluasi aplikasi Anda. Hasil akan diumumkan dalam waktu dekat.",
-        messageColor: "text-blue-700"
+        message:
+          "Pendaftaran Anda sedang dalam tahap review akhir. Tim kami sedang mengevaluasi aplikasi Anda. Hasil akan diumumkan dalam waktu dekat.",
+        messageColor: "text-blue-700",
       },
       ACCEPTED: {
         bg: "bg-green-100",
@@ -127,8 +141,9 @@ const RegistrationStatus = () => {
         textColor: "text-green-800",
         label: "Diterima",
         icon: "mdi:check-circle-outline",
-        message: "Selamat, Pendaftaran Berhasil! Anda telah diterima sebagai relawan. Silakan periksa email Anda untuk informasi lengkap mengenai langkah berikutnya dan jadwal pengarahan.",
-        messageColor: "text-green-700"
+        message:
+          "Selamat, Pendaftaran Berhasil! Anda telah diterima sebagai relawan. Silakan periksa email Anda untuk informasi lengkap mengenai langkah berikutnya dan jadwal pengarahan.",
+        messageColor: "text-green-700",
       },
       REJECTED: {
         bg: "bg-red-100",
@@ -136,9 +151,10 @@ const RegistrationStatus = () => {
         textColor: "text-red-800",
         label: "Ditolak",
         icon: "mdi:close-circle-outline",
-        message: "Maaf, pendaftaran Anda belum dapat diterima kali ini. Jangan menyerah! Masih banyak kesempatan lain untuk berkontribusi sebagai relawan.",
-        messageColor: "text-red-700"
-      }
+        message:
+          "Maaf, pendaftaran Anda belum dapat diterima kali ini. Jangan menyerah! Masih banyak kesempatan lain untuk berkontribusi sebagai relawan.",
+        messageColor: "text-red-700",
+      },
     };
 
     return statusMap[currentStatus] || statusMap.REVIEWED;
@@ -147,35 +163,44 @@ const RegistrationStatus = () => {
   const getStatusCards = (currentStatus) => {
     // Hanya menampilkan 2 cards: Direview dan Final Status/Hasil
     const cards = [];
-    
+
     // Card 1: Direview
-    const reviewStatusData = getStatusData('REVIEWED');
+    const reviewStatusData = getStatusData("REVIEWED");
     cards.push({
       ...reviewStatusData,
-      isActive: currentStatus === 'PENDING' || currentStatus === 'REVIEWED',
-      bgColor: (currentStatus === 'PENDING' || currentStatus === 'REVIEWED') ? reviewStatusData.bg : "bg-gray-100",
-      iconColor: (currentStatus === 'PENDING' || currentStatus === 'REVIEWED') ? reviewStatusData.iconColor : "bg-gray-300",
-      textColor: (currentStatus === 'PENDING' || currentStatus === 'REVIEWED') ? reviewStatusData.textColor : "text-gray-500"
+      isActive: currentStatus === "PENDING" || currentStatus === "REVIEWED",
+      bgColor:
+        currentStatus === "PENDING" || currentStatus === "REVIEWED"
+          ? reviewStatusData.bg
+          : "bg-gray-100",
+      iconColor:
+        currentStatus === "PENDING" || currentStatus === "REVIEWED"
+          ? reviewStatusData.iconColor
+          : "bg-gray-300",
+      textColor:
+        currentStatus === "PENDING" || currentStatus === "REVIEWED"
+          ? reviewStatusData.textColor
+          : "text-gray-500",
     });
 
     // Card 2: Final Status (Diterima/Ditolak) atau Hasil (jika masih review)
-    if (currentStatus === 'ACCEPTED') {
-      const acceptedStatusData = getStatusData('ACCEPTED');
+    if (currentStatus === "ACCEPTED") {
+      const acceptedStatusData = getStatusData("ACCEPTED");
       cards.push({
         ...acceptedStatusData,
         isActive: true,
         bgColor: acceptedStatusData.bg,
         iconColor: acceptedStatusData.iconColor,
-        textColor: acceptedStatusData.textColor
+        textColor: acceptedStatusData.textColor,
       });
-    } else if (currentStatus === 'REJECTED') {
-      const rejectedStatusData = getStatusData('REJECTED');
+    } else if (currentStatus === "REJECTED") {
+      const rejectedStatusData = getStatusData("REJECTED");
       cards.push({
         ...rejectedStatusData,
         isActive: true,
         bgColor: rejectedStatusData.bg,
         iconColor: rejectedStatusData.iconColor,
-        textColor: rejectedStatusData.textColor
+        textColor: rejectedStatusData.textColor,
       });
     } else {
       // Jika masih dalam tahap review, tampilkan card "Hasil"
@@ -185,7 +210,7 @@ const RegistrationStatus = () => {
         isActive: false,
         bgColor: "bg-gray-100",
         iconColor: "bg-gray-300",
-        textColor: "text-gray-500"
+        textColor: "text-gray-500",
       });
     }
 
@@ -197,7 +222,7 @@ const RegistrationStatus = () => {
       const date = new Date(dateString);
       return date.toLocaleDateString("id-ID", {
         day: "numeric",
-        month: "long", 
+        month: "long",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
@@ -231,8 +256,13 @@ const RegistrationStatus = () => {
         <section className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-screen-xl py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <Icon icon="mdi:alert" className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">Terjadi Kesalahan</h2>
+              <Icon
+                icon="mdi:alert"
+                className="w-16 h-16 text-red-500 mx-auto mb-4"
+              />
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                Terjadi Kesalahan
+              </h2>
               <p className="text-gray-600 mb-4">{error}</p>
               <div className="space-y-2">
                 <p className="text-sm text-gray-500">Event ID: {eventId}</p>
@@ -258,9 +288,16 @@ const RegistrationStatus = () => {
         <section className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-screen-xl py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <Icon icon="mdi:file-search" className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">Data Tidak Ditemukan</h2>
-              <p className="text-gray-600 mb-4">Status pendaftaran untuk event ini tidak ditemukan</p>
+              <Icon
+                icon="mdi:file-search"
+                className="w-16 h-16 text-gray-400 mx-auto mb-4"
+              />
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                Data Tidak Ditemukan
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Status pendaftaran untuk event ini tidak ditemukan
+              </p>
               <Link
                 to="/regis-event"
                 className="bg-[#0A3E54] text-white px-6 py-2 rounded-lg hover:bg-[#0A3E54]/90 transition-colors"
@@ -290,7 +327,10 @@ const RegistrationStatus = () => {
             <Icon icon="solar:home-2-linear" width="32" height="32" />
           </Link>
           <Icon icon="weui:arrow-filled" width="24" height="28" />
-          <Link to="/regis-event" className="text-[#0A3E54] text-sm md:text-xl lg:text-xl font-medium hover:underline">
+          <Link
+            to="/regis-event"
+            className="text-[#0A3E54] text-sm md:text-xl lg:text-xl font-medium hover:underline"
+          >
             Event Terdaftar
           </Link>
           <Icon icon="weui:arrow-filled" width="24" height="28" />
@@ -302,14 +342,21 @@ const RegistrationStatus = () => {
 
         {/* Event Info */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          <h2 className="text-xl font-semibold text-[#0A3E54] mb-4">Detail Event</h2>
+          <h2 className="text-xl font-semibold text-[#0A3E54] mb-4">
+            Detail Event
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h3 className="font-medium text-gray-900 mb-2">{event.title}</h3>
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex items-center">
-                  <Icon icon="lets-icons:date-today-light" className="w-4 h-4 mr-2" />
-                  <span>{formatDate(event.startAt)} - {formatDate(event.endAt)}</span>
+                  <Icon
+                    icon="lets-icons:date-today-light"
+                    className="w-4 h-4 mr-2"
+                  />
+                  <span>
+                    {formatDate(event.startAt)} - {formatDate(event.endAt)}
+                  </span>
                 </div>
                 <div className="flex items-center">
                   <Icon icon="tdesign:location" className="w-4 h-4 mr-2" />
@@ -338,7 +385,14 @@ const RegistrationStatus = () => {
             {statusCards.map((card, index) => (
               <StatusCard
                 key={index}
-                icon={<Icon icon={card.icon} width="36" height="36" style={{ color: "#ffffff" }} />}
+                icon={
+                  <Icon
+                    icon={card.icon}
+                    width="36"
+                    height="36"
+                    style={{ color: "#ffffff" }}
+                  />
+                }
                 title={card.label}
                 isActive={card.isActive}
                 bgColor={card.bgColor}
@@ -354,7 +408,9 @@ const RegistrationStatus = () => {
               Hallo, Kang Rantau
             </h1>
 
-            <p className={`text-lg leading-relaxed mb-8 md:max-w-2xl lg:max-w-4xl mx-auto ${currentStatusData.messageColor}`}>
+            <p
+              className={`text-lg leading-relaxed mb-8 md:max-w-2xl lg:max-w-4xl mx-auto ${currentStatusData.messageColor}`}
+            >
               {currentStatusData.message}
             </p>
 
@@ -379,6 +435,7 @@ const RegistrationStatus = () => {
 
         <Marketing />
       </section>
+      <Footer />
     </section>
   );
 };
