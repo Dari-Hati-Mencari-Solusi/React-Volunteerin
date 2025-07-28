@@ -130,99 +130,96 @@ prepareFormDataForSubmit: (formData, isReadyToPublish) => {
 
     console.log("🔍 Preparing form data for submit:");
     console.log("📝 isReadyToPublish:", isReadyToPublish);
-    console.log("📝 Form data being prepared:", formData); // Tambahkan log ini
+    console.log("📝 Form data being prepared:", formData);
 
     if (!formData.title) {
       throw new Error("Judul event harus diisi");
     }
 
-    // Pastikan field-field wajib terisi
+    // Field wajib
     apiFormData.append("title", formData.title || "");
     apiFormData.append("type", formData.type || "OPEN");
     apiFormData.append("description", formData.description || "");
     
-    // Pastikan field volunteer terisi dengan benar
+    // Field volunteer
     apiFormData.append("requirement", formData.requirement || "");
     apiFormData.append("contactPerson", formData.contactPerson || "");
     
-    // PENTING: Pastikan maxApplicant dan acceptedQuota selalu dikirim sebagai string
-    apiFormData.append("maxApplicant", formData.maxApplicant ? String(formData.maxApplicant) : "10");
-    apiFormData.append("acceptedQuota", formData.acceptedQuota ? String(formData.acceptedQuota) : formData.maxApplicant ? String(formData.maxApplicant) : "10");
+    // Numerik fields sebagai string
+    apiFormData.append("maxApplicant", formData.maxApplicant ? String(formData.maxApplicant) : "");
+    apiFormData.append("acceptedQuota", formData.acceptedQuota ? String(formData.acceptedQuota) : "");
 
+    // Jadwal
     if (!formData.startAt) {
       throw new Error("Tanggal dan waktu mulai harus diisi");
     }
     apiFormData.append("startAt", formData.startAt);
     if (formData.endAt) apiFormData.append("endAt", formData.endAt);
 
+    // PERBAIKAN UTAMA: Lokasi - Gunakan 'regency' bukan 'region'
     if (!formData.province || !formData.regency) {
       throw new Error("Provinsi dan kota/kabupaten harus diisi");
     }
     apiFormData.append("province", formData.province);
-    apiFormData.append("regency", formData.regency);
+    // PERBAIKAN: Gunakan 'regency' sesuai dengan yang diharapkan backend
+    apiFormData.append("regency", formData.regency); // Changed back to regency
+    
     if (formData.address) apiFormData.append("address", formData.address);
     if (formData.gmaps) apiFormData.append("gmaps", formData.gmaps);
     
-    // Pastikan latitude dan longitude dikirim sebagai string dan selalu ada nilainya
-    apiFormData.append("latitude", formData.latitude ? String(formData.latitude) : "-6.200000");
-    apiFormData.append("longitude", formData.longitude ? String(formData.longitude) : "106.816666");
+    // Koordinat sebagai string
+    if (formData.latitude) apiFormData.append("latitude", String(formData.latitude));
+    if (formData.longitude) apiFormData.append("longitude", String(formData.longitude));
 
-    // Pastikan isPaid dan price memiliki nilai yang valid
+    // Biaya
     const isPaid = formData.isPaid === true;
     apiFormData.append("isPaid", isPaid ? "true" : "false");
     apiFormData.append("price", isPaid ? (formData.price || "0") : "0");
     
-    // Pastikan isRelease dikirim dalam format string
+    // Status publikasi
     apiFormData.append("isRelease", isReadyToPublish ? "true" : "false");
     
     console.log("📤 isRelease value being sent:", isReadyToPublish ? "true" : "false");
     console.log("📝 maxApplicant:", formData.maxApplicant);
     console.log("📝 acceptedQuota:", formData.acceptedQuota);
-    console.log("📝 latitude:", formData.latitude || "-6.200000");
-    console.log("📝 longitude:", formData.longitude || "106.816666");
+    console.log("📝 latitude:", formData.latitude);
+    console.log("📝 longitude:", formData.longitude);
 
-    // PERBAIKAN: Format categoryIds[] dan benefitIds[] sesuai ekspektasi BE
-    if (
-      formData.categoryIds &&
-      Array.isArray(formData.categoryIds) &&
-      formData.categoryIds.length > 0
-    ) {
+    // Format categoryIds dan benefitIds TANPA kurung siku []
+    if (formData.categoryIds && Array.isArray(formData.categoryIds) && formData.categoryIds.length > 0) {
       formData.categoryIds.forEach((id) => {
         if (id) {
-          console.log("📝 Adding categoryId[]:", id);
-          apiFormData.append("categoryIds[]", id);
+          console.log("📝 Adding categoryIds:", id);
+          apiFormData.append("categoryIds", id);
         }
       });
     } else {
-      console.log("📝 Using default categoryId[]:", STATIC_CATEGORY_IDS.pendidikan);
-      apiFormData.append("categoryIds[]", STATIC_CATEGORY_IDS.pendidikan);
+      console.log("📝 Using default categoryIds:", STATIC_CATEGORY_IDS.pendidikan);
+      apiFormData.append("categoryIds", STATIC_CATEGORY_IDS.pendidikan);
     }
 
-    if (
-      formData.benefitIds &&
-      Array.isArray(formData.benefitIds) &&
-      formData.benefitIds.length > 0
-    ) {
+    if (formData.benefitIds && Array.isArray(formData.benefitIds) && formData.benefitIds.length > 0) {
       formData.benefitIds.forEach((id) => {
         if (id) {
-          console.log("📝 Adding benefitId[]:", id);
-          apiFormData.append("benefitIds[]", id.toString().trim());
+          console.log("📝 Adding benefitIds:", id);
+          apiFormData.append("benefitIds", id);
         }
       });
     } else {
-      console.log("📝 Using default benefitId[]:", STATIC_BENEFIT_IDS.sertifikat);
-      apiFormData.append("benefitIds[]", STATIC_BENEFIT_IDS.sertifikat);
+      console.log("📝 Using default benefitIds:", STATIC_BENEFIT_IDS.sertifikat);
+      apiFormData.append("benefitIds", STATIC_BENEFIT_IDS.sertifikat);
     }
 
+    // Banner
     if (!formData.banner) {
       throw new Error("Banner event harus diunggah");
     }
     apiFormData.append("banner", formData.banner);
     
-    // Log semua form data yang akan dikirim ke server
+    // Log all form data
     console.log("📦 Form data entries yang dikirim ke server:");
     for (let [key, value] of apiFormData.entries()) {
-      if (key !== "banner") { // Hindari log file binary
+      if (key !== "banner") {
         console.log(`${key}: ${value}`);
       } else {
         console.log(`${key}: [File Object]`);

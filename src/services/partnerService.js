@@ -91,160 +91,211 @@ export const partnerService = {
     }
   },
 
-  /**
-   * Create a new event for the partner
-   * @param {Object} eventData - New event data
-   * @returns {Promise<Object>} Created event data
-   * @throws {Object} Error object with message
-   */
-  createEvent: async (formData) => {
-    try {
-      let hasBenefits = false;
-      let benefitCount = 0;
-      let categoryCount = 0;
-      
-      for (let [key, value] of formData.entries()) {
-        if (key === 'benefitIds[]') {
-          hasBenefits = true;
-          benefitCount++;
-        }
-        
-        if (key === 'categoryIds[]') {
-          categoryCount++;
-        }
+ /**
+ * Create a new event for the partner
+ * @param {FormData} formData - New event data as FormData
+ * @returns {Promise<Object>} Created event data
+ * @throws {Object} Error object with message
+ */
+createEvent: async (formData) => {
+  try {
+    let hasBenefits = false;
+    let benefitCount = 0;
+    let categoryCount = 0;
+    
+    // Validasi format data yang dikirim
+    for (let [key, value] of formData.entries()) {
+      if (key === 'benefitIds') { // Tanpa []
+        hasBenefits = true;
+        benefitCount++;
       }
       
-      if (!hasBenefits || benefitCount === 0) {
-        throw { message: "Please select at least one event benefit" };
-      }
-      
-      if (categoryCount === 0) {
-        throw { message: "Please select at least one event category" };
-      }
-      
-      const response = await httpClient.post(`${API_URL}/partners/me/events`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'X-Request-Source': 'React-App',
-        },
-        timeout: 60000
-      });
-      
-      return response.data;
-    } catch (error) {
-      if (error.response) {
-        if (error.response.status === 500) {
-          try {
-            const minimalFormData = new FormData();
-            
-            const title = formData.get('title') || 'Default Title';
-            const type = formData.get('type') || 'OPEN';
-            const description = formData.get('description') || 'Default Description';
-            const requirement = formData.get('requirement') || 'Default Requirement';
-            const contactPerson = formData.get('contactPerson') || '081234567890';
-            const startAt = formData.get('startAt') || new Date().toISOString();
-            const province = formData.get('province') || 'Default Province';
-            const regency = formData.get('regency') || 'Default Regency';
-            
-            minimalFormData.append('title', title);
-            minimalFormData.append('type', type);
-            minimalFormData.append('description', description);
-            minimalFormData.append('requirement', requirement);
-            minimalFormData.append('contactPerson', contactPerson);
-            minimalFormData.append('startAt', startAt);
-            minimalFormData.append('maxApplicant', '10');
-            minimalFormData.append('province', province);
-            minimalFormData.append('regency', regency);
-            minimalFormData.append('isPaid', 'false');
-            minimalFormData.append('isRelease', 'false');
-            
-            const categoryIds = formData.getAll('categoryIds[]');
-            if (categoryIds && categoryIds.length > 0) {
-              minimalFormData.append('categoryIds[]', categoryIds[0]);
-            } else {
-              throw new Error("No valid category ID");
-            }
-            
-            const benefitIds = formData.getAll('benefitIds[]');
-            if (benefitIds && benefitIds.length > 0) {
-              minimalFormData.append('benefitIds[]', benefitIds[0]);
-            } else {
-              throw new Error("No valid benefit ID");
-            }
-            
-            if (formData.get('banner')) {
-              minimalFormData.append('banner', formData.get('banner'));
-            }
-            
-            const minimalResponse = await httpClient.post(`${API_URL}/partners/me/events`, minimalFormData, {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                'X-Retry-Attempt': 'true'
-              },
-              timeout: 60000
-            });
-            
-            return minimalResponse.data;
-          } catch (retryError) {
-            throw { 
-              message: "Server error persists even with minimal data. Please contact admin or try again later.", 
-              originalError: error.response?.data 
-            };
-          }
-        }
-        
-        if (error.response.status === 413) {
-          throw { message: "Banner file size is too large. Maximum 1MB allowed." };
-        }
-        
-        if (error.response.status === 400) {
-          if (error.response.data?.errors && Array.isArray(error.response.data.errors)) {
-            const errorMsg = error.response.data.message || "Invalid data";
-            
-            const benefitErrors = error.response.data.errors.filter(
-              err => err.toLowerCase().includes('benefit')
-            );
-            
-            if (benefitErrors.length > 0) {
-              throw { 
-                message: benefitErrors[0],
-                errors: error.response.data.errors 
-              };
-            }
-            
-            throw { 
-              message: errorMsg, 
-              errors: error.response.data.errors 
-            };
-          } else if (error.response.data?.message) {
-            throw { message: error.response.data.message };
-          } else {
-            throw { message: "Data validation error occurred." };
-          }
-        }
-        
-        if (error.response.status === 401) {
-          throw { message: "Your session has expired. Please login again." };
-        }
-        
-        if (error.response.status === 404) {
-          throw { message: "Endpoint not found. Please contact administrator." };
-        }
-        
-        if (error.response.status === 500) {
-          throw { message: "Server error occurred. Please try again later." };
-        }
-        
-        throw { message: error.response.data?.message || "An error occurred while processing the request." };
-      }
-      
-      if (error.message) {
-        throw { message: error.message };
-      } else {
-        throw { message: 'Failed to create event. Please try again.' };
+      if (key === 'categoryIds') { // Tanpa []
+        categoryCount++;
       }
     }
-  },
+    
+    console.log('📊 Validation counts:', { benefitCount, categoryCount, hasBenefits });
+    
+    // Validasi minimal requirement
+    if (!hasBenefits || benefitCount === 0) {
+      throw { message: "Please select at least one event benefit" };
+    }
+    
+    if (categoryCount === 0) {
+      throw { message: "Please select at least one event category" };
+    }
+    
+    // Log semua data yang akan dikirim (debugging)
+    console.log("📤 Final form data being sent:");
+    for (let [key, value] of formData.entries()) {
+      if (key !== "banner") {
+        console.log(`${key}: ${value}`);
+      } else {
+        console.log(`${key}: [File Object - ${value.name}]`);
+      }
+    }
+    
+    // Kirim request ke backend
+    const response = await httpClient.post(`${API_URL}/partners/me/events`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-Request-Source': 'React-App',
+      },
+      timeout: 60000
+    });
+    
+    return response.data;
+    
+  } catch (error) {
+    console.error("❌ CreateEvent Error:", error);
+    
+    if (error.response) {
+      console.error("❌ Response Status:", error.response.status);
+      console.error("❌ Response Data:", error.response.data);
+      
+      // Handle error 400 (Bad Request)
+      if (error.response.status === 400) {
+        const errorMsg = error.response.data?.message || "Invalid data format";
+        const errors = error.response.data?.errors || [];
+        
+        console.error("❌ 400 Error Details:", error.response.data);
+        console.error("❌ Specific validation errors:", errors);
+        
+        // Tampilkan detail error yang spesifik
+        if (errors && Array.isArray(errors) && errors.length > 0) {
+          const detailedErrorMessage = `Validation failed:\n${errors.map(err => `• ${err}`).join('\n')}`;
+          throw { 
+            message: detailedErrorMessage, 
+            errors: errors,
+            originalMessage: errorMsg 
+          };
+        } else {
+          throw { 
+            message: errorMsg, 
+            errors: errors || [],
+            originalMessage: errorMsg 
+          };
+        }
+      }
+      
+      // Handle error 500 (Internal Server Error) dengan retry logic
+      if (error.response.status === 500) {
+        try {
+          console.log("🔄 Attempting retry with minimal data...");
+          
+          const minimalFormData = new FormData();
+          
+          // Field wajib sesuai dokumentasi API
+          minimalFormData.append('title', formData.get('title') || 'Default Title');
+          minimalFormData.append('type', formData.get('type') || 'OPEN');
+          minimalFormData.append('description', formData.get('description') || 'Default Description');
+          minimalFormData.append('requirement', formData.get('requirement') || 'Default Requirement');
+          minimalFormData.append('contactPerson', formData.get('contactPerson') || '081234567890');
+          minimalFormData.append('startAt', formData.get('startAt') || new Date().toISOString());
+          minimalFormData.append('province', formData.get('province') || 'Default Province');
+          
+          // PENTING: Gunakan 'regency' bukan 'region' sesuai kebutuhan backend
+          minimalFormData.append('regency', formData.get('regency') || 'Default Regency');
+          
+          minimalFormData.append('isPaid', 'false');
+          minimalFormData.append('isRelease', 'false');
+          
+          // Gunakan format yang benar tanpa [] untuk categoryIds dan benefitIds
+          const categoryIds = formData.getAll('categoryIds');
+          if (categoryIds && categoryIds.length > 0) {
+            minimalFormData.append('categoryIds', categoryIds[0]);
+          } else {
+            throw new Error("No valid category ID");
+          }
+          
+          const benefitIds = formData.getAll('benefitIds');
+          if (benefitIds && benefitIds.length > 0) {
+            minimalFormData.append('benefitIds', benefitIds[0]);
+          } else {
+            throw new Error("No valid benefit ID");
+          }
+          
+          // Tambahkan banner jika ada
+          if (formData.get('banner')) {
+            minimalFormData.append('banner', formData.get('banner'));
+          }
+          
+          console.log("🔄 Retry data being sent:");
+          for (let [key, value] of minimalFormData.entries()) {
+            if (key !== "banner") {
+              console.log(`${key}: ${value}`);
+            } else {
+              console.log(`${key}: [File Object]`);
+            }
+          }
+          
+          const minimalResponse = await httpClient.post(`${API_URL}/partners/me/events`, minimalFormData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'X-Retry-Attempt': 'true'
+            },
+            timeout: 60000
+          });
+          
+          console.log("✅ Retry successful!");
+          return minimalResponse.data;
+          
+        } catch (retryError) {
+          console.error("❌ Retry failed:", retryError);
+          throw { 
+            message: "Server error persists even with minimal data. Please contact admin or try again later.", 
+            originalError: error.response?.data 
+          };
+        }
+      }
+      
+      // Handle error 401/403 (Unauthorized/Forbidden)
+      if (error.response.status === 401 || error.response.status === 403) {
+        throw { 
+          message: "Authentication failed. Please login again.", 
+          status: error.response.status,
+          redirect: true 
+        };
+      }
+      
+      // Handle error 413 (Payload Too Large)
+      if (error.response.status === 413) {
+        throw { 
+          message: "File size too large. Please use a smaller banner image (max 1MB)." 
+        };
+      }
+      
+      // Handle error 422 (Unprocessable Entity)
+      if (error.response.status === 422) {
+        const errorMsg = error.response.data?.message || "Data validation failed";
+        const errors = error.response.data?.errors || [];
+        throw { 
+          message: errorMsg, 
+          errors: errors 
+        };
+      }
+      
+      // Handle other HTTP errors
+      throw { 
+        message: error.response.data?.message || "An error occurred while processing the request.",
+        status: error.response.status 
+      };
+    }
+    
+    // Handle network errors
+    if (error.code === 'ECONNABORTED') {
+      throw { message: "Request timeout. Please check your connection and try again." };
+    }
+    
+    if (error.code === 'ERR_NETWORK') {
+      throw { message: "Network error. Please check your internet connection." };
+    }
+    
+    // Handle other errors
+    throw { message: error.message || 'Failed to create event. Please try again.' };
+  }
+},
 
   /**
    * Get event details by ID
