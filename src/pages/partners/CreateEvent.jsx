@@ -124,92 +124,114 @@ const formUtils = {
     return errors;
   },
 
-  prepareFormDataForSubmit: (formData, isReadyToPublish) => {
-    try {
-      const apiFormData = new FormData();
+prepareFormDataForSubmit: (formData, isReadyToPublish) => {
+  try {
+    const apiFormData = new FormData();
 
-      console.log("🔍 Preparing form data for submit:");
-      console.log("📝 isReadyToPublish:", isReadyToPublish);
+    console.log("🔍 Preparing form data for submit:");
+    console.log("📝 isReadyToPublish:", isReadyToPublish);
+    console.log("📝 Form data being prepared:", formData);
 
-      if (!formData.title) {
-        throw new Error("Judul event harus diisi");
-      }
-
-      apiFormData.append("title", formData.title || "");
-      apiFormData.append("type", formData.type || "OPEN");
-      apiFormData.append("description", formData.description || "");
-      apiFormData.append("requirement", formData.requirement || "");
-      apiFormData.append("contactPerson", formData.contactPerson || "");
-      
-      if (formData.maxApplicant)
-        apiFormData.append("maxApplicant", formData.maxApplicant);
-      if (formData.acceptedQuota)
-        apiFormData.append("acceptedQuota", formData.acceptedQuota);
-
-      if (!formData.startAt) {
-        throw new Error("Tanggal dan waktu mulai harus diisi");
-      }
-      apiFormData.append("startAt", formData.startAt);
-      if (formData.endAt) apiFormData.append("endAt", formData.endAt);
-
-      if (!formData.province || !formData.regency) {
-        throw new Error("Provinsi dan kota/kabupaten harus diisi");
-      }
-      apiFormData.append("province", formData.province);
-      apiFormData.append("regency", formData.regency);
-      if (formData.address) apiFormData.append("address", formData.address);
-      if (formData.gmaps) apiFormData.append("gmaps", formData.gmaps);
-      if (formData.latitude) apiFormData.append("latitude", formData.latitude);
-      if (formData.longitude)
-        apiFormData.append("longitude", formData.longitude);
-
-      apiFormData.append("isPaid", formData.isPaid);
-      apiFormData.append("price", formData.price || "0");
-      
-      // Ensure isRelease is properly set
-      apiFormData.append("isRelease", isReadyToPublish ? "true" : "false");
-      
-      console.log("📤 isRelease value being sent:", isReadyToPublish ? "true" : "false");
-
-      if (
-        formData.categoryIds &&
-        Array.isArray(formData.categoryIds) &&
-        formData.categoryIds.length > 0
-      ) {
-        formData.categoryIds.forEach((id) => {
-          if (id) {
-            apiFormData.append("categoryIds[]", id);
-          }
-        });
-      } else {
-        apiFormData.append("categoryIds[]", STATIC_CATEGORY_IDS.pendidikan);
-      }
-
-      if (
-        formData.benefitIds &&
-        Array.isArray(formData.benefitIds) &&
-        formData.benefitIds.length > 0
-      ) {
-        formData.benefitIds.forEach((id) => {
-          if (id) {
-            apiFormData.append("benefitIds[]", id.toString().trim());
-          }
-        });
-      } else {
-        apiFormData.append("benefitIds[]", STATIC_BENEFIT_IDS.sertifikat);
-      }
-
-      if (!formData.banner) {
-        throw new Error("Banner event harus diunggah");
-      }
-      apiFormData.append("banner", formData.banner);
-
-      return apiFormData;
-    } catch (error) {
-      console.error("Error in prepareFormDataForSubmit:", error);
-      throw error;
+    if (!formData.title) {
+      throw new Error("Judul event harus diisi");
     }
-  },
+
+    // Field wajib
+    apiFormData.append("title", formData.title || "");
+    apiFormData.append("type", formData.type || "OPEN");
+    apiFormData.append("description", formData.description || "");
+    
+    // Field volunteer
+    apiFormData.append("requirement", formData.requirement || "");
+    apiFormData.append("contactPerson", formData.contactPerson || "");
+    
+    // Numerik fields sebagai string
+    apiFormData.append("maxApplicant", formData.maxApplicant ? String(formData.maxApplicant) : "");
+    apiFormData.append("acceptedQuota", formData.acceptedQuota ? String(formData.acceptedQuota) : "");
+
+    // Jadwal
+    if (!formData.startAt) {
+      throw new Error("Tanggal dan waktu mulai harus diisi");
+    }
+    apiFormData.append("startAt", formData.startAt);
+    if (formData.endAt) apiFormData.append("endAt", formData.endAt);
+
+    // PERBAIKAN UTAMA: Lokasi - Gunakan 'regency' bukan 'region'
+    if (!formData.province || !formData.regency) {
+      throw new Error("Provinsi dan kota/kabupaten harus diisi");
+    }
+    apiFormData.append("province", formData.province);
+    // PERBAIKAN: Gunakan 'regency' sesuai dengan yang diharapkan backend
+    apiFormData.append("regency", formData.regency); // Changed back to regency
+    
+    if (formData.address) apiFormData.append("address", formData.address);
+    if (formData.gmaps) apiFormData.append("gmaps", formData.gmaps);
+    
+    // Koordinat sebagai string
+    if (formData.latitude) apiFormData.append("latitude", String(formData.latitude));
+    if (formData.longitude) apiFormData.append("longitude", String(formData.longitude));
+
+    // Biaya
+    const isPaid = formData.isPaid === true;
+    apiFormData.append("isPaid", isPaid ? "true" : "false");
+    apiFormData.append("price", isPaid ? (formData.price || "0") : "0");
+    
+    // Status publikasi
+    apiFormData.append("isRelease", isReadyToPublish ? "true" : "false");
+    
+    console.log("📤 isRelease value being sent:", isReadyToPublish ? "true" : "false");
+    console.log("📝 maxApplicant:", formData.maxApplicant);
+    console.log("📝 acceptedQuota:", formData.acceptedQuota);
+    console.log("📝 latitude:", formData.latitude);
+    console.log("📝 longitude:", formData.longitude);
+
+    // Format categoryIds dan benefitIds TANPA kurung siku []
+    if (formData.categoryIds && Array.isArray(formData.categoryIds) && formData.categoryIds.length > 0) {
+      formData.categoryIds.forEach((id) => {
+        if (id) {
+          console.log("📝 Adding categoryIds:", id);
+          apiFormData.append("categoryIds", id);
+        }
+      });
+    } else {
+      console.log("📝 Using default categoryIds:", STATIC_CATEGORY_IDS.pendidikan);
+      apiFormData.append("categoryIds", STATIC_CATEGORY_IDS.pendidikan);
+    }
+
+    if (formData.benefitIds && Array.isArray(formData.benefitIds) && formData.benefitIds.length > 0) {
+      formData.benefitIds.forEach((id) => {
+        if (id) {
+          console.log("📝 Adding benefitIds:", id);
+          apiFormData.append("benefitIds", id);
+        }
+      });
+    } else {
+      console.log("📝 Using default benefitIds:", STATIC_BENEFIT_IDS.sertifikat);
+      apiFormData.append("benefitIds", STATIC_BENEFIT_IDS.sertifikat);
+    }
+
+    // Banner
+    if (!formData.banner) {
+      throw new Error("Banner event harus diunggah");
+    }
+    apiFormData.append("banner", formData.banner);
+    
+    // Log all form data
+    console.log("📦 Form data entries yang dikirim ke server:");
+    for (let [key, value] of apiFormData.entries()) {
+      if (key !== "banner") {
+        console.log(`${key}: ${value}`);
+      } else {
+        console.log(`${key}: [File Object]`);
+      }
+    }
+
+    return apiFormData;
+  } catch (error) {
+    console.error("Error in prepareFormDataForSubmit:", error);
+    throw error;
+  }
+},
 
   saveFormToLocalStorage: (formData) => {
     try {
@@ -465,27 +487,37 @@ const CreateEvent = ({ onBack }) => {
     }));
   };
 
-  const handleLocationFormUpdate = (data) => {
-    setFormData((prev) => ({
-      ...prev,
-      province: data.province || prev.province,
-      regency: data.regency || prev.regency,
-      address: data.address || prev.address,
-      gmaps: data.gmaps || prev.gmaps,
-      latitude: data.latitude || prev.latitude,
-      longitude: data.longitude || prev.longitude,
-    }));
-  };
+const handleLocationFormUpdate = (data) => {
+  console.log("📍 Lokasi data yang diterima:", data);
+  
+  // Nilai default untuk latitude dan longitude jika kosong
+  const defaultLat = "-6.200000";  // Jakarta
+  const defaultLng = "106.816666"; // Jakarta
+  
+  setFormData((prev) => ({
+    ...prev,
+    province: data.province || prev.province,
+    regency: data.regency || prev.regency,
+    address: data.address || prev.address,
+    gmaps: data.gmaps || prev.gmaps,
+    // Pastikan nilai koordinat selalu ada dan berbentuk string
+    latitude: (data.latitude && data.latitude !== "") ? String(data.latitude) : (prev.latitude || defaultLat),
+    longitude: (data.longitude && data.longitude !== "") ? String(data.longitude) : (prev.longitude || defaultLng),
+  }));
+};
 
-  const handleVolunteerFormUpdate = (data) => {
-    setFormData((prev) => ({
-      ...prev,
-      requirement: data.requirement || prev.requirement,
-      contactPerson: data.contactPerson || prev.contactPerson,
-      maxApplicant: data.maxApplicant || prev.maxApplicant,
-      acceptedQuota: data.acceptedQuota || prev.acceptedQuota,
-    }));
-  };
+const handleVolunteerFormUpdate = (data) => {
+  console.log("🔄 Data volunteer yang diterima:", data);
+  
+  setFormData((prev) => ({
+    ...prev,
+    requirement: data.requirement || prev.requirement,
+    contactPerson: data.contactPerson || prev.contactPerson,
+    // Simpan sebagai string untuk kompatibilitas dengan backend
+    maxApplicant: data.maxApplicant !== undefined && data.maxApplicant !== "" ? String(data.maxApplicant) : prev.maxApplicant,
+    acceptedQuota: data.acceptedQuota !== undefined && data.acceptedQuota !== "" ? String(data.acceptedQuota) : prev.acceptedQuota,
+  }));
+};
 
   const handleFeeFormUpdate = (data) => {
     setFormData((prev) => ({
