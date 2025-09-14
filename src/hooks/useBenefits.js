@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import httpClient from "../utils/httpClient";
 
 // Fungsi helper untuk mendapatkan icon berdasarkan nama benefit
 export function getBenefitIcon(benefitName) {
@@ -93,20 +93,13 @@ export function useBenefits() {
 
         try {
           const API_URL = import.meta.env.VITE_BE_BASE_URL;
-          const token = localStorage.getItem("token"); // dapatkan token dari localStorage atau state management
-
-          const response = await axios.get(`${API_URL}/benefits`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const response = await httpClient.get(`${API_URL}/benefits`);
 
           if (
             response.data &&
             response.data.data &&
             response.data.data.length > 0
           ) {
-            // Gunakan sistem icon yang sama dengan EventPage
             const formattedBenefits = response.data.data.map((benefit) => ({
               id: benefit.id,
               name: benefit.name || "Manfaat Tanpa Nama",
@@ -118,12 +111,10 @@ export function useBenefits() {
             setBenefits(hardcodedBenefits);
           }
         } catch (apiError) {
-          console.error("API benefits gagal:", apiError.message);
           setError(apiError);
           setBenefits(hardcodedBenefits);
         }
       } catch (error) {
-        console.error("Error fetching benefits:", error);
         setError(error);
         setBenefits(hardcodedBenefits);
       } finally {
@@ -132,7 +123,7 @@ export function useBenefits() {
     };
 
     fetchBenefits();
-  }, []); // Dependency array kosong - hanya dijalankan sekali
+  }, []);
 
   return { benefits, loading, error, STATIC_BENEFIT_IDS };
 }

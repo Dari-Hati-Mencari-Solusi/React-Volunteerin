@@ -9,6 +9,7 @@ import BannerUpload from "../../components/Elements/forms/BannerUpload";
 import Swal from "sweetalert2";
 import { partnerService } from "../../services/partnerService";
 import { authService } from "../../services/authService";
+import httpClient from "../../utils/httpClient";
 
 // Static IDs for fallback in case API fails
 const STATIC_BENEFIT_IDS = {
@@ -118,120 +119,139 @@ const formUtils = {
     }
 
     if (!formData.maxApplicant || parseInt(formData.maxApplicant) < 1) {
-      errors.push("Maksimal pendaftar harus diisi minimal 1 orang untuk publikasi");
+      errors.push(
+        "Maksimal pendaftar harus diisi minimal 1 orang untuk publikasi"
+      );
     }
 
     return errors;
   },
 
-prepareFormDataForSubmit: (formData, isReadyToPublish) => {
-  try {
-    const apiFormData = new FormData();
+  prepareFormDataForSubmit: (formData, isReadyToPublish) => {
+    try {
+      const apiFormData = new FormData();
 
-    console.log("🔍 Preparing form data for submit:");
-    console.log("📝 isReadyToPublish:", isReadyToPublish);
-    console.log("📝 Form data being prepared:", formData);
-
-    if (!formData.title) {
-      throw new Error("Judul event harus diisi");
-    }
-
-    // Field wajib
-    apiFormData.append("title", formData.title || "");
-    apiFormData.append("type", formData.type || "OPEN");
-    apiFormData.append("description", formData.description || "");
-    
-    // Field volunteer
-    apiFormData.append("requirement", formData.requirement || "");
-    apiFormData.append("contactPerson", formData.contactPerson || "");
-    
-    // Numerik fields sebagai string
-    apiFormData.append("maxApplicant", formData.maxApplicant ? String(formData.maxApplicant) : "");
-    apiFormData.append("acceptedQuota", formData.acceptedQuota ? String(formData.acceptedQuota) : "");
-
-    // Jadwal
-    if (!formData.startAt) {
-      throw new Error("Tanggal dan waktu mulai harus diisi");
-    }
-    apiFormData.append("startAt", formData.startAt);
-    if (formData.endAt) apiFormData.append("endAt", formData.endAt);
-
-    // PERBAIKAN UTAMA: Lokasi - Gunakan 'regency' bukan 'region'
-    if (!formData.province || !formData.regency) {
-      throw new Error("Provinsi dan kota/kabupaten harus diisi");
-    }
-    apiFormData.append("province", formData.province);
-    // PERBAIKAN: Gunakan 'regency' sesuai dengan yang diharapkan backend
-    apiFormData.append("regency", formData.regency); // Changed back to regency
-    
-    if (formData.address) apiFormData.append("address", formData.address);
-    if (formData.gmaps) apiFormData.append("gmaps", formData.gmaps);
-    
-    // Koordinat sebagai string
-    if (formData.latitude) apiFormData.append("latitude", String(formData.latitude));
-    if (formData.longitude) apiFormData.append("longitude", String(formData.longitude));
-
-    // Biaya
-    const isPaid = formData.isPaid === true;
-    apiFormData.append("isPaid", isPaid ? "true" : "false");
-    apiFormData.append("price", isPaid ? (formData.price || "0") : "0");
-    
-    // Status publikasi
-    apiFormData.append("isRelease", isReadyToPublish ? "true" : "false");
-    
-    console.log("📤 isRelease value being sent:", isReadyToPublish ? "true" : "false");
-    console.log("📝 maxApplicant:", formData.maxApplicant);
-    console.log("📝 acceptedQuota:", formData.acceptedQuota);
-    console.log("📝 latitude:", formData.latitude);
-    console.log("📝 longitude:", formData.longitude);
-
-    // Format categoryIds dan benefitIds TANPA kurung siku []
-    if (formData.categoryIds && Array.isArray(formData.categoryIds) && formData.categoryIds.length > 0) {
-      formData.categoryIds.forEach((id) => {
-        if (id) {
-          console.log("📝 Adding categoryIds:", id);
-          apiFormData.append("categoryIds", id);
-        }
-      });
-    } else {
-      console.log("📝 Using default categoryIds:", STATIC_CATEGORY_IDS.pendidikan);
-      apiFormData.append("categoryIds", STATIC_CATEGORY_IDS.pendidikan);
-    }
-
-    if (formData.benefitIds && Array.isArray(formData.benefitIds) && formData.benefitIds.length > 0) {
-      formData.benefitIds.forEach((id) => {
-        if (id) {
-          console.log("📝 Adding benefitIds:", id);
-          apiFormData.append("benefitIds", id);
-        }
-      });
-    } else {
-      console.log("📝 Using default benefitIds:", STATIC_BENEFIT_IDS.sertifikat);
-      apiFormData.append("benefitIds", STATIC_BENEFIT_IDS.sertifikat);
-    }
-
-    // Banner
-    if (!formData.banner) {
-      throw new Error("Banner event harus diunggah");
-    }
-    apiFormData.append("banner", formData.banner);
-    
-    // Log all form data
-    console.log("📦 Form data entries yang dikirim ke server:");
-    for (let [key, value] of apiFormData.entries()) {
-      if (key !== "banner") {
-        console.log(`${key}: ${value}`);
-      } else {
-        console.log(`${key}: [File Object]`);
+      if (!formData.title) {
+        throw new Error("Judul event harus diisi");
       }
-    }
 
-    return apiFormData;
-  } catch (error) {
-    console.error("Error in prepareFormDataForSubmit:", error);
-    throw error;
-  }
-},
+      // Basic fields
+      apiFormData.append("title", formData.title || "");
+      apiFormData.append("type", formData.type || "OPEN");
+      apiFormData.append("description", formData.description || "");
+
+      // Volunteer fields
+      apiFormData.append("requirement", formData.requirement || "");
+      apiFormData.append("contactPerson", formData.contactPerson || "");
+
+      // Numeric fields
+      apiFormData.append(
+        "maxApplicant",
+        formData.maxApplicant ? String(formData.maxApplicant) : ""
+      );
+      apiFormData.append(
+        "acceptedQuota",
+        formData.acceptedQuota ? String(formData.acceptedQuota) : ""
+      );
+
+      // Schedule
+      if (!formData.startAt) {
+        throw new Error("Tanggal dan waktu mulai harus diisi");
+      }
+      apiFormData.append("startAt", formData.startAt);
+
+      if (formData.endAt && formData.endAt.trim() !== "") {
+        apiFormData.append("endAt", formData.endAt);
+      } else {
+        const startDate = new Date(formData.startAt);
+        const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+        apiFormData.append("endAt", endDate.toISOString());
+      }
+
+      // Location
+      if (!formData.province || !formData.regency) {
+        throw new Error("Provinsi dan kota/kabupaten harus diisi");
+      }
+      apiFormData.append("province", formData.province);
+      apiFormData.append("regency", formData.regency);
+
+      if (formData.address && formData.address.trim() !== "") {
+        apiFormData.append("address", formData.address);
+      } else {
+        apiFormData.append(
+          "address",
+          `${formData.regency}, ${formData.province}`
+        );
+      }
+
+      apiFormData.append("gmaps", formData.gmaps || "");
+
+      // Coordinates (only if valid)
+      if (
+        formData.latitude &&
+        formData.latitude !== "" &&
+        !isNaN(formData.latitude)
+      ) {
+        apiFormData.append("latitude", String(formData.latitude));
+      }
+      if (
+        formData.longitude &&
+        formData.longitude !== "" &&
+        !isNaN(formData.longitude)
+      ) {
+        apiFormData.append("longitude", String(formData.longitude));
+      }
+
+      // Payment
+      const isPaid = formData.isPaid === true;
+      apiFormData.append("isPaid", isPaid ? "true" : "false");
+      apiFormData.append("price", isPaid ? formData.price || "0" : "0");
+
+      // Publication status
+      apiFormData.append("isRelease", isReadyToPublish ? "true" : "false");
+
+      // Categories
+      if (
+        formData.categoryIds &&
+        Array.isArray(formData.categoryIds) &&
+        formData.categoryIds.length > 0
+      ) {
+        formData.categoryIds.forEach((id) => {
+          if (id) {
+            apiFormData.append("categoryIds", id);
+          }
+        });
+      } else {
+        apiFormData.append("categoryIds", STATIC_CATEGORY_IDS.pendidikan);
+      }
+
+      // Benefits
+      if (
+        formData.benefitIds &&
+        Array.isArray(formData.benefitIds) &&
+        formData.benefitIds.length > 0
+      ) {
+        formData.benefitIds.forEach((id) => {
+          if (id) {
+            apiFormData.append("benefitIds", id);
+          }
+        });
+      } else {
+        apiFormData.append("benefitIds", STATIC_BENEFIT_IDS.sertifikat);
+      }
+
+      // Banner
+      if (!formData.banner) {
+        throw new Error("Banner event harus diunggah");
+      }
+      apiFormData.append("banner", formData.banner);
+
+      return apiFormData;
+    } catch (error) {
+      console.error("Error in prepareFormDataForSubmit:", error);
+      throw error;
+    }
+  },
 
   saveFormToLocalStorage: (formData) => {
     try {
@@ -312,18 +332,15 @@ const CreateEvent = ({ onBack }) => {
       });
 
       const API_URL = apiUtils.getApiUrl();
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
 
-      const benefitResponse = await fetch(`${API_URL}/benefits`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const benefitData = await benefitResponse.json();
+      // Use httpClient instead of fetch for proper authentication
+      const benefitResponse = await httpClient.get(`${API_URL}/benefits`);
+      const benefitData = benefitResponse.data;
 
-      const categoryResponse = await fetch(`${API_URL}/categories?type=EVENT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const categoryData = await categoryResponse.json();
+      const categoryResponse = await httpClient.get(
+        `${API_URL}/categories?type=EVENT`
+      );
+      const categoryData = categoryResponse.data;
 
       Swal.close();
 
@@ -434,27 +451,27 @@ const CreateEvent = ({ onBack }) => {
 
   const handleToggle = () => {
     const newPublishStatus = !isReadyToPublish;
-    
+
     if (newPublishStatus) {
       // Show confirmation dialog when enabling publish
       Swal.fire({
-        title: 'Konfirmasi Publikasi',
-        text: 'Event akan dipublikasikan dan dapat dilihat oleh pengguna. Pastikan semua data sudah benar.',
-        icon: 'question',
+        title: "Konfirmasi Publikasi",
+        text: "Event akan dipublikasikan dan dapat dilihat oleh pengguna. Pastikan semua data sudah benar.",
+        icon: "question",
         showCancelButton: true,
-        confirmButtonColor: '#10B981',
-        cancelButtonColor: '#6B7280',
-        confirmButtonText: 'Ya, Siap Publish',
-        cancelButtonText: 'Batal'
+        confirmButtonColor: "#10B981",
+        cancelButtonColor: "#6B7280",
+        confirmButtonText: "Ya, Siap Publish",
+        cancelButtonText: "Batal",
       }).then((result) => {
         if (result.isConfirmed) {
           setIsReadyToPublish(true);
           Swal.fire({
-            icon: 'success',
-            title: 'Siap Publish!',
+            icon: "success",
+            title: "Siap Publish!",
             text: 'Event akan dipublikasikan setelah Anda klik "Buat & Publikasikan Event"',
             timer: 2000,
-            showConfirmButton: false
+            showConfirmButton: false,
           });
         }
       });
@@ -487,37 +504,42 @@ const CreateEvent = ({ onBack }) => {
     }));
   };
 
-const handleLocationFormUpdate = (data) => {
-  console.log("📍 Lokasi data yang diterima:", data);
-  
-  // Nilai default untuk latitude dan longitude jika kosong
-  const defaultLat = "-6.200000";  // Jakarta
-  const defaultLng = "106.816666"; // Jakarta
-  
-  setFormData((prev) => ({
-    ...prev,
-    province: data.province || prev.province,
-    regency: data.regency || prev.regency,
-    address: data.address || prev.address,
-    gmaps: data.gmaps || prev.gmaps,
-    // Pastikan nilai koordinat selalu ada dan berbentuk string
-    latitude: (data.latitude && data.latitude !== "") ? String(data.latitude) : (prev.latitude || defaultLat),
-    longitude: (data.longitude && data.longitude !== "") ? String(data.longitude) : (prev.longitude || defaultLng),
-  }));
-};
+  const handleLocationFormUpdate = (data) => {
+    const defaultLat = "-6.200000";
+    const defaultLng = "106.816666";
 
-const handleVolunteerFormUpdate = (data) => {
-  console.log("🔄 Data volunteer yang diterima:", data);
-  
-  setFormData((prev) => ({
-    ...prev,
-    requirement: data.requirement || prev.requirement,
-    contactPerson: data.contactPerson || prev.contactPerson,
-    // Simpan sebagai string untuk kompatibilitas dengan backend
-    maxApplicant: data.maxApplicant !== undefined && data.maxApplicant !== "" ? String(data.maxApplicant) : prev.maxApplicant,
-    acceptedQuota: data.acceptedQuota !== undefined && data.acceptedQuota !== "" ? String(data.acceptedQuota) : prev.acceptedQuota,
-  }));
-};
+    setFormData((prev) => ({
+      ...prev,
+      province: data.province || prev.province,
+      regency: data.regency || prev.regency,
+      address: data.address || prev.address,
+      gmaps: data.gmaps || prev.gmaps,
+      latitude:
+        data.latitude && data.latitude !== ""
+          ? String(data.latitude)
+          : prev.latitude || defaultLat,
+      longitude:
+        data.longitude && data.longitude !== ""
+          ? String(data.longitude)
+          : prev.longitude || defaultLng,
+    }));
+  };
+
+  const handleVolunteerFormUpdate = (data) => {
+    setFormData((prev) => ({
+      ...prev,
+      requirement: data.requirement || prev.requirement,
+      contactPerson: data.contactPerson || prev.contactPerson,
+      maxApplicant:
+        data.maxApplicant !== undefined && data.maxApplicant !== ""
+          ? String(data.maxApplicant)
+          : prev.maxApplicant,
+      acceptedQuota:
+        data.acceptedQuota !== undefined && data.acceptedQuota !== ""
+          ? String(data.acceptedQuota)
+          : prev.acceptedQuota,
+    }));
+  };
 
   const handleFeeFormUpdate = (data) => {
     setFormData((prev) => ({
@@ -541,12 +563,10 @@ const handleVolunteerFormUpdate = (data) => {
     }
   }, []);
 
-  // Main event creation handler
   const handleCreateEvent = async () => {
     try {
       setLoading(true);
 
-      // Re-check authentication before submitting
       if (!authService.isAuthenticated()) {
         Swal.fire({
           icon: "error",
@@ -559,7 +579,6 @@ const handleVolunteerFormUpdate = (data) => {
         return;
       }
 
-      // Validate form
       const errors = formUtils.validateForm(formData, {
         eventFormRef,
         dateFormRef,
@@ -581,10 +600,9 @@ const handleVolunteerFormUpdate = (data) => {
         return;
       }
 
-      // Additional validation for publish
       if (isReadyToPublish) {
         const publishErrors = formUtils.validateForPublish(formData);
-        
+
         if (publishErrors.length > 0) {
           Swal.fire({
             icon: "error",
@@ -598,11 +616,10 @@ const handleVolunteerFormUpdate = (data) => {
         }
       }
 
-      // Show loading state
       Swal.fire({
         title: "Memproses...",
-        text: isReadyToPublish 
-          ? "Sedang membuat dan mempublikasikan event..." 
+        text: isReadyToPublish
+          ? "Sedang membuat dan mempublikasikan event..."
           : "Sedang menyimpan event sebagai draft...",
         allowOutsideClick: false,
         didOpen: () => {
@@ -610,13 +627,9 @@ const handleVolunteerFormUpdate = (data) => {
         },
       });
 
-      // Get token and partnerId
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
       const partnerId = localStorage.getItem("partnerId");
-
-      // Prepare form data
       let apiFormData;
+
       try {
         apiFormData = formUtils.prepareFormDataForSubmit(
           formData,
@@ -639,13 +652,9 @@ const handleVolunteerFormUpdate = (data) => {
         return;
       }
 
-      // Save backup
-      setFormBackup({
-        timestamp: new Date().toISOString(),
-      });
+      setFormBackup({ timestamp: new Date().toISOString() });
       formUtils.saveFormToLocalStorage(formData);
 
-      // Attempt to create event using the service
       try {
         const response = await partnerService.createEvent(apiFormData);
 
@@ -657,7 +666,7 @@ const handleVolunteerFormUpdate = (data) => {
             ? "Event berhasil dibuat dan dipublikasikan! Pengguna sekarang dapat melihat event Anda."
             : "Event berhasil disimpan sebagai draft. Anda dapat mempublikasikannya nanti dari halaman daftar event.",
           confirmButtonText: "OK",
-          confirmButtonColor: isReadyToPublish ? "#10B981" : "#0A3E54"
+          confirmButtonColor: isReadyToPublish ? "#10B981" : "#0A3E54",
         }).then(() => {
           navigate("/partner/dashboard/buat-event");
         });
@@ -671,7 +680,6 @@ const handleVolunteerFormUpdate = (data) => {
         ) {
           Swal.close();
 
-          // Try fetching valid IDs again and then retry
           const success = await fetchValidIdsAndApply();
 
           if (success) {
@@ -685,7 +693,6 @@ const handleVolunteerFormUpdate = (data) => {
                 },
               });
 
-              // Create a new form data with the updated formData
               apiFormData = formUtils.prepareFormDataForSubmit(
                 formData,
                 isReadyToPublish
@@ -705,7 +712,7 @@ const handleVolunteerFormUpdate = (data) => {
                   ? "Event berhasil dibuat dan dipublikasikan!"
                   : "Event berhasil disimpan sebagai draft.",
                 confirmButtonText: "OK",
-                confirmButtonColor: isReadyToPublish ? "#10B981" : "#0A3E54"
+                confirmButtonColor: isReadyToPublish ? "#10B981" : "#0A3E54",
               }).then(() => {
                 navigate("/partner/dashboard/buat-event");
               });
@@ -737,7 +744,6 @@ const handleVolunteerFormUpdate = (data) => {
           return;
         }
 
-        // Check for authentication errors
         if (
           serviceError.status === 401 ||
           serviceError.status === 403 ||
@@ -836,16 +842,22 @@ const handleVolunteerFormUpdate = (data) => {
       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Status Publikasi</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Status Publikasi
+            </h3>
             <p className="text-sm text-gray-600">
-              {isReadyToPublish 
-                ? "Event akan dipublikasikan dan dapat dilihat oleh pengguna setelah dibuat" 
+              {isReadyToPublish
+                ? "Event akan dipublikasikan dan dapat dilihat oleh pengguna setelah dibuat"
                 : "Event akan disimpan sebagai draft dan tidak dapat dilihat oleh pengguna"}
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <span className={`text-sm font-medium ${isReadyToPublish ? 'text-green-600' : 'text-yellow-600'}`}>
-              {isReadyToPublish ? '✓ Siap Publish' : '○ Draft'}
+            <span
+              className={`text-sm font-medium ${
+                isReadyToPublish ? "text-green-600" : "text-yellow-600"
+              }`}
+            >
+              {isReadyToPublish ? "✓ Siap Publish" : "○ Draft"}
             </span>
             <div className="relative inline-block w-12 align-middle select-none transition duration-200 ease-in">
               <input
@@ -888,15 +900,21 @@ const handleVolunteerFormUpdate = (data) => {
           onClick={handleCreateEvent}
           disabled={loading}
           className={`py-2 px-4 text-white rounded-lg flex items-center transition-colors ${
-            loading ? "opacity-70 cursor-not-allowed bg-gray-400" : 
-            isReadyToPublish ? "bg-green-600 hover:bg-green-700" : "bg-[#0A3E54] hover:bg-[#072a39]"
+            loading
+              ? "opacity-70 cursor-not-allowed bg-gray-400"
+              : isReadyToPublish
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-[#0A3E54] hover:bg-[#072a39]"
           }`}
         >
           {loading && (
             <div className="mr-2 w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
           )}
-          {loading ? "Memproses..." : 
-           isReadyToPublish ? "Buat & Publikasikan Event" : "Simpan sebagai Draft"}
+          {loading
+            ? "Memproses..."
+            : isReadyToPublish
+            ? "Buat & Publikasikan Event"
+            : "Simpan sebagai Draft"}
         </button>
       </div>
     </section>

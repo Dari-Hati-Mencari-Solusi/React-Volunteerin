@@ -1,4 +1,4 @@
-import httpClient from '../utils/httpClient';
+import httpClient from "../utils/httpClient";
 
 const API_URL = import.meta.env.VITE_BE_BASE_URL;
 
@@ -32,7 +32,7 @@ export const partnerService = {
       const response = await httpClient.get(`${API_URL}/partners/me/profile`);
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while fetching partner profile');
+      handleApiError(error, "An error occurred while fetching partner profile");
     }
   },
 
@@ -46,18 +46,24 @@ export const partnerService = {
     try {
       try {
         await httpClient.get(`${API_URL}/partners/me/profile`);
-        const response = await httpClient.put(`${API_URL}/partners/me/profile`, profileData);
+        const response = await httpClient.put(
+          `${API_URL}/partners/me/profile`,
+          profileData
+        );
         return response.data;
       } catch (checkError) {
         if (checkError.response?.status === 404) {
-          const response = await httpClient.post(`${API_URL}/partners/me/profile`, profileData);
+          const response = await httpClient.post(
+            `${API_URL}/partners/me/profile`,
+            profileData
+          );
           return response.data;
         } else {
           throw checkError;
         }
       }
     } catch (error) {
-      handleApiError(error, 'An error occurred while updating partner profile');
+      handleApiError(error, "An error occurred while updating partner profile");
     }
   },
 
@@ -69,10 +75,13 @@ export const partnerService = {
    */
   createPartnerProfile: async (profileData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/partners/me/profile`, profileData);
+      const response = await httpClient.post(
+        `${API_URL}/partners/me/profile`,
+        profileData
+      );
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while creating partner profile');
+      handleApiError(error, "An error occurred while creating partner profile");
     }
   },
 
@@ -84,218 +93,234 @@ export const partnerService = {
    */
   getPartnerEvents: async (params = {}) => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/events`, { params });
+      const response = await httpClient.get(`${API_URL}/partners/me/events`, {
+        params,
+      });
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while fetching partner events');
+      handleApiError(error, "An error occurred while fetching partner events");
     }
   },
 
- /**
- * Create a new event for the partner
- * @param {FormData} formData - New event data as FormData
- * @returns {Promise<Object>} Created event data
- * @throws {Object} Error object with message
- */
-createEvent: async (formData) => {
-  try {
-    let hasBenefits = false;
-    let benefitCount = 0;
-    let categoryCount = 0;
-    
-    // Validasi format data yang dikirim
-    for (let [key, value] of formData.entries()) {
-      if (key === 'benefitIds') { // Tanpa []
-        hasBenefits = true;
-        benefitCount++;
-      }
-      
-      if (key === 'categoryIds') { // Tanpa []
-        categoryCount++;
-      }
-    }
-    
-    console.log('📊 Validation counts:', { benefitCount, categoryCount, hasBenefits });
-    
-    // Validasi minimal requirement
-    if (!hasBenefits || benefitCount === 0) {
-      throw { message: "Please select at least one event benefit" };
-    }
-    
-    if (categoryCount === 0) {
-      throw { message: "Please select at least one event category" };
-    }
-    
-    // Log semua data yang akan dikirim (debugging)
-    console.log("📤 Final form data being sent:");
-    for (let [key, value] of formData.entries()) {
-      if (key !== "banner") {
-        console.log(`${key}: ${value}`);
-      } else {
-        console.log(`${key}: [File Object - ${value.name}]`);
-      }
-    }
-    
-    // Kirim request ke backend
-    const response = await httpClient.post(`${API_URL}/partners/me/events`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'X-Request-Source': 'React-App',
-      },
-      timeout: 60000
-    });
-    
-    return response.data;
-    
-  } catch (error) {
-    console.error("❌ CreateEvent Error:", error);
-    
-    if (error.response) {
-      console.error("❌ Response Status:", error.response.status);
-      console.error("❌ Response Data:", error.response.data);
-      
-      // Handle error 400 (Bad Request)
-      if (error.response.status === 400) {
-        const errorMsg = error.response.data?.message || "Invalid data format";
-        const errors = error.response.data?.errors || [];
-        
-        console.error("❌ 400 Error Details:", error.response.data);
-        console.error("❌ Specific validation errors:", errors);
-        
-        // Tampilkan detail error yang spesifik
-        if (errors && Array.isArray(errors) && errors.length > 0) {
-          const detailedErrorMessage = `Validation failed:\n${errors.map(err => `• ${err}`).join('\n')}`;
-          throw { 
-            message: detailedErrorMessage, 
-            errors: errors,
-            originalMessage: errorMsg 
-          };
-        } else {
-          throw { 
-            message: errorMsg, 
-            errors: errors || [],
-            originalMessage: errorMsg 
-          };
+  /**
+   * Create a new event for the partner
+   * @param {FormData} formData - New event data as FormData
+   * @returns {Promise<Object>} Created event data
+   * @throws {Object} Error object with message
+   */
+  createEvent: async (formData) => {
+    try {
+      let hasBenefits = false;
+      let benefitCount = 0;
+      let categoryCount = 0;
+
+      for (let [key, value] of formData.entries()) {
+        if (key === "benefitIds") {
+          hasBenefits = true;
+          benefitCount++;
+        }
+        if (key === "categoryIds") {
+          categoryCount++;
         }
       }
-      
-      // Handle error 500 (Internal Server Error) dengan retry logic
-      if (error.response.status === 500) {
-        try {
-          console.log("🔄 Attempting retry with minimal data...");
-          
-          const minimalFormData = new FormData();
-          
-          // Field wajib sesuai dokumentasi API
-          minimalFormData.append('title', formData.get('title') || 'Default Title');
-          minimalFormData.append('type', formData.get('type') || 'OPEN');
-          minimalFormData.append('description', formData.get('description') || 'Default Description');
-          minimalFormData.append('requirement', formData.get('requirement') || 'Default Requirement');
-          minimalFormData.append('contactPerson', formData.get('contactPerson') || '081234567890');
-          minimalFormData.append('startAt', formData.get('startAt') || new Date().toISOString());
-          minimalFormData.append('province', formData.get('province') || 'Default Province');
-          
-          // PENTING: Gunakan 'regency' bukan 'region' sesuai kebutuhan backend
-          minimalFormData.append('regency', formData.get('regency') || 'Default Regency');
-          
-          minimalFormData.append('isPaid', 'false');
-          minimalFormData.append('isRelease', 'false');
-          
-          // Gunakan format yang benar tanpa [] untuk categoryIds dan benefitIds
-          const categoryIds = formData.getAll('categoryIds');
-          if (categoryIds && categoryIds.length > 0) {
-            minimalFormData.append('categoryIds', categoryIds[0]);
+
+      if (!hasBenefits || benefitCount === 0) {
+        throw { message: "Please select at least one event benefit" };
+      }
+
+      if (categoryCount === 0) {
+        throw { message: "Please select at least one event category" };
+      }
+
+      const response = await httpClient.post(
+        `${API_URL}/partners/me/events`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "X-Request-Source": "React-App",
+          },
+          timeout: 60000,
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 400) {
+          const errorMsg =
+            error.response.data?.message || "Invalid data format";
+          const errors = error.response.data?.errors || [];
+
+          if (errors && Array.isArray(errors) && errors.length > 0) {
+            const detailedErrorMessage = `Validation failed:\n${errors
+              .map((err) => `• ${err}`)
+              .join("\n")}`;
+            throw {
+              message: detailedErrorMessage,
+              errors: errors,
+              originalMessage: errorMsg,
+            };
           } else {
-            throw new Error("No valid category ID");
+            throw {
+              message: errorMsg,
+              errors: errors || [],
+              originalMessage: errorMsg,
+            };
           }
-          
-          const benefitIds = formData.getAll('benefitIds');
-          if (benefitIds && benefitIds.length > 0) {
-            minimalFormData.append('benefitIds', benefitIds[0]);
-          } else {
-            throw new Error("No valid benefit ID");
-          }
-          
-          // Tambahkan banner jika ada
-          if (formData.get('banner')) {
-            minimalFormData.append('banner', formData.get('banner'));
-          }
-          
-          console.log("🔄 Retry data being sent:");
-          for (let [key, value] of minimalFormData.entries()) {
-            if (key !== "banner") {
-              console.log(`${key}: ${value}`);
-            } else {
-              console.log(`${key}: [File Object]`);
+        }
+
+        if (error.response.status === 500) {
+          try {
+            const minimalFormData = new FormData();
+
+            minimalFormData.append(
+              "title",
+              formData.get("title") || "Default Title"
+            );
+            minimalFormData.append("type", formData.get("type") || "OPEN");
+            minimalFormData.append(
+              "description",
+              formData.get("description") || "Default Description"
+            );
+            minimalFormData.append(
+              "requirement",
+              formData.get("requirement") || "Default Requirement"
+            );
+            minimalFormData.append(
+              "contactPerson",
+              formData.get("contactPerson") || "081234567890"
+            );
+            minimalFormData.append(
+              "startAt",
+              formData.get("startAt") || new Date().toISOString()
+            );
+            minimalFormData.append(
+              "province",
+              formData.get("province") || "Default Province"
+            );
+            minimalFormData.append(
+              "regency",
+              formData.get("regency") || "Default Regency"
+            );
+            minimalFormData.append("isPaid", "false");
+            minimalFormData.append("isRelease", "false");
+
+            const startAt = formData.get("startAt");
+            const endAt = formData.get("endAt");
+            if (endAt) {
+              minimalFormData.append("endAt", endAt);
+            } else if (startAt) {
+              const startDate = new Date(startAt);
+              const endDate = new Date(
+                startDate.getTime() + 24 * 60 * 60 * 1000
+              );
+              minimalFormData.append("endAt", endDate.toISOString());
             }
+
+            const address = formData.get("address");
+            const regency = formData.get("regency");
+            const province = formData.get("province");
+            if (address) {
+              minimalFormData.append("address", address);
+            } else if (regency && province) {
+              minimalFormData.append("address", `${regency}, ${province}`);
+            } else {
+              minimalFormData.append("address", "Default Address");
+            }
+
+            // Gunakan format yang benar tanpa [] untuk categoryIds dan benefitIds
+            const categoryIds = formData.getAll("categoryIds");
+            if (categoryIds && categoryIds.length > 0) {
+              minimalFormData.append("categoryIds", categoryIds[0]);
+            } else {
+              throw new Error("No valid category ID");
+            }
+
+            const benefitIds = formData.getAll("benefitIds");
+            if (benefitIds && benefitIds.length > 0) {
+              minimalFormData.append("benefitIds", benefitIds[0]);
+            } else {
+              throw new Error("No valid benefit ID");
+            }
+
+            if (formData.get("banner")) {
+              minimalFormData.append("banner", formData.get("banner"));
+            }
+
+            const minimalResponse = await httpClient.post(
+              `${API_URL}/partners/me/events`,
+              minimalFormData,
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                  "X-Retry-Attempt": "true",
+                },
+                timeout: 60000,
+              }
+            );
+
+            return minimalResponse.data;
+          } catch (retryError) {
+            throw {
+              message:
+                "Server error persists even with minimal data. Please contact admin or try again later.",
+              originalError: error.response?.data,
+            };
           }
-          
-          const minimalResponse = await httpClient.post(`${API_URL}/partners/me/events`, minimalFormData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'X-Retry-Attempt': 'true'
-            },
-            timeout: 60000
-          });
-          
-          console.log("✅ Retry successful!");
-          return minimalResponse.data;
-          
-        } catch (retryError) {
-          console.error("❌ Retry failed:", retryError);
-          throw { 
-            message: "Server error persists even with minimal data. Please contact admin or try again later.", 
-            originalError: error.response?.data 
+        }
+
+        if (error.response.status === 401 || error.response.status === 403) {
+          throw {
+            message: "Authentication failed. Please login again.",
+            status: error.response.status,
+            redirect: true,
           };
         }
-      }
-      
-      // Handle error 401/403 (Unauthorized/Forbidden)
-      if (error.response.status === 401 || error.response.status === 403) {
-        throw { 
-          message: "Authentication failed. Please login again.", 
+
+        if (error.response.status === 413) {
+          throw {
+            message:
+              "File size too large. Please use a smaller banner image (max 1MB).",
+          };
+        }
+
+        if (error.response.status === 422) {
+          const errorMsg =
+            error.response.data?.message || "Data validation failed";
+          const errors = error.response.data?.errors || [];
+          throw {
+            message: errorMsg,
+            errors: errors,
+          };
+        }
+
+        throw {
+          message:
+            error.response.data?.message ||
+            "An error occurred while processing the request.",
           status: error.response.status,
-          redirect: true 
         };
       }
-      
-      // Handle error 413 (Payload Too Large)
-      if (error.response.status === 413) {
-        throw { 
-          message: "File size too large. Please use a smaller banner image (max 1MB)." 
+
+      if (error.code === "ECONNABORTED") {
+        throw {
+          message:
+            "Request timeout. Please check your connection and try again.",
         };
       }
-      
-      // Handle error 422 (Unprocessable Entity)
-      if (error.response.status === 422) {
-        const errorMsg = error.response.data?.message || "Data validation failed";
-        const errors = error.response.data?.errors || [];
-        throw { 
-          message: errorMsg, 
-          errors: errors 
+
+      if (error.code === "ERR_NETWORK") {
+        throw {
+          message: "Network error. Please check your internet connection.",
         };
       }
-      
-      // Handle other HTTP errors
-      throw { 
-        message: error.response.data?.message || "An error occurred while processing the request.",
-        status: error.response.status 
+
+      throw {
+        message: error.message || "Failed to create event. Please try again.",
       };
     }
-    
-    // Handle network errors
-    if (error.code === 'ECONNABORTED') {
-      throw { message: "Request timeout. Please check your connection and try again." };
-    }
-    
-    if (error.code === 'ERR_NETWORK') {
-      throw { message: "Network error. Please check your internet connection." };
-    }
-    
-    // Handle other errors
-    throw { message: error.message || 'Failed to create event. Please try again.' };
-  }
-},
+  },
 
   /**
    * Get event details by ID
@@ -305,13 +330,15 @@ createEvent: async (formData) => {
    */
   getEventDetails: async (eventId) => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/events/${eventId}`);
+      const response = await httpClient.get(
+        `${API_URL}/partners/me/events/${eventId}`
+      );
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while fetching event details');
+      handleApiError(error, "An error occurred while fetching event details");
     }
-  },  
-  
+  },
+
   /**
    * Update an existing event
    * @param {string} eventId - ID of the event to update
@@ -321,10 +348,13 @@ createEvent: async (formData) => {
    */
   updateEvent: async (eventId, eventData) => {
     try {
-      const response = await httpClient.put(`${API_URL}/partners/me/events/${eventId}`, eventData);
+      const response = await httpClient.put(
+        `${API_URL}/partners/me/events/${eventId}`,
+        eventData
+      );
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while updating the event');
+      handleApiError(error, "An error occurred while updating the event");
     }
   },
 
@@ -336,10 +366,12 @@ createEvent: async (formData) => {
    */
   deleteEvent: async (eventId) => {
     try {
-      const response = await httpClient.delete(`${API_URL}/partners/me/events/${eventId}`);
+      const response = await httpClient.delete(
+        `${API_URL}/partners/me/events/${eventId}`
+      );
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while deleting the event');
+      handleApiError(error, "An error occurred while deleting the event");
     }
   },
 
@@ -352,10 +384,16 @@ createEvent: async (formData) => {
    */
   getEventApplications: async (eventId, params = {}) => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/events/${eventId}/applications`, { params });
+      const response = await httpClient.get(
+        `${API_URL}/partners/me/events/${eventId}/applications`,
+        { params }
+      );
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while fetching event applications');
+      handleApiError(
+        error,
+        "An error occurred while fetching event applications"
+      );
     }
   },
 
@@ -369,10 +407,16 @@ createEvent: async (formData) => {
    */
   updateApplicationStatus: async (eventId, applicationId, status) => {
     try {
-      const response = await httpClient.put(`${API_URL}/partners/me/events/${eventId}/applications/${applicationId}`, { status });
+      const response = await httpClient.put(
+        `${API_URL}/partners/me/events/${eventId}/applications/${applicationId}`,
+        { status }
+      );
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while updating application status');
+      handleApiError(
+        error,
+        "An error occurred while updating application status"
+      );
     }
   },
 
@@ -386,7 +430,10 @@ createEvent: async (formData) => {
       const response = await httpClient.get(`${API_URL}/partners/me/dashboard`);
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while fetching dashboard statistics');
+      handleApiError(
+        error,
+        "An error occurred while fetching dashboard statistics"
+      );
     }
   },
 
@@ -398,14 +445,18 @@ createEvent: async (formData) => {
    */
   uploadBanner: async (formData) => {
     try {
-      const response = await httpClient.post(`${API_URL}/partners/me/banner`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      const response = await httpClient.post(
+        `${API_URL}/partners/me/banner`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
-      });
+      );
       return response.data;
     } catch (error) {
-      handleApiError(error, 'An error occurred while uploading banner image');
+      handleApiError(error, "An error occurred while uploading banner image");
     }
   },
 
@@ -417,72 +468,82 @@ createEvent: async (formData) => {
    */
   uploadAvatar: async (formData) => {
     try {
-      if (!formData.has('logo')) {
+      if (!formData.has("logo")) {
         throw new Error("Logo file not found in form data");
       }
-      
-      const logoFile = formData.get('logo');
-      
+
+      const logoFile = formData.get("logo");
+
       // Strategy 1: Check if profile exists first
       let profileExists = false;
       try {
-        const existingProfile = await httpClient.get(`${API_URL}/partners/me/profile`);
+        const existingProfile = await httpClient.get(
+          `${API_URL}/partners/me/profile`
+        );
         profileExists = existingProfile && existingProfile.data;
       } catch (getError) {
         profileExists = false;
       }
-      
+
       // Strategy 2: Use PUT if profile exists, POST if not
-      const method = profileExists ? 'PUT' : 'POST';
-      
+      const method = profileExists ? "PUT" : "POST";
+
       try {
         const response = await httpClient({
           method: method.toLowerCase(),
           url: `${API_URL}/partners/me/profile`,
           data: formData,
           headers: {
-            'Content-Type': 'multipart/form-data'
+            "Content-Type": "multipart/form-data",
           },
           timeout: 60000,
           maxContentLength: 10 * 1024 * 1024,
           maxBodyLength: 10 * 1024 * 1024,
         });
-        
-        if (response.data && response.data.data && response.data.data.avatarUrl) {
+
+        if (
+          response.data &&
+          response.data.data &&
+          response.data.data.avatarUrl
+        ) {
           return response.data;
         } else if (response.data && response.data.avatarUrl) {
           return {
             data: {
-              avatarUrl: response.data.avatarUrl
-            }
+              avatarUrl: response.data.avatarUrl,
+            },
           };
         } else {
           throw new Error("Response does not contain avatarUrl");
         }
       } catch (primaryError) {
         // Strategy 3: If first method fails, try the alternative
-        const alternativeMethod = method === 'PUT' ? 'POST' : 'PUT';
-        
+        const alternativeMethod = method === "PUT" ? "POST" : "PUT";
+
         try {
           const response = await httpClient({
             method: alternativeMethod.toLowerCase(),
             url: `${API_URL}/partners/me/profile`,
             data: formData,
             headers: {
-              'Content-Type': 'multipart/form-data'
+              "Content-Type": "multipart/form-data",
             },
             timeout: 60000,
             maxContentLength: 10 * 1024 * 1024,
             maxBodyLength: 10 * 1024 * 1024,
           });
-          
-          if (response.data && response.data.data && response.data.data.avatarUrl) {
+
+          if (
+            response.data &&
+            response.data.data &&
+            response.data.data.avatarUrl
+          ) {
             return response.data;
           } else if (response.data && response.data.avatarUrl) {
             return {
               data: {
-                avatarUrl: response.data.avatarUrl
-              }
+                avatarUrl: response.data.avatarUrl,
+              },
             };
           } else {
             throw new Error("Response does not contain avatarUrl");
@@ -492,31 +553,41 @@ createEvent: async (formData) => {
           if (primaryError.response?.status === 500) {
             // Create minimal FormData with only logo and required fields
             const minimalFormData = new FormData();
-            minimalFormData.append('logo', logoFile);
-            
-            const currentData = formData.get('organizationType') || 'COMMUNITY';
-            const currentAddress = formData.get('organizationAddress') || 'Default Address';
-            const currentInstagram = formData.get('instagram') || 'default_instagram';
-            
-            minimalFormData.append('organizationType', currentData);
-            minimalFormData.append('organizationAddress', currentAddress);
-            minimalFormData.append('instagram', currentInstagram);
-            
-            const response = await httpClient.put(`${API_URL}/partners/me/profile`, minimalFormData, {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                'X-Retry-Minimal': 'true'
-              },
-              timeout: 60000,
-            });
-            
-            if (response.data && response.data.data && response.data.data.avatarUrl) {
+            minimalFormData.append("logo", logoFile);
+
+            const currentData = formData.get("organizationType") || "COMMUNITY";
+            const currentAddress =
+              formData.get("organizationAddress") || "Default Address";
+            const currentInstagram =
+              formData.get("instagram") || "default_instagram";
+
+            minimalFormData.append("organizationType", currentData);
+            minimalFormData.append("organizationAddress", currentAddress);
+            minimalFormData.append("instagram", currentInstagram);
+
+            const response = await httpClient.put(
+              `${API_URL}/partners/me/profile`,
+              minimalFormData,
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                  "X-Retry-Minimal": "true",
+                },
+                timeout: 60000,
+              }
+            );
+
+            if (
+              response.data &&
+              response.data.data &&
+              response.data.data.avatarUrl
+            ) {
               return response.data;
             } else if (response.data && response.data.avatarUrl) {
               return {
                 data: {
-                  avatarUrl: response.data.avatarUrl
-                }
+                  avatarUrl: response.data.avatarUrl,
+                },
               };
             } else {
               throw new Error("Minimal response does not contain avatarUrl");
@@ -530,44 +601,52 @@ createEvent: async (formData) => {
       // Handle specific error cases
       if (error.response?.status === 500) {
         const errorMessage = error.response.data?.message;
-        
-        if (errorMessage?.includes('image')) {
-          throw new Error("Server failed to process image. Try a different image or contact administrator.");
+
+        if (errorMessage?.includes("image")) {
+          throw new Error(
+            "Server failed to process image. Try a different image or contact administrator."
+          );
         } else {
-          throw new Error(`Server error: ${errorMessage || 'A server error occurred'}`);
+          throw new Error(
+            `Server error: ${errorMessage || "A server error occurred"}`
+          );
         }
       }
-      
+
       if (error.response?.status === 413) {
         throw new Error("File size too large. Maximum 200KB allowed");
       }
-      
+
       if (error.response?.status === 400) {
         const errorMessage = error.response.data?.message;
-        
-        if (errorMessage?.includes('already has a profile')) {
+
+        if (errorMessage?.includes("already has a profile")) {
           throw new Error("Profile already exists. Trying update method...");
-        } else if (errorMessage?.includes('Invalid data')) {
+        } else if (errorMessage?.includes("Invalid data")) {
           throw new Error(`Validation failed: ${errorMessage}`);
         } else {
           throw new Error(errorMessage || "Invalid data");
         }
       }
-      
+
       // Handle timeouts
-      if (error.code === 'ECONNABORTED') {
-        throw new Error("Connection timeout. Try again later or use a smaller image.");
+      if (error.code === "ECONNABORTED") {
+        throw new Error(
+          "Connection timeout. Try again later or use a smaller image."
+        );
       }
-      
+
       // Handle offline state
       if (!navigator.onLine) {
         throw new Error("You are offline. Check your internet connection.");
       }
-      
-      throw new Error(error.message || 'Failed to upload logo. Please try again.');
+
+      throw new Error(
+        error.message || "Failed to upload logo. Please try again."
+      );
     }
   },
-  
+
   /**
    * Remove avatar/logo
    * @returns {Promise<Object>} Removal response
@@ -578,7 +657,7 @@ createEvent: async (formData) => {
       const response = await httpClient.delete(`${API_URL}/users/avatar`);
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Failed to remove logo');
+      handleApiError(error, "Failed to remove logo");
     }
   },
 
@@ -592,7 +671,7 @@ createEvent: async (formData) => {
       const response = await httpClient.get(`${API_URL}/users/avatar`);
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Failed to fetch avatar');
+      handleApiError(error, "Failed to fetch avatar");
     }
   },
 
@@ -603,14 +682,19 @@ createEvent: async (formData) => {
    */
   getResponsiblePerson: async () => {
     try {
-      const response = await httpClient.get(`${API_URL}/partners/me/responsible-person`);
+      const response = await httpClient.get(
+        `${API_URL}/partners/me/responsible-person`
+      );
       return response.data;
     } catch (error) {
       // Handle 404 (no data yet) as normal condition
       if (error.response?.status === 404) {
         return { message: "No responsible person data yet", data: null };
       }
-      handleApiError(error, 'An error occurred while fetching responsible person data');
+      handleApiError(
+        error,
+        "An error occurred while fetching responsible person data"
+      );
     }
   },
 
@@ -625,44 +709,55 @@ createEvent: async (formData) => {
     try {
       // Create FormData with correct field names for BE
       const formData = new FormData();
-      
+
       // Personal data
-      formData.append('nik', personData.nik);
-      formData.append('fullName', personData.fullName);
-      formData.append('phoneNumber', personData.phoneNumber);
-      formData.append('position', personData.position);
-      
+      formData.append("nik", personData.nik);
+      formData.append("fullName", personData.fullName);
+      formData.append("phoneNumber", personData.phoneNumber);
+      formData.append("position", personData.position);
+
       // Only use 'ktp' field for KTP file
       if (ktpFile && ktpFile instanceof File) {
-        formData.append('ktp', ktpFile);
+        formData.append("ktp", ktpFile);
       } else if (personData.ktpImageId) {
         // If no new file but has old image ID, send that ID
-        formData.append('ktpImageId', personData.ktpImageId);
+        formData.append("ktpImageId", personData.ktpImageId);
       }
-      
+
       // NEW APPROACH: Try POST first
       try {
-        const postResponse = await httpClient.post(`${API_URL}/partners/me/responsible-person`, formData, {
-          // Important: Don't set Content-Type header for FormData
-          timeout: 60000 
-        });
-        
+        const postResponse = await httpClient.post(
+          `${API_URL}/partners/me/responsible-person`,
+          formData,
+          {
+            // Important: Don't set Content-Type header for FormData
+            timeout: 60000,
+          }
+        );
+
         return postResponse.data;
       } catch (postError) {
         // If POST fails, try PUT
-        const putResponse = await httpClient.put(`${API_URL}/partners/me/responsible-person`, formData, {
-          // Important: Don't set Content-Type header for FormData
-          timeout: 60000 
-        });
-        
+        const putResponse = await httpClient.put(
+          `${API_URL}/partners/me/responsible-person`,
+          formData,
+          {
+            // Important: Don't set Content-Type header for FormData
+            timeout: 60000,
+          }
+        );
+
         return putResponse.data;
       }
     } catch (error) {
       if (error.response?.status === 500 && error.response?.data?.message) {
         throw new Error(`Server error: ${error.response.data.message}`);
       }
-      
-      handleApiError(error, 'An error occurred while updating responsible person data');
+
+      handleApiError(
+        error,
+        "An error occurred while updating responsible person data"
+      );
     }
   },
 
@@ -678,7 +773,10 @@ createEvent: async (formData) => {
       // For create, use same endpoint with PUT since BE uses PUT
       return await partnerService.updateResponsiblePerson(personData, ktpFile);
     } catch (error) {
-      handleApiError(error, 'An error occurred while creating responsible person data');
+      handleApiError(
+        error,
+        "An error occurred while creating responsible person data"
+      );
     }
   },
 
@@ -696,8 +794,8 @@ createEvent: async (formData) => {
       if (error.response?.status === 404) {
         return { message: "No legal documents yet", data: null };
       }
-      
-      handleApiError(error, 'An error occurred while fetching legal documents');
+
+      handleApiError(error, "An error occurred while fetching legal documents");
     }
   },
 
@@ -710,79 +808,91 @@ createEvent: async (formData) => {
   uploadLegalDocument: async (formData) => {
     try {
       // Basic validation
-      if (!formData.has('document')) {
+      if (!formData.has("document")) {
         throw new Error("Document file not found");
       }
-      
-      if (!formData.has('documentName')) {
+
+      if (!formData.has("documentName")) {
         throw new Error("Document name cannot be empty");
       }
-      
+
       // Get original file
-      const documentFile = formData.get('document');
+      const documentFile = formData.get("document");
       if (!documentFile || !(documentFile instanceof File)) {
         throw new Error("Invalid document file");
       }
-      
+
       // Create simple FormData
       const simpleFormData = new FormData();
-      simpleFormData.append('documentName', formData.get('documentName'));
-      simpleFormData.append('document', documentFile);
-      
+      simpleFormData.append("documentName", formData.get("documentName"));
+      simpleFormData.append("document", documentFile);
+
       // Add information if available
-      if (formData.has('information')) {
-        simpleFormData.append('information', formData.get('information'));
+      if (formData.has("information")) {
+        simpleFormData.append("information", formData.get("information"));
       }
-      
+
       try {
         // Send request with multipart/form-data header
         const response = await httpClient.post(
-          `${API_URL}/partners/me/legality`, 
-          simpleFormData, 
+          `${API_URL}/partners/me/legality`,
+          simpleFormData,
           {
             headers: {
-              'Content-Type': 'multipart/form-data'
+              "Content-Type": "multipart/form-data",
             },
-            timeout: 60000
+            timeout: 60000,
           }
         );
-        
+
         return response.data;
       } catch (uploadError) {
         // If upload fails with file not found, try alternative approach
-        if (uploadError.response?.status === 400 && uploadError.response?.data?.message?.includes('not found')) {
+        if (
+          uploadError.response?.status === 400 &&
+          uploadError.response?.data?.message?.includes("not found")
+        ) {
           // Create new FormData from scratch
           const directFormData = new FormData();
-          directFormData.append('documentName', formData.get('documentName'));
-          directFormData.append('document', new Blob([documentFile], { type: documentFile.type }), documentFile.name);
-          
-          if (formData.has('information')) {
-            directFormData.append('information', formData.get('information'));
+          directFormData.append("documentName", formData.get("documentName"));
+          directFormData.append(
+            "document",
+            new Blob([documentFile], { type: documentFile.type }),
+            documentFile.name
+          );
+
+          if (formData.has("information")) {
+            directFormData.append("information", formData.get("information"));
           }
-          
-          const alternativeResponse = await fetch(`${API_URL}/partners/me/legality`, {
-            method: 'POST',
-            body: directFormData,
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+
+          const alternativeResponse = await fetch(
+            `${API_URL}/partners/me/legality`,
+            {
+              method: "POST",
+              body: directFormData,
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
             }
-          });
-          
+          );
+
           if (!alternativeResponse.ok) {
-            throw new Error(`Alternative approach failed with status ${alternativeResponse.status}`);
+            throw new Error(
+              `Alternative approach failed with status ${alternativeResponse.status}`
+            );
           }
-          
+
           const responseData = await alternativeResponse.json();
           return responseData;
         }
-        
+
         throw uploadError;
       }
     } catch (error) {
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
-      
+
       throw new Error(error.message || "Failed to upload document");
     }
   },
@@ -796,42 +906,51 @@ createEvent: async (formData) => {
   updatePartnerProfileWithLogo: async (formData) => {
     try {
       // Validate required fields exist
-      if (!formData.has('logo')) {
+      if (!formData.has("logo")) {
         throw new Error("Logo file is required");
       }
-      
-      const logoFile = formData.get('logo');
-      
+
+      const logoFile = formData.get("logo");
+
       // STRICT validation against BE requirements
-      if (logoFile.size > 200 * 1024) { // 200KB in bytes
-        throw new Error(`Logo too large: ${(logoFile.size / 1024).toFixed(2)}KB. Maximum 200KB.`);
+      if (logoFile.size > 200 * 1024) {
+        // 200KB in bytes
+        throw new Error(
+          `Logo too large: ${(logoFile.size / 1024).toFixed(
+            2
+          )}KB. Maximum 200KB.`
+        );
       }
-      
-      if (!['image/png', 'image/jpg', 'image/jpeg'].includes(logoFile.type)) {
-        throw new Error(`File format ${logoFile.type} not supported. Use PNG, JPG, or JPEG.`);
+
+      if (!["image/png", "image/jpg", "image/jpeg"].includes(logoFile.type)) {
+        throw new Error(
+          `File format ${logoFile.type} not supported. Use PNG, JPG, or JPEG.`
+        );
       }
-      
+
       // Simple fetch implementation
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       const response = await fetch(`${API_URL}/partners/me/profile`, {
-        method: 'PUT',
+        method: "PUT",
         body: formData,
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       const responseData = await response.json();
-      
+
       if (!response.ok) {
         throw {
           status: response.status,
-          message: responseData.message || `Server responded with status ${response.status}`,
-          data: responseData
+          message:
+            responseData.message ||
+            `Server responded with status ${response.status}`,
+          data: responseData,
         };
       }
-      
+
       return responseData;
     } catch (error) {
       throw error;
@@ -847,36 +966,14 @@ createEvent: async (formData) => {
    */
   getEventRegistrants: async (eventId, params = {}) => {
     try {
-      console.log(`🔍 API Call: GET /partners/me/events/${eventId}/registrants`);
-      console.log('📋 Parameters:', params);
-      
-      // Log token untuk memastikan autentikasi
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-      console.log('🔑 Token exists:', !!token);
-      if (token) {
-        console.log('🔑 Token preview:', token.substring(0, 50) + '...');
-      }
-      
       const response = await httpClient.get(
-        `${API_URL}/partners/me/events/${eventId}/registrants`, 
+        `${API_URL}/partners/me/events/${eventId}/registrants`,
         { params }
       );
-      
-      console.log('✅ API Response Status:', response.status);
-      console.log('📦 API Response Data:', response.data);
-      console.log('🏗️ Response Structure:', {
-        hasRegistrants: !!response.data.registrants,
-        registrantsKeys: response.data.registrants ? Object.keys(response.data.registrants) : [],
-        totalItems: response.data.registrants?.totalItems,
-        dataLength: response.data.registrants?.data?.length
-      });
-      
+
       return response.data;
     } catch (error) {
-      console.error('❌ API Error:', error);
-      console.error('❌ Error Response:', error.response?.data);
-      console.error('❌ Error Status:', error.response?.status);
-      handleApiError(error, 'Failed to get registrant data');
+      handleApiError(error, "Failed to get registrant data");
     }
   },
 
@@ -894,7 +991,7 @@ createEvent: async (formData) => {
       );
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Failed to get registrant details');
+      handleApiError(error, "Failed to get registrant details");
     }
   },
 
@@ -906,19 +1003,19 @@ createEvent: async (formData) => {
    * @returns {Promise<Object>} Updated registrant data
    * @throws {Object} Error object with message
    */
-reviewRegistrant: async (eventId, registrantId, status) => {
-  try {
-    if (!['accepted', 'rejected'].includes(status.toLowerCase())) {
-      throw new Error('Status must be "accepted" or "rejected"');
+  reviewRegistrant: async (eventId, registrantId, status) => {
+    try {
+      if (!["accepted", "rejected"].includes(status.toLowerCase())) {
+        throw new Error('Status must be "accepted" or "rejected"');
+      }
+
+      const response = await httpClient.post(
+        `${API_URL}/partners/me/events/${eventId}/registrants/${registrantId}`,
+        { status: status.toLowerCase() }
+      );
+      return response.data;
+    } catch (error) {
+      handleApiError(error, "Failed to review registrant");
     }
-    
-    const response = await httpClient.post(
-      `${API_URL}/partners/me/events/${eventId}/registrants/${registrantId}`,
-      { status: status.toLowerCase() }
-    );
-    return response.data;
-  } catch (error) {
-    handleApiError(error, 'Failed to review registrant');
-  }
-},
+  },
 };
