@@ -1,13 +1,42 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./src/assets/images/logo-title.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Volunteerin</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="./src/assets/images/logo-title.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- ============================================ -->
+  <!-- CRITICAL: Preconnect untuk resource eksternal -->
+  <!-- ============================================ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- DNS Prefetch untuk external resources -->
+  <link rel="dns-prefetch" href="https://api.iconify.design">
+  
+  <!-- ============================================ -->
+  <!-- OPTIMASI LCP: Preload LCP image (Hero Banner) -->
+  <!-- ============================================ -->
+  <!-- Banner pertama adalah LCP element, preload untuk load cepat -->
+  <link rel="preload" as="image" href="/src/assets/images/banner1.jpg" fetchpriority="high">
+  
+  <!-- ============================================ -->
+  <!-- OPTIMASI LCP: Preload Critical Fonts -->
+  <!-- ============================================ -->
+  <!-- Preload font untuk mencegah FOIT (Flash of Invisible Text) -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  
+  <title>Volunteerin - Platform Relawan Indonesia</title>
+  
+  <!-- Meta description untuk SEO -->
+  <meta name="description" content="Platform terpercaya untuk menemukan dan bergabung dengan kegiatan volunteer di Indonesia">
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>

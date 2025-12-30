@@ -279,7 +279,7 @@ const ListEvents = () => {
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
                                   console.log(`Using default local banner for: ${event.name}`);
-                                  e.target.src = defaultBanner; // Gunakan banner lokal jika terjadi error
+                                  e.target.src = defaultBanner;
                                 }}
                               />
                             </div>

@@ -1,11 +1,12 @@
 import { Routes, Route, useLocation } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import "./App.css";
+
+// == static imports (critical pages - immediate load) ==
+import LandingPage from "./pages/LandingPage";
 import RegisterPage from "./pages/users/RegisterPage";
 import Login from "./pages/users/Login";
 import NotFoundPage from "./pages/NotFoundPage";
-import LandingPage from "./pages/LandingPage";
-import EventPage from "./pages/events/EventPage";
 import SaveEvent from "./pages/events/SaveEvent";
 import RegisteredEvent from "./pages/events/RegisteredEvent";
 import ProfileUser from "./pages/users/ProfileUser";
@@ -17,15 +18,26 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Service from "./pages/Service";
 import { ThemeProvider } from "./context/ThemeContext";
-import LayoutPartner from "./pages/partners/Layout";
 import FormRegisterUser from "./pages/users/FormRegisterUser";
 import Gamification from "./components/Fragments/Gamification";
 import LayoutAdmin from "./pages/admin/LayoutAdmin";
 import LoginPageAdmin from "./pages/admin/LoginPageAdmin";
-import FormPendaftaran from "./pages/users/FormRegisterUser";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import EventPage from "./pages/events/EventPage";
 import ReactGA from "react-ga4";
-// import EventDashboard from "./pages/partners/CreateEvent";
+
+// == Lazy load ONLY partner dashboard (not critical for initial page load) ==
+const LayoutPartner = lazy(() => import("./pages/partners/Layout"));
+
+// == Minimal Loading Fallback for better perceived performance ==
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen bg-white">
+    <div className="flex flex-col items-center gap-4">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A3E54]"></div>
+      <p className="text-sm text-gray-600">Memuat halaman...</p>
+    </div>
+  </div>
+);
 
 function App() {
   const location = useLocation();
@@ -33,78 +45,145 @@ function App() {
   useEffect(() => {
     ReactGA.send({
       hitType: "pageview",
-      page: location.pathname + location.search,
+      // page: location.pathname + location.search,
       title: document.title,
     });
   }, [location]);
+
   return (
     <ThemeProvider storageKey="theme">
       <Routes>
-        {/* admin route */}
+        {/* == ADMIN ROUTE (TIDAK DIOPTIMASI) == */}
         <Route path="/admin/dashboard" element={<LayoutAdmin />} />
         <Route path="/admin/data-user" element={<LayoutAdmin />} />
         <Route path="/admin/data-partner" element={<LayoutAdmin />} />
         <Route path="/login-admin" element={<LoginPageAdmin />} />
 
-        {/* dashboard partner route */}
-        <Route path="/partner/dashboard" element={<LayoutPartner />} />
-        <Route
-          path="/partner/dashboard/analytics"
-          element={<LayoutPartner />}
+        {/* == PARTNER DASHBOARD (LAZY - OBJEK PENELITIAN) == */}
+        <Route 
+          path="/partner/dashboard" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/buat-event"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/analytics" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/create-event"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/buat-event" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/create-formulir"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/create-event" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/pendaftar"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/create-formulir" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/pencairan-dana"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/pendaftar" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/profile-partner"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/pencairan-dana" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/penanggung-jawab"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/profile-partner" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/legalitas"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/penanggung-jawab" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route
-          path="/partner/dashboard/media-sosial"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/legalitas" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route path="/partner/dashboard/faq" element={<LayoutPartner />} />
-        <Route
-          path="/partner/dashboard/cs-partner"
-          element={<LayoutPartner />}
+        <Route 
+          path="/partner/dashboard/media-sosial" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
         />
-        <Route path="/partner/dashboard/panduan" element={<LayoutPartner />} />
+        <Route 
+          path="/partner/dashboard/faq" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/partner/dashboard/cs-partner" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/partner/dashboard/panduan" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LayoutPartner />
+            </Suspense>
+          } 
+        />
 
-        {/* user route */}
+        {/* == USER ROUTE - Landing Page IMMEDIATE (NO LAZY) == */}
         <Route path="/" element={<LandingPage />} />
+
+        {/* Route lainnya (TIDAK DIOPTIMASI) */}
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/event/:id" element={<EventPage />} />
-        <Route
-          path="/events/:eventId/register-user"
-          element={<FormRegisterUser />}
-        />
 
+        {/* Halaman Detail Event - Load immediately for better performance */}
+        <Route path="/event/:id" element={<EventPage />} />
+
+        <Route path="/events/:eventId/register-user" element={<FormRegisterUser />} />
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
         <Route path="/regis-event" element={<RegisteredEvent />} />
@@ -116,11 +195,11 @@ function App() {
         <Route path="/layanan" element={<Service />} />
         <Route path="/misi-kamu" element={<Gamification />} />
 
-        {/* partner route */}
+        {/* == PARTNER AUTH (TIDAK DIOPTIMASI) == */}
         <Route path="/login-partner" element={<LoginPartner />} />
         <Route path="/register-partner" element={<RegisterPartner />} />
 
-        {/* Not found route */}
+        {/* == NOT FOUND (TIDAK DIOPTIMASI) == */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ThemeProvider>

@@ -38,22 +38,20 @@ export const bannerData = [
 
 const HeroSection = () => {
   const swiperRef = useRef(null);
-  const [deviceType, setDeviceType] = useState("desktop");
+  const [deviceType, setDeviceType] = useState(() => {
+    // ============================================
+    // OPTIMASI CLS: Set initial state based on screen
+    // ============================================
+    const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    if (width < 768) return "mobile";
+    if (width >= 768 && width < 1024) return "tablet";
+    return "desktop";
+  });
 
-  // Preload first banner for faster LCP
-  useEffect(() => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = Banner1;
-    document.head.appendChild(link);
-    
-    return () => {
-      if (document.head.contains(link)) {
-        document.head.removeChild(link);
-      }
-    };
-  }, []);
+  // ============================================
+  // OPTIMASI LCP: Banner1 sudah di-preload di index.html
+  // Tidak perlu lagi preload di sini
+  // ============================================
 
   // Deteksi ukuran layar untuk responsive design
   useEffect(() => {
@@ -68,11 +66,8 @@ const HeroSection = () => {
       }
     };
     
-    // Set nilai awal
-    handleResize();
-    
-    // Add event listener
-    window.addEventListener("resize", handleResize);
+    // Add event listener dengan passive untuk better performance
+    window.addEventListener("resize", handleResize, { passive: true });
     
     // Clean up
     return () => {
@@ -84,63 +79,92 @@ const HeroSection = () => {
   const isMobile = deviceType === "mobile";
   const isTablet = deviceType === "tablet";
   
-  // Menghasilkan height berdasarkan device type
+  // ============================================
+  // OPTIMASI CLS: Fixed heights untuk prevent layout shift
+  // ============================================
   const getSwiperHeight = () => {
     switch (deviceType) {
-      case "mobile": return "h-[260px]";
-      case "tablet": return "h-[320px]";
-      default: return "h-[400px]";
+      case "mobile": return "260px";
+      case "tablet": return "320px";
+      default: return "400px";
+    }
+  };
+
+  const getSlideHeight = () => {
+    switch (deviceType) {
+      case "mobile": return "240px";
+      case "tablet": return "300px";
+      default: return "380px";
     }
   };
 
   return (
     <section className="relative w-full overflow-hidden pt-16 md:pt-16 lg:pt-16">
       <div className="container mx-auto px-4 py-4 md:py-6">
-        <Swiper
-          ref={swiperRef}
-          slidesPerView={1}
-          centeredSlides={true}
-          spaceBetween={20}
-          loop={true}
-          pagination={{
-            clickable: true,
-            el: ".swiper-pagination",
-            bulletClass:
-              "swiper-pagination-bullet !bg-cyan-200 !opacity-50 mx-1",
-            bulletActiveClass: "!opacity-90 !bg-[#0A3E54]",
-          }}
-          navigation={{
-            nextEl: ".swiper-button-next",
-            prevEl: ".swiper-button-prev",
-          }}
-          autoplay={{
-            delay: 5000,
-            disableOnInteraction: false,
-          }}
-          speed={800}
-          modules={[Pagination, Autoplay, Navigation]}
-          className={`${getSwiperHeight()} w-full`}
-        >
-          {bannerData.map((banner, index) => (
-            <SwiperSlide key={index} className="!w-full h-full">
-              <Link to={banner.link} className="block h-full">
-                <div className="w-full h-full rounded-lg shadow-md overflow-hidden relative group">
-                  <img 
-                    src={banner.image} 
-                    alt={`Banner ${index + 1}`} 
-                    className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                    loading={index === 0 ? "eager" : "lazy"}
-                    fetchpriority={index === 0 ? "high" : "low"}
-                    decoding={index === 0 ? "sync" : "async"}
-                  />
-                  
-                  {/* Overlay effect */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-              </Link>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        {/* ============================================ */}
+        {/* OPTIMASI CLS: Fixed height container */}
+        {/* ============================================ */}
+        <div style={{ height: getSwiperHeight() }}>
+          <Swiper
+            ref={swiperRef}
+            slidesPerView={1}
+            centeredSlides={true}
+            spaceBetween={20}
+            loop={true}
+            pagination={{
+              clickable: true,
+              el: ".swiper-pagination",
+              bulletClass:
+                "swiper-pagination-bullet !bg-cyan-200 !opacity-50 mx-1",
+              bulletActiveClass: "!opacity-90 !bg-[#0A3E54]",
+            }}
+            navigation={{
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            }}
+            autoplay={{
+              delay: 5000,
+              disableOnInteraction: false,
+            }}
+            speed={800}
+            modules={[Pagination, Autoplay, Navigation]}
+            className="w-full h-full"
+          >
+            {bannerData.map((banner, index) => (
+              <SwiperSlide key={index} className="!w-full" style={{ height: getSlideHeight() }}>
+                <Link to={banner.link} className="block h-full">
+                  <div className="w-full h-full rounded-lg shadow-md overflow-hidden relative group">
+                    {/* ============================================ */}
+                    {/* OPTIMASI LCP: Eager load + High Priority untuk banner pertama */}
+                    {/* OPTIMASI CLS: Fixed aspect ratio dengan object-cover */}
+                    {/* ============================================ */}
+                    <img 
+                      src={banner.image} 
+                      alt={`Banner ${index + 1}`} 
+                      className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                      loading={index === 0 ? "eager" : "lazy"}
+                      fetchpriority={index === 0 ? "high" : "low"}
+                      decoding={index === 0 ? "sync" : "async"}
+                      // ============================================
+                      // OPTIMASI CLS: Explicit dimensions
+                      // ============================================
+                      width="1200"
+                      height="675"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                    
+                    {/* Overlay effect */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                </Link>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
 
         <div className="flex justify-center items-center mt-4 gap-4">
           {/* Tombol navigasi */}
@@ -150,16 +174,20 @@ const HeroSection = () => {
         </div>
       </div>
 
+      {/* ============================================ */}
+      {/* OPTIMASI CLS: Inline styles dengan fixed values */}
+      {/* ============================================ */}
       <style jsx global>{`
         .swiper {
           width: 100% !important;
           border-radius: ${isMobile ? '12px' : isTablet ? '14px' : '16px'};
           overflow: hidden;
+          height: ${getSwiperHeight()} !important;
         }
         
         .swiper-slide {
           opacity: 1;
-          height: ${isMobile ? '240px' : isTablet ? '300px' : '380px'} !important;
+          height: ${getSlideHeight()} !important;
           border-radius: ${isMobile ? '12px' : isTablet ? '14px' : '16px'};
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
           overflow: hidden;

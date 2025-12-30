@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/navbar/Navbar";
 import Footer from "../../components/footer/Footer";
 import BannerEvent from "../../assets/images/banner1.jpg";
 import { Icon } from "@iconify/react";
 import BtnDaftarVolunteer from "../../components/Elements/buttons/BtnDaftarVolunteer";
-import Marketing from "../../components/Fragments/Marketing";
 import { useAuth } from "../../context/AuthContext";
 import { fetchEventById } from "../../services/eventService";
+
+// Lazy Loading Components
+import LazyImage from "../../components/Images/LazyImage";
+import LazySection from "../../components/Lazy/LazySection";
+import DescriptionSkeleton from "../../components/Skeleton/DescriptionSkeleton";
+import EventDetailSkeleton from "../../components/Skeleton/EventDetailSkeleton";
+import SidebarSkeleton from "../../components/Skeleton/SidebarSkeleton";
+import MapModal from "../../components/Maps/MapModal";
+import Marketing from "../../components/Fragments/Marketing";
 
 const EventPage = () => {
   const { id } = useParams();
@@ -17,6 +25,7 @@ const EventPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   useEffect(() => {
     const getEventData = async () => {
@@ -50,9 +59,18 @@ const EventPage = () => {
     return (
       <section className="min-h-screen flex flex-col">
         <Navbar />
-        <div className="flex-grow flex justify-center items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0A3E54]"></div>
-        </div>
+        <section className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-screen-xl py-12">
+          <div className="flex flex-col lg:flex-row gap-4 py-6 lg:py-10">
+            {/* Main Content Skeleton */}
+            <EventDetailSkeleton />
+            
+            {/* Sidebar Skeleton */}
+            <SidebarSkeleton />
+          </div>
+          
+          {/* Marketing Skeleton */}
+          <div className="w-full h-60 bg-gray-200 animate-pulse rounded-lg my-8"></div>
+        </section>
         <Footer />
       </section>
     );
@@ -169,13 +187,13 @@ const EventPage = () => {
         <div className="flex flex-col lg:flex-row gap-4 py-6 lg:py-10">
           <div className="w-full lg:w-8/12 space-y-4">
             <div className="mb-6 lg:mb-0">
-              <img
+              {/* === LAZY IMAGE BANNER === */}
+              <LazyImage
                 src={event.bannerUrl || BannerEvent}
-                alt="Banner detail volunteer"
-                className="w-full h-72 object-fit rounded-t-[12px]"
-                onError={(e) => {
-                  e.target.src = BannerEvent;
-                }}
+                alt={`Banner ${eventDetails.title}`}
+                placeholder={BannerEvent}
+                className="w-full h-72 object-cover rounded-t-[12px]"
+                skeletonClassName="h-72 rounded-t-[12px]"
               />
               <div className="bg-[#FBFBFB] border-b border-l border-r border-gray-200 p-4 sm:p-6 rounded-b-xl">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-0 mb-4">
@@ -232,26 +250,39 @@ const EventPage = () => {
                     ))}
                 </div>
 
-                <div className="flex items-start sm:items-center gap-2 mb-6 text-[#343E46]">
+                {/* === LOKASI EVENT - CLICKABLE TO OPEN MAP MODAL === */}
+                <button
+                  onClick={() => setIsMapModalOpen(true)}
+                  className="flex items-start sm:items-center gap-2 mb-6 text-[#343E46] p-3 w-full text-left group cursor-pointer"
+                >
                   <Icon
                     icon="weui:location-filled"
-                    className="w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0"
+                    className="w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0 text-[#0A3E54]"
                   />
-                  <span className="text-[#0A3E54] text-base sm:text-xl">
-                    {eventDetails.location}
-                  </span>
-                </div>
+                  <div className="flex-1">
+                    <span className="text-[#0A3E54] text-base sm:text-xl">
+                      {eventDetails.location}
+                    </span>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      Klik untuk melihat peta lokasi
+                    </p>
+                  </div>
+                  <Icon
+                    icon="mdi:chevron-right"
+                    className="w-5 h-5 text-gray-400"
+                  />
+                </button>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
                   <div className="flex items-center justify-between w-full sm:w-auto">
                     <div className="flex items-center gap-4">
-                      <img
+                      {/* === LAZY IMAGE ORGANIZER LOGO === */}
+                      <LazyImage
                         src={eventDetails.organizer.logo}
-                        alt="Organizer"
-                        className="w-12 h-12 rounded-full"
-                        onError={(e) => {
-                          e.target.src = BannerEvent;
-                        }}
+                        alt={eventDetails.organizer.name}
+                        placeholder={BannerEvent}
+                        className="w-12 h-12 rounded-full object-cover"
+                        skeletonClassName="w-12 h-12 rounded-full"
                       />
                       <div>
                         <p className="text-sm text-gray-500">
@@ -295,31 +326,38 @@ const EventPage = () => {
               </div>
             </div>
 
-            <div className="bg-[#FBFBFB] border border-gray-200 rounded-lg shadow-sm p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Icon
-                  icon="gg:notes"
-                  width="28"
-                  height="28"
-                  className="text-[#0A3E54]"
-                />
-                <h2 className="text-xl font-medium text-[#0A3E54]">
-                  Deskripsi Kegiatan
-                </h2>
-              </div>
-              <div className="h-[1px] bg-gray-200 w-full mb-6"></div>
+            {/* === LAZY SECTION DESKRIPSI KEGIATAN === */}
+            <LazySection
+              fallback={<DescriptionSkeleton />}
+              threshold={0.1}
+              rootMargin="150px"
+            >
+              <div className="bg-[#FBFBFB] border border-gray-200 rounded-lg shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon
+                    icon="gg:notes"
+                    width="28"
+                    height="28"
+                    className="text-[#0A3E54]"
+                  />
+                  <h2 className="text-xl font-medium text-[#0A3E54]">
+                    Deskripsi Kegiatan
+                  </h2>
+                </div>
+                <div className="h-[1px] bg-gray-200 w-full mb-6"></div>
 
-              <div className="space-y-4">
-                {activities.map((activity) => (
-                  <div key={activity.id} className="flex gap-4">
-                    <span className="text-[#0A3E54] font-medium">
-                      {activity.id}.
-                    </span>
-                    <p className="text-gray-700">{activity.description}</p>
-                  </div>
-                ))}
+                <div className="space-y-4">
+                  {activities.map((activity) => (
+                    <div key={activity.id} className="flex gap-4">
+                      <span className="text-[#0A3E54] font-medium">
+                        {activity.id}.
+                      </span>
+                      <p className="text-gray-700">{activity.description}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            </LazySection>
           </div>
 
           <div className="w-full lg:w-4/12">
@@ -376,9 +414,21 @@ const EventPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Marketing Section - Loaded immediately for better performance */}
         <Marketing />
       </section>
       <Footer />
+
+      {/* === MAP MODAL (Lazy Load on Click) === */}
+      <MapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+        address={event.address}
+        latitude={event.latitude}
+        longitude={event.longitude}
+        eventName={event.title}
+      />
     </section>
   );
 };

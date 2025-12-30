@@ -8,9 +8,9 @@ import Events from "./events/Events";
 import BtnSaveEvent from "../components/Elements/buttons/BtnSaveEvent";
 import BtnHistory from "../components/Elements/buttons/BtnHistory";
 import { Icon } from "@iconify/react";
-import Marketing from "../components/Fragments/Marketing";
 import SearchDropdownCategory from "../components/Elements/search/SearchDropdownCategory";
 import { fetchCategories } from "../services/eventService";
+import Marketing from "../components/Fragments/Marketing";
 
 const MAIN_CATEGORIES = ["Lingkungan", "Sosial", "Pendidikan"];
 const MAX_EVENT_COUNT = 20;
@@ -18,7 +18,6 @@ const INITIAL_MORE_EVENTS_LIMIT = 8;
 const INITIAL_FREE_EVENTS_LIMIT = 4;
 const EVENTS_PER_ROW = 4;
 const LOADING_DELAY = 200;
-const FILTER_RESET_DELAY = 300;
 const STORAGE_KEY_CATEGORY = "volunteerin_selected_category";
 const DEFAULT_CATEGORIES = [
   { id: null, name: "Semua Event" },
@@ -27,6 +26,7 @@ const DEFAULT_CATEGORIES = [
   { id: "category-pendidikan", name: "Pendidikan" },
 ];
 
+// Skeleton components - hanya untuk loading state real (bukan artificial delay)
 const SearchBarSkeleton = () => (
   <div className="w-full md:w-auto flex-grow">
     <div className="h-12 bg-gray-200 animate-pulse rounded-[12px]"></div>
@@ -64,12 +64,12 @@ const LandingPage = () => {
     loadingMoreFree: false,
   });
 
+  // Remove initial loading states - immediate render untuk better performance
   const [uiLoading, setUiLoading] = useState({
-    searchBar: true,
-    popularEvents: true,
-    moreEvents: true,
-    freeEvents: true,
-    marketingSection: true,
+    searchBar: false,
+    popularEvents: false,
+    moreEvents: false,
+    freeEvents: false,
   });
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -104,39 +104,18 @@ const LandingPage = () => {
     }
   }, []);
 
+  // Remove artificial delays - immediate render untuk better FCP/LCP
   useEffect(() => {
-    const isFirstVisit = !sessionStorage.getItem("uiLoaded");
-
-    if (isFirstVisit) {
-      setTimeout(() => {
-        setUiLoading((prev) => ({ ...prev, searchBar: false }));
-      }, 600);
-
-      setTimeout(() => {
-        setUiLoading((prev) => ({ ...prev, popularEvents: false }));
-      }, 700);
-
-      setTimeout(() => {
-        setUiLoading((prev) => ({ ...prev, moreEvents: false }));
-      }, 800);
-
-      setTimeout(() => {
-        setUiLoading((prev) => ({ ...prev, freeEvents: false }));
-      }, 900);
-
-      setTimeout(() => {
-        setUiLoading((prev) => ({ ...prev, marketingSection: false }));
-        sessionStorage.setItem("uiLoaded", "true");
-      }, 1000);
-    } else {
-      setUiLoading({
-        searchBar: false,
-        popularEvents: false,
-        moreEvents: false,
-        freeEvents: false,
-        marketingSection: false,
-      });
-    }
+    // Set semua UI components sebagai loaded immediately
+    setUiLoading({
+      searchBar: false,
+      popularEvents: false,
+      moreEvents: false,
+      freeEvents: false,
+    });
+    
+    // Mark as loaded untuk subsequent visits
+    sessionStorage.setItem("uiLoaded", "true");
   }, []);
 
   // Helper untuk mengurutkan kategori
@@ -228,13 +207,6 @@ const LandingPage = () => {
 
   // Event handlers
   const handleCategoryClick = (categoryId, categoryName) => {
-    setUiLoading((prev) => ({
-      ...prev,
-      popularEvents: true,
-      moreEvents: true,
-      freeEvents: true,
-    }));
-
     // Aktifkan filter
     setCategoryState((prev) => ({
       ...prev,
@@ -263,22 +235,6 @@ const LandingPage = () => {
       navigate("/", { replace: true });
     }
 
-    setTimeout(() => {
-      setCategoryState((prev) => ({ ...prev, filterApplied: false }));
-
-      setTimeout(() => {
-        setUiLoading((prev) => ({ ...prev, popularEvents: false }));
-      }, 300);
-
-      setTimeout(() => {
-        setUiLoading((prev) => ({ ...prev, moreEvents: false }));
-      }, 450);
-
-      setTimeout(() => {
-        setUiLoading((prev) => ({ ...prev, freeEvents: false }));
-      }, 600);
-    }, FILTER_RESET_DELAY);
-
     setEventLimits((prev) => ({
       ...prev,
       moreEventsLimit: INITIAL_MORE_EVENTS_LIMIT,
@@ -291,13 +247,6 @@ const LandingPage = () => {
   };
 
   const handleClearFilter = () => {
-    setUiLoading((prev) => ({
-      ...prev,
-      popularEvents: true,
-      moreEvents: true,
-      freeEvents: true,
-    }));
-
     setCategoryState((prev) => ({
       ...prev,
       selectedCategory: null,
@@ -306,75 +255,42 @@ const LandingPage = () => {
 
     localStorage.removeItem(STORAGE_KEY_CATEGORY);
     navigate("/", { replace: true });
-
-    setTimeout(() => {
-      setUiLoading((prev) => ({ ...prev, popularEvents: false }));
-    }, 300);
-
-    setTimeout(() => {
-      setUiLoading((prev) => ({ ...prev, moreEvents: false }));
-    }, 450);
-
-    setTimeout(() => {
-      setUiLoading((prev) => ({ ...prev, freeEvents: false }));
-    }, 600);
   };
 
   const handleShowMoreEvents = () => {
-    setEventLimits((prev) => ({ ...prev, loadingMore: true }));
-
-    setTimeout(() => {
-      setEventLimits((prev) => ({
-        ...prev,
-        moreEventsLimit: Math.min(
-          prev.moreEventsLimit + EVENTS_PER_ROW,
-          MAX_EVENT_COUNT
-        ),
-        loadingMore: false,
-      }));
-    }, LOADING_DELAY);
+    setEventLimits((prev) => ({
+      ...prev,
+      moreEventsLimit: Math.min(
+        prev.moreEventsLimit + EVENTS_PER_ROW,
+        MAX_EVENT_COUNT
+      ),
+      loadingMore: false,
+    }));
   };
 
   const handleShowLessEvents = () => {
-    setUiLoading((prev) => ({ ...prev, moreEvents: true }));
-
     setEventLimits((prev) => ({
       ...prev,
       moreEventsLimit: INITIAL_MORE_EVENTS_LIMIT,
     }));
-
-    setTimeout(() => {
-      setUiLoading((prev) => ({ ...prev, moreEvents: false }));
-    }, 400);
   };
 
   const handleShowMoreFreeEvents = () => {
-    setEventLimits((prev) => ({ ...prev, loadingMoreFree: true }));
-
-    setTimeout(() => {
-      setEventLimits((prev) => ({
-        ...prev,
-        freeEventsLimit: Math.min(
-          prev.freeEventsLimit + EVENTS_PER_ROW,
-          MAX_EVENT_COUNT
-        ),
-        loadingMoreFree: false,
-      }));
-    }, LOADING_DELAY);
+    setEventLimits((prev) => ({
+      ...prev,
+      freeEventsLimit: Math.min(
+        prev.freeEventsLimit + EVENTS_PER_ROW,
+        MAX_EVENT_COUNT
+      ),
+      loadingMoreFree: false,
+    }));
   };
 
   const handleShowLessFreeEvents = () => {
-    // Animate collapse by showing loading state briefly
-    setUiLoading((prev) => ({ ...prev, freeEvents: true }));
-
     setEventLimits((prev) => ({
       ...prev,
       freeEventsLimit: INITIAL_FREE_EVENTS_LIMIT,
     }));
-
-    setTimeout(() => {
-      setUiLoading((prev) => ({ ...prev, freeEvents: false }));
-    }, 400);
   };
 
   const getCategoryButtonClass = (categoryId) => {
@@ -660,12 +576,8 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Marketing Section */}
-        {uiLoading.marketingSection ? (
-          <div className="w-full h-60 bg-gray-200 animate-pulse rounded-lg my-8"></div>
-        ) : (
-          <Marketing />
-        )}
+        {/* Marketing Section - Load immediately untuk better performance */}
+        <Marketing />
       </div>
 
       <Footer />

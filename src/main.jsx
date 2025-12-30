@@ -7,16 +7,31 @@ import App from './App.jsx'
 
 import ReactGA from 'react-ga4';
 
-// Pastikan file .env  berisi: VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+// ============================================
+// OPTIMASI TBT: Defer Google Analytics initialization
+// ============================================
 const gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
-// 3. Lakukan inisialisasi jika Measurement ID ada
+// Initialize GA after page load (tidak block initial render)
 if (gaMeasurementId) {
-  ReactGA.initialize(gaMeasurementId);
-  console.log("Google Analytics is initialized.");
+  // Use requestIdleCallback untuk initialize saat browser idle
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      ReactGA.initialize(gaMeasurementId);
+      console.log("Google Analytics initialized (deferred).");
+    });
+  } else {
+    // Fallback untuk browser yang tidak support requestIdleCallback
+    setTimeout(() => {
+      ReactGA.initialize(gaMeasurementId);
+      console.log("Google Analytics initialized (deferred).");
+    }, 1000);
+  }
 }
 
-// Render aplikasi Anda
+// ============================================
+// Render aplikasi - prioritas tertinggi
+// ============================================
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

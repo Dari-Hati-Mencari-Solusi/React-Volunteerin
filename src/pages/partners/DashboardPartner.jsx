@@ -1,19 +1,63 @@
-import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-
+import React from "react";
+import { Icon } from "@iconify/react";
 import { useTheme } from "../../hooks/UseTheme";
-
 import { overviewData } from "../../constants/index";
-
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Footer } from "../partners/layouts/Footer";
 
-import { Icon } from "@iconify/react";
+// Chart Component - Direct implementation for better performance
+const DashboardAreaChart = ({ data, title, gradientId }) => {
+  const { theme } = useTheme();
+  
+  return (
+    <div className="card">
+      <div className="card-header">
+        <p className="card-title">{title}</p>
+      </div>
+      <div className="card-body p-0">
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart
+            data={data}
+            margin={{
+              top: 0,
+              right: 0,
+              left: 0,
+              bottom: 0,
+            }}
+          >
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Tooltip cursor={false} formatter={(value) => `$${value}`} />
+            <XAxis
+              dataKey="name"
+              strokeWidth={0}
+              stroke={theme === "light" ? "#475569" : "#94a3b8"}
+              tickMargin={6}
+            />
+            <YAxis
+              dataKey="total"
+              strokeWidth={0}
+              stroke={theme === "light" ? "#475569" : "#94a3b8"}
+              tickFormatter={(value) => `$${value}`}
+              tickMargin={6}
+            />
+            <Area
+              type="monotone"
+              dataKey="total"
+              stroke="#2563eb"
+              fillOpacity={1}
+              fill={`url(#${gradientId})`}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
 
 const DashboardPartner = () => {
   const { theme } = useTheme();
@@ -146,108 +190,24 @@ const DashboardPartner = () => {
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Charts - Loaded directly for better performance */}
       <div className="grid grid-cols-1 gap-4">
-        <div className="card">
-          <div className="card-header">
-            <p className="card-title">Analisis Rentang Waktu Pendaftar</p>
-          </div>
-          <div className="card-body p-0">
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart
-                data={overviewData}
-                margin={{
-                  top: 0,
-                  right: 0,
-                  left: 0,
-                  bottom: 0,
-                }}
-              >
-                <defs>
-                  <linearGradient id="colorTotal1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Tooltip cursor={false} formatter={(value) => `$${value}`} />
-
-                <XAxis
-                  dataKey="name"
-                  strokeWidth={0}
-                  stroke={theme === "light" ? "#475569" : "#94a3b8"}
-                  tickMargin={6}
-                />
-                <YAxis
-                  dataKey="total"
-                  strokeWidth={0}
-                  stroke={theme === "light" ? "#475569" : "#94a3b8"}
-                  tickFormatter={(value) => `$${value}`}
-                  tickMargin={6}
-                />
-
-                <Area
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#2563eb"
-                  fillOpacity={1}
-                  fill="url(#colorTotal1)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <DashboardAreaChart
+          data={overviewData}
+          title="Analisis Rentang Waktu Pendaftar"
+          gradientId="colorTotal1"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        <div className="card">
-          <div className="card-header">
-            <p className="card-title">Analisis Pendapatan Waktu Pendaftar</p>
-          </div>
-          <div className="card-body p-0">
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart
-                data={overviewData}
-                margin={{
-                  top: 0,
-                  right: 0,
-                  left: 0,
-                  bottom: 0,
-                }}
-              >
-                <defs>
-                  <linearGradient id="colorTotal2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Tooltip cursor={false} formatter={(value) => `$${value}`} />
-
-                <XAxis
-                  dataKey="name"
-                  strokeWidth={0}
-                  stroke={theme === "light" ? "#475569" : "#94a3b8"}
-                  tickMargin={6}
-                />
-                <YAxis
-                  dataKey="total"
-                  strokeWidth={0}
-                  stroke={theme === "light" ? "#475569" : "#94a3b8"}
-                  tickFormatter={(value) => `$${value}`}
-                  tickMargin={6}
-                />
-
-                <Area
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#2563eb"
-                  fillOpacity={1}
-                  fill="url(#colorTotal2)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <DashboardAreaChart
+          data={overviewData}
+          title="Analisis Pendapatan Waktu Pendaftar"
+          gradientId="colorTotal2"
+        />
       </div>
+
+      {/* Footer - Loaded directly */}
       <Footer />
     </div>
   );
