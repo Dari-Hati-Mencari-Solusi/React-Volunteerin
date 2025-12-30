@@ -30,12 +30,15 @@ export default defineConfig({
           
           // Icon library
           'icon-vendor': ['@iconify/react', 'lucide-react'],
+          
+          // Recharts - Heavy charting library (lazy loaded)
+          'recharts-vendor': ['recharts'],
         }
       }
     },
     
     // Compress assets
-    // minify: 'terser',
+    minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true, // Remove console.log di production

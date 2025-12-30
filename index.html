@@ -16,17 +16,29 @@
   <link rel="dns-prefetch" href="https://api.iconify.design">
   
   <!-- ============================================ -->
-  <!-- OPTIMASI LCP: Preload LCP image (Hero Banner) -->
-  <!-- ============================================ -->
-  <!-- Banner pertama adalah LCP element, preload untuk load cepat -->
-  <link rel="preload" as="image" href="/src/assets/images/banner1.jpg" fetchpriority="high">
-  
-  <!-- ============================================ -->
   <!-- OPTIMASI LCP: Preload Critical Fonts -->
   <!-- ============================================ -->
   <!-- Preload font untuk mencegah FOIT (Flash of Invisible Text) -->
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
+  
+  <!-- ============================================ -->
+  <!-- OPTIMASI FCP/LCP: Inline Critical CSS -->
+  <!-- ============================================ -->
+  <style>
+    /* Critical above-the-fold styles */
+    #root { min-height: 100vh; }
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1rem; }
+    .card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .card-body { padding: 0.5rem 0; }
+    .card-child { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1rem; }
+    .title { font-size: 1.875rem; font-weight: 700; margin-bottom: 1rem; }
+    .title-child { font-size: 1rem; font-weight: 600; }
+    .card-title { font-size: 1.125rem; font-weight: 600; }
+    .subtitle { font-size: 1.5rem; font-weight: 600; }
+  </style>
   
   <title>Volunteerin - Platform Relawan Indonesia</title>
   
