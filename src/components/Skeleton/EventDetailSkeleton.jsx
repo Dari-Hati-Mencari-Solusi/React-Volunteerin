@@ -1,9 +1,6 @@
 import React from 'react';
 
-/**
- * Skeleton untuk halaman Event Detail
- * Pattern sederhana seperti di LandingPage
- */
+
 const EventDetailSkeleton = () => {
   return (
     <div className="w-full lg:w-8/12 space-y-4">

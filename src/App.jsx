@@ -2,8 +2,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import React, { useEffect, lazy, Suspense } from "react";
 import "./App.css";
 
-// == static imports (critical pages - immediate load) ==
-import LandingPage from "./pages/LandingPage";
+// == Static imports untuk halaman critical ==
 import RegisterPage from "./pages/users/RegisterPage";
 import Login from "./pages/users/Login";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -23,10 +22,11 @@ import Gamification from "./components/Fragments/Gamification";
 import LayoutAdmin from "./pages/admin/LayoutAdmin";
 import LoginPageAdmin from "./pages/admin/LoginPageAdmin";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
-import EventPage from "./pages/events/EventPage";
 import ReactGA from "react-ga4";
 
-// == Lazy load ONLY partner dashboard (not critical for initial page load) ==
+// == IMPLEMENTASI ROUTE-BASED CODE SPLITTING ==
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const EventPage = lazy(() => import("./pages/events/EventPage"));
 const LayoutPartner = lazy(() => import("./pages/partners/Layout"));
 
 // == Minimal Loading Fallback for better perceived performance ==
@@ -34,7 +34,7 @@ const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen bg-white">
     <div className="flex flex-col items-center gap-4">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A3E54]"></div>
-      <p className="text-sm text-gray-600">Memuat halaman...</p>
+      <p className="text-sm text-gray-600">Loading....</p>
     </div>
   </div>
 );
@@ -45,7 +45,6 @@ function App() {
   useEffect(() => {
     ReactGA.send({
       hitType: "pageview",
-      // page: location.pathname + location.search,
       title: document.title,
     });
   }, [location]);
@@ -59,7 +58,27 @@ function App() {
         <Route path="/admin/data-partner" element={<LayoutAdmin />} />
         <Route path="/login-admin" element={<LoginPageAdmin />} />
 
-        {/* == PARTNER DASHBOARD (LAZY - OBJEK PENELITIAN) == */}
+        {/* == LANDING PAGE (LAZY LOAD) == */}
+        <Route 
+          path="/" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LandingPage />
+            </Suspense>
+          } 
+        />
+
+        {/* == EVENT PAGE (LAZY LOAD) == */}
+        <Route 
+          path="/event/:id" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <EventPage />
+            </Suspense>
+          } 
+        />
+
+        {/* == PARTNER DASHBOARD ROUTES (LAZY LOAD) == */}
         <Route 
           path="/partner/dashboard" 
           element={
@@ -173,16 +192,9 @@ function App() {
           } 
         />
 
-        {/* == USER ROUTE - Landing Page IMMEDIATE (NO LAZY) == */}
-        <Route path="/" element={<LandingPage />} />
-
-        {/* Route lainnya (TIDAK DIOPTIMASI) */}
+        {/* == USER ROUTES (STATIC IMPORT) == */}
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<Login />} />
-
-        {/* Halaman Detail Event - Load immediately for better performance */}
-        <Route path="/event/:id" element={<EventPage />} />
-
         <Route path="/events/:eventId/register-user" element={<FormRegisterUser />} />
         <Route path="/profile-user" element={<ProfileUser />} />
         <Route path="/save-event" element={<SaveEvent />} />
@@ -195,11 +207,11 @@ function App() {
         <Route path="/layanan" element={<Service />} />
         <Route path="/misi-kamu" element={<Gamification />} />
 
-        {/* == PARTNER AUTH (TIDAK DIOPTIMASI) == */}
+        {/* == PARTNER AUTH (STATIC IMPORT) == */}
         <Route path="/login-partner" element={<LoginPartner />} />
         <Route path="/register-partner" element={<RegisterPartner />} />
 
-        {/* == NOT FOUND (TIDAK DIOPTIMASI) == */}
+        {/* == 404 PAGE == */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ThemeProvider>

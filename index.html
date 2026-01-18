@@ -5,45 +5,94 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="./src/assets/images/logo-title.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+
   <!-- ============================================ -->
   <!-- CRITICAL: Preconnect untuk resource eksternal -->
   <!-- ============================================ -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  
+
   <!-- DNS Prefetch untuk external resources -->
   <link rel="dns-prefetch" href="https://api.iconify.design">
-  
+
   <!-- ============================================ -->
   <!-- OPTIMASI LCP: Preload Critical Fonts -->
   <!-- ============================================ -->
   <!-- Preload font untuk mencegah FOIT (Flash of Invisible Text) -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
-  
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  </noscript>
+
   <!-- ============================================ -->
   <!-- OPTIMASI FCP/LCP: Inline Critical CSS -->
   <!-- ============================================ -->
   <style>
     /* Critical above-the-fold styles */
-    #root { min-height: 100vh; }
-    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; }
-    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1rem; }
-    .card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
-    .card-body { padding: 0.5rem 0; }
-    .card-child { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1rem; }
-    .title { font-size: 1.875rem; font-weight: 700; margin-bottom: 1rem; }
-    .title-child { font-size: 1rem; font-weight: 600; }
-    .card-title { font-size: 1.125rem; font-weight: 600; }
-    .subtitle { font-size: 1.5rem; font-weight: 600; }
+    #root {
+      min-height: 100vh;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-body {
+      padding: 0.5rem 0;
+    }
+
+    .card-child {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+    }
+
+    .title {
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .title-child {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
   </style>
-  
+
   <title>Volunteerin - Platform Relawan Indonesia</title>
-  
+
   <!-- Meta description untuk SEO -->
-  <meta name="description" content="Platform terpercaya untuk menemukan dan bergabung dengan kegiatan volunteer di Indonesia">
+  <meta name="description"
+    content="Platform terpercaya untuk menemukan dan bergabung dengan kegiatan volunteer di Indonesia">
 </head>
 
 <body>

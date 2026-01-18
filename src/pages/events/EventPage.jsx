@@ -415,7 +415,6 @@ const EventPage = () => {
           </div>
         </div>
 
-        {/* Marketing Section - Loaded immediately for better performance */}
         <Marketing />
       </section>
       <Footer />
